@@ -1,0 +1,56 @@
+import type { ModoPublicacion } from './configuracion.js';
+
+type Entrada = {
+  autorizacion: 'publico_con_nombre' | 'publico_anonimo' | 'solo_documentacion_interna' | 'no_autoriza';
+  info_sensible: boolean;
+  sensible_accion?: 'anonimizar' | 'uso_interno' | 'revision_antes_publicar' | null;
+};
+
+export type Decision = {
+  estado: 'pendiente' | 'aprobado';
+  ubicacion_aproximada: boolean;
+  razon: string;
+};
+
+/**
+ * Decide el estado inicial de un testimonio según el modo de publicación configurado.
+ *
+ * REGLAS FIJAS (ningún modo puede saltárselas):
+ *  1. «solo documentación interna» y «no autorizo publicación» NUNCA se publican (además la vista pública y
+ *     el trigger de es_publico lo vuelven a garantizar en la base de datos).
+ *  2. Información sensible con «revisión antes de publicar» o «uso interno» → siempre queda pendiente.
+ *  3. Información sensible con «anonimizar» → se oculta el nombre (vista pública) y la ubicación se generaliza.
+ */
+export function decidirPublicacion(modo: ModoPublicacion, t: Entrada): Decision {
+  const aproximada = t.info_sensible && t.sensible_accion === 'anonimizar';
+
+  if (t.autorizacion === 'solo_documentacion_interna' || t.autorizacion === 'no_autoriza') {
+    return { estado: 'pendiente', ubicacion_aproximada: aproximada, razon: 'sin autorización de publicación' };
+  }
+  if (t.info_sensible && (t.sensible_accion === 'revision_antes_publicar' || t.sensible_accion === 'uso_interno')) {
+    return { estado: 'pendiente', ubicacion_aproximada: aproximada, razon: 'información sensible: requiere revisión' };
+  }
+  if (modo === 'revisar_todo') return { estado: 'pendiente', ubicacion_aproximada: aproximada, razon: 'modo revisar_todo' };
+  if (modo === 'auto_si_no_sensible' && t.info_sensible) {
+    return { estado: 'pendiente', ubicacion_aproximada: aproximada, razon: 'modo auto_si_no_sensible con información sensible' };
+  }
+  return { estado: 'aprobado', ubicacion_aproximada: aproximada, razon: `publicación automática (${modo})` };
+}
+
+const TIPOS_CON_DATOS_PERSONALES = new Set(['recibo_factura', 'documento_oficial']);
+
+/**
+ * ¿Una evidencia recién subida debe quedar visible al público?
+ * Solo en modos automáticos, con testimonio aprobado y autorización de multimedia; los recibos y documentos
+ * oficiales (suelen traer nombre y domicilio) nunca se publican solos: requieren que alguien del equipo los revise.
+ */
+export function evidenciaPublicaPorDefecto(
+  modo: ModoPublicacion,
+  estadoTestimonio: string,
+  autorizaMultimedia: 'si' | 'no' | 'na',
+  tipo: string,
+): boolean {
+  if (modo === 'revisar_todo') return false;
+  if (estadoTestimonio !== 'aprobado' || autorizaMultimedia !== 'si') return false;
+  return !TIPOS_CON_DATOS_PERSONALES.has(tipo);
+}

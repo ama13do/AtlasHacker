@@ -6,7 +6,8 @@
     "allowArbitraryExtensions": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@map/*": ["./src/modules/map/*"]
+      "@map/*": ["./src/modules/map/*"],
+      "@testimonies/*": ["./src/modules/testimonies/*"]
     },
 
     /* Linting */

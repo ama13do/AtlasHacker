@@ -10,7 +10,7 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       '@map': fileURLToPath(new URL('./src/modules/map/', import.meta.url)),
-
+      '@testimonies': fileURLToPath(new URL('./src/modules/testimonies/', import.meta.url)),
     },
   },
 })

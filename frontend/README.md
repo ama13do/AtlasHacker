@@ -22,11 +22,19 @@ src/
 ├── shared/            # reutilizable entre módulos
 │   ├── components/  composables/  stores/  types/  utils/
 └── modules/
-    └── map/
-        ├── index.ts       # API pública del módulo
+    ├── map/               # mapa genérico (MapView con puntos), sin rutas propias
+    │   ├── index.ts       # API pública: MapView, MapPoint
+    │   ├── components/  types/  utils/  assets/
+    │   └── config.ts
+    └── testimonies/       # testimonios (ficha FUTURO/001): rutas '/' y '/testimonios/nuevo'
+        ├── index.ts       # API pública: testimoniesRoutes
         ├── routes.ts
-        ├── views/  components/  stores/  services/  types/  utils/  assets/
-        └── config.ts
+        ├── views/         # HomePage, CreateTestimonyPage (wizard)
+        ├── components/    # StoriesBar, StoryViewer, TestimonyCard, TopicBadge…
+        │   └── form/      # pasos del wizard y campos (FormField, ChoiceGroup, LocationPicker…)
+        ├── composables/   # useTestimonyForm: estado, validación por paso y borrador
+        ├── stores/  services/  types/  utils/
+        └── data/          # mock (temporal) y metadatos de temas
 ```
 
 ### Reglas de dependencias
