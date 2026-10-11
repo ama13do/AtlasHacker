@@ -1,145 +1,95 @@
-# 🗺️ Guía Paso a Paso: Credenciales, Configuración y Despliegue de AtlasHacker
+# Guía de configuración y despliegue · AtlasHacker (backend)
 
-Esta guía explica **dónde sacar cada API Key**, **dónde colocarlas de forma 100% segura**, y **cómo probar y desplegar el backend**.
+Todo se ejecuta desde `backend/`. Cada paso dice **qué obtener, dónde guardarlo y cómo comprobarlo**.
+Los secretos viven **solo** en `backend/.env` (ignorado por git) y, en AWS, en **SSM Parameter Store** (cifrados). No se pegan en chats ni en el código.
 
----
-
-## 🔒 1. ¿Dónde me pasas o colocas las credenciales?
-
-Para proteger tu seguridad y que **NUNCA** se suban credenciales privadas a GitHub:
-
-1. Ve a la carpeta `backend/`.
-2. Crea un archivo llamado exactamente `.env` (copiando como plantilla `.env.example`).
-3. El archivo `.env` ya está protegido en `.gitignore`.
-4. Si quieres que yo las configure por ti, puedes pegármelas aquí en el chat y yo las coloco directamente en tu archivo local `backend/.env` sin subirlas a git.
-
----
-
-## 🗄️ 2. Supabase: Base de Datos, PostGIS y Realtime
-
-### A. Dónde sacar las credenciales:
-1. Inicia sesión en [supabase.com](https://supabase.com) y entra a tu proyecto (o crea uno nuevo gratuito).
-2. En el menú lateral izquierdo, haz clic en **Project Settings** (el icono de engranaje ⚙️ abajo a la izquierda).
-3. Haz clic en **API**:
-   - **`SUPABASE_URL`**: Copia el valor de **Project URL** (ejemplo: `https://abcdefghijklmno.supabase.co`).
-   - **`SUPABASE_ANON_KEY`**: Copia la clave bajo **Project API keys** que dice `anon` `public`.
-   - **`SUPABASE_SERVICE_ROLE_KEY`**: Haz clic en *Reveal* en la clave que dice `service_role` `secret` y cópiala (¡esta es la clave maestra para el backend!).
-
-### B. Cómo instalar PostGIS y crear las tablas:
-1. En el menú lateral de Supabase, entra al **SQL Editor** (icono con `>_`).
-2. Abre el archivo [`backend/database/schema.sql`](file:///c:/Users/amado/OneDrive/Escritorio/HXNF/AtlasHacker/backend/database/schema.sql) de este proyecto.
-3. Copia todo su contenido y pégalo en el SQL Editor de Supabase.
-4. Haz clic en el botón verde **RUN**.
-5. ¡Listo! Esto activará **PostGIS**, creará las tablas `testimonios`, `comentarios`, `reacciones`, las funciones espaciales y habilitará **Supabase Realtime** automáticamente.
-
----
-
-## ☁️ 3. Cloudflare R2: Almacenamiento de Fotos, Audios y Archivos
-
-### A. Crear el Bucket:
-1. Inicia sesión en [dash.cloudflare.com](https://dash.cloudflare.com).
-2. En el menú lateral izquierdo, haz clic en **R2 Object Storage**.
-3. Haz clic en **Create bucket**.
-4. Nómbralo (por ejemplo: `atlashacker-media`) y haz clic en **Create Bucket**.
-
-### B. Obtener las Claves de API de R2:
-1. En la página principal de R2, a la derecha verás tu **Account ID** (una serie de 32 letras y números). Cópialo como `R2_ACCOUNT_ID`.
-2. En la misma pantalla, haz clic en el botón **Manage R2 API Tokens** (Administrar tokens de API de R2).
-3. Haz clic en **Create API Token**:
-   - Permisos: Selecciona **Object Read & Write** (Lectura y Escritura).
-   - Aplica a: Todos los buckets o solo a `atlashacker-media`.
-   - Haz clic en **Create API Token**.
-4. Te mostrará en pantalla:
-   - **Access Key ID**: Cópialo como `R2_ACCESS_KEY_ID`.
-   - **Secret Access Key**: Cópialo como `R2_SECRET_ACCESS_KEY` *(solo se muestra una vez)*.
-
-### C. Habilitar Acceso Público al Bucket:
-1. Entra a tu bucket `atlashacker-media` -> pestaña **Settings**.
-2. Busca la sección **Public Access** -> **R2.dev subdomain**.
-3. Haz clic en **Allow Access** (o conecta un subdominio propio si tienes).
-4. Copia la URL pública que te da (ejemplo: `https://pub-xxxxxxxx.r2.dev`) y colócala en `R2_PUBLIC_URL`.
-
----
-
-## ⚡ 4. AWS: Para el Backend Serverless (API Gateway + Lambdas)
-
-### A. Crear el Usuario IAM en AWS:
-1. Entra a la consola de [AWS Console](https://console.aws.amazon.com).
-2. En el buscador superior escribe **IAM** y entra a IAM.
-3. En el menú lateral izquierdo, ve a **Users** (Usuarios) -> **Create user** (Crear usuario).
-4. Nombre de usuario: `atlashacker-deployer`.
-5. En el paso de permisos (*Set permissions*), selecciona **Attach policies directly** (Asociar directivas directamente):
-   - Para desplegar sin problemas de permisos, selecciona `AdministratorAccess` (o crea un rol con permisos para Lambda, APIGateway, CloudWatch, S3, IAM).
-6. Haz clic en **Next** y luego en **Create user**.
-
-### B. Generar Access Key y Secret Key:
-1. Haz clic sobre el usuario recién creado `atlashacker-deployer`.
-2. Ve a la pestaña **Security credentials** (Credenciales de seguridad).
-3. Baja hasta la sección **Access keys** y haz clic en **Create access key**.
-4. Selecciona la opción **Command Line Interface (CLI)**, marca la casilla de confirmación y haz clic en **Next**.
-5. Haz clic en **Create access key**.
-6. Te mostrará:
-   - **`AWS_ACCESS_KEY_ID`**
-   - **`AWS_SECRET_ACCESS_KEY`**
-7. Descarga el archivo `.csv` o copia ambos valores inmediatamente.
-
----
-
-## 📁 5. Estructura del Archivo `.env` Final
-
-En [`backend/.env`](file:///c:/Users/amado/OneDrive/Escritorio/HXNF/AtlasHacker/backend/.env), el contenido debe verse así:
-
-```env
-PORT=3000
-NODE_ENV=development
-
-# SUPABASE
-SUPABASE_URL=https://tu-id-de-proyecto.supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOi...
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
-
-# CLOUDFLARE R2
-R2_ACCOUNT_ID=tu_account_id_de_32_caracteres
-R2_ACCESS_KEY_ID=tu_r2_access_key_id
-R2_SECRET_ACCESS_KEY=tu_r2_secret_access_key
-R2_BUCKET_NAME=atlashacker-media
-R2_PUBLIC_URL=https://pub-xxxxxxxx.r2.dev
-
-# AWS
-AWS_REGION=us-east-1
-AWS_ACCESS_KEY_ID=AKIAxxxxxxxxxxxx
-AWS_SECRET_ACCESS_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxx
-```
-
----
-
-## 🚀 6. Cómo Ejecutar y Probar
-
-### Probar en Local (sin gastar en AWS):
 ```bash
 cd backend
-npm run dev
+npm install
+cp .env.example .env          # y rellena lo que sigue
+npm run secretos:generar      # genera JWT_SECRET, ENCRYPTION_KEY y HASH_PEPPER (no sobrescribe)
+npm run entorno:verificar     # revisa que .env sea válido, sin mostrar secretos
 ```
-La API arrancará en `http://localhost:3000`.
 
-### Desplegar a AWS:
-```bash
-cd backend
-npm run deploy
-```
-Serverless empaquetará el código en TypeScript, creará la Lambda y el API Gateway en AWS, y al terminar te devolverá la URL pública HTTPS de tu backend (ejemplo: `https://xyz123.execute-api.us-east-1.amazonaws.com`).
+> **Respalda `ENCRYPTION_KEY` y `HASH_PEPPER`** en un gestor de contraseñas. Si se pierde la primera, nombres/correos/teléfonos/IP cifrados no se recuperan; si cambia el segundo, los folios existentes dejan de funcionar. Usa valores distintos en dev y prod.
 
 ---
 
-## 📡 7. Resumen de Endpoints Disponibles en el Backend
+## 1. Supabase (base de datos PostGIS + tiempo real)
 
-| Método | Endpoint | Descripción |
-| :--- | :--- | :--- |
-| `GET` | `/` y `/health` | Chequeo de estado de la API |
-| `POST` | `/api/testimonios` | Crea un testimonio con punto espacial PostGIS (`latitud`, `longitud`, `media_url`, etc.) |
-| `GET` | `/api/testimonios` | Lista testimonios. Soporta filtros: `?lat=...&lng=...&radio=5000` (radio en metros) o `?min_lng=...&min_lat=...&max_lng=...&max_lat=...` (bounding box de pantalla) |
-| `GET` | `/api/testimonios/:id` | Detalle del testimonio con sus comentarios |
-| `POST` | `/api/testimonios/:id/comentarios` | Agrega un comentario al testimonio |
-| `GET` | `/api/testimonios/:id/comentarios` | Lista comentarios del testimonio |
-| `POST` | `/api/testimonios/:id/reacciones` | Registra una reacción (`like`, `apoyo`, `alerta`) |
-| `POST` | `/api/media/presigned-url` | Devuelve una URL firmada de Cloudflare R2 para subir fotos/audios directo desde el front |
+1. Proyecto en [supabase.com](https://supabase.com) → **Project Settings → API**: copia `Project URL` → `SUPABASE_URL` y la `service_role` → `SUPABASE_SERVICE_ROLE_KEY` (solo backend). La `anon` key va **en el frontend**.
+2. Botón **Connect** → sección **Pooler**:
+   - **Transaction pooler** (puerto `6543`) → `DATABASE_URL` (lo que usa la API / Lambda).
+   - **Session pooler** (puerto `5432`) → `DIRECT_URL` (lo que usan las migraciones).
+   - ⚠️ No uses `db.<ref>.supabase.co`: es solo IPv6 y **no funciona en AWS Lambda** ni en muchas redes.
+   - Si la contraseña tiene `/ @ # ? :` o espacios, codifícalos en la URL (`/` → `%2F`).
+3. Crea las tablas, vistas, triggers, índices espaciales, RLS y datos semilla (categorías y expediente FUTURO/001):
+   ```bash
+   npm run db:migrate
+   ```
+   PostGIS se activa solo (esquema `extensions`). No hace falta pegar SQL a mano: las migraciones están versionadas en `backend/drizzle/`.
+4. Crea el primer administrador:
+   ```bash
+   npm run admin:crear -- --email tu@correo.org --nombre "Tu Nombre"
+   ```
+   Sin `--password` genera una temporal y la muestra **una vez**.
+5. (Opcional) **QGIS**: la migración crea el rol `lector_qgis`, de solo lectura y **únicamente** sobre la vista pública. Para habilitarlo, en el SQL Editor de Supabase:
+   `ALTER ROLE lector_qgis LOGIN PASSWORD '<contraseña fuerte>';` y conecta QGIS por el *Session pooler* con el usuario `lector_qgis.<ref>`.
+
+## 2. Cloudflare R2 (evidencias)
+
+1. **R2 → Create bucket** (`atlashacker-media`). **No actives el acceso público** (`r2.dev`): las evidencias se sirven con URLs firmadas temporales.
+   Si ya lo habías activado, desactívalo en *Settings → Public access*.
+2. **R2 → Manage API tokens → Create API token** con permiso **Object Read & Write** limitado a ese bucket → `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`.
+3. **CORS del bucket** (Settings → CORS policy) para que el navegador suba directo con la URL firmada:
+   ```json
+   [{
+     "AllowedOrigins": ["http://localhost:5173", "https://TU-DOMINIO-FRONT"],
+     "AllowedMethods": ["PUT", "GET"],
+     "AllowedHeaders": ["Content-Type"],
+     "MaxAgeSeconds": 3600
+   }]
+   ```
+
+## 3. Cloudflare Turnstile (captcha)
+
+1. [dash.cloudflare.com](https://dash.cloudflare.com) → **Turnstile → Add widget**. Dominios: `localhost` (y después el dominio real). Modo *Managed*.
+2. Te da una **Site key** (va en el **frontend**) y una **Secret key** → `TURNSTILE_SECRET_KEY` (backend).
+3. Para pruebas hay claves que siempre pasan: site `1x00000000000000000000AA`, secret `1x0000000000000000000000000000000AA`.
+4. El frontend manda el token en la cabecera `X-Captcha-Token`. En desarrollo, si `TURNSTILE_SECRET_KEY` está vacío, el captcha se omite; **en producción es obligatorio**. También se puede apagar desde el dashboard (`captcha_requerido`).
+
+## 4. Probar en local
+
+```bash
+npm run dev                   # http://localhost:3000
+npm test                      # 70 pruebas con Postgres+PostGIS embebido (no usa Docker ni toca servicios reales)
+npm run typecheck
+```
+- **Swagger:** `http://localhost:3000/docs` → pide **usuario y contraseña de un usuario del dashboard** (HTTP Basic). Para probar rutas protegidas: `POST /api/auth/login`, copia el `access_token` y pulsa **Authorize**.
+- El frontend local (`http://localhost:5173` y `:3000`) ya está permitido por CORS; cámbialo con `CORS_ORIGINS`.
+
+## 5. AWS (despliegue serverless) — ya desplegado
+
+**Producción actual:** `https://rwxdsyv0c2.execute-api.us-west-2.amazonaws.com` (stage `prod`, región `us-west-2`, la misma de Supabase) · Swagger en `/docs`.
+Front permitido por CORS: `https://atlashacker.vercel.app`.
+
+1. Credenciales de despliegue: no uses `AdministratorAccess`. Usuario/rol con permisos para CloudFormation, Lambda, API Gateway, IAM (roles de la función), CloudWatch Logs, S3 (artefactos de Serverless), EventBridge y SSM. Configúralo con `aws configure`.
+2. Secretos a SSM (cifrados con KMS; la Lambda los lee en runtime). En producción el CORS lleva SOLO el dominio del front:
+   ```bash
+   npm run secretos:subir -- --stage prod --set CORS_ORIGINS=https://atlashacker.vercel.app --set PUBLIC_API_URL=https://rwxdsyv0c2.execute-api.us-west-2.amazonaws.com
+   ```
+   `ENCRYPTION_KEY` y `HASH_PEPPER` deben ser **los mismos** que se usaron para crear los datos de esa base.
+3. Desplegar: `npm run deploy:prod` (≈1 min). Los cambios de SSM se toman en los arranques nuevos de la Lambda; para forzarlo, vuelve a desplegar.
+4. CORS del bucket R2 (para que el navegador suba evidencias): `npm run r2:cors -- https://atlashacker.vercel.app http://localhost:5173`.
+5. Tarea diaria `mantenimiento`: purga auditoría vencida, sesiones y límites caducados.
+6. Logs: CloudWatch → `/aws/lambda/atlashacker-api-prod-api`.
+
+> Regla técnica: no usar `Promise.all` con consultas a la base (con el pooler de Supabase en modo transacción y 1 conexión por Lambda se cuelga). Usar `enSerie()` de `src/db/client.ts`; hay una prueba que lo vigila.
+
+## 6. Si cambia el dominio del front
+
+Repite el paso 2 con el nuevo `CORS_ORIGINS` (separa varios con coma), `npm run deploy:prod`, `npm run r2:cors -- <dominios>` y agrega el dominio al widget de Turnstile en Cloudflare.
+
+## Tiempo real
+
+El mapa escucha el canal **privado** `mapa` de Supabase Realtime con la `anon` key (solo lectura: nadie puede inyectar eventos). Ver `docs/INTEGRACION_FRONTEND.md`. La migración ya crea la política de lectura.

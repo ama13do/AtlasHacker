@@ -1,14 +1,23 @@
 {
   "name": "atlashacker-backend",
   "version": "1.0.0",
-  "description": "Backend Serverless para AtlasHacker (AWS Lambda + PostGIS Supabase + Cloudflare R2)",
+  "description": "Backend serverless de AtlasHacker (Hono + Drizzle + PostGIS/Supabase + Cloudflare R2 + AWS Lambda)",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/local.ts",
-    "build": "tsc",
+    "typecheck": "tsc -p .",
+    "test": "vitest run",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrar.ts",
+    "db:studio": "drizzle-kit studio",
+    "admin:crear": "tsx scripts/crear-admin.ts",
+    "secretos:generar": "tsx scripts/generar-secretos.ts",
+    "secretos:subir": "tsx scripts/subir-secretos-ssm.ts",
     "deploy": "serverless deploy",
-    "deploy:prod": "serverless deploy --stage prod"
+    "deploy:prod": "serverless deploy --stage prod",
+    "entorno:verificar": "tsx scripts/verificar-entorno.ts",
+    "r2:cors": "tsx scripts/configurar-cors-r2.ts"
   },
   "keywords": [
     "serverless",
@@ -16,26 +25,37 @@
     "postgis",
     "supabase",
     "cloudflare-r2",
-    "hono"
+    "hono",
+    "drizzle"
   ],
   "author": "AtlasHacker Team",
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.758.0",
+    "@aws-sdk/client-ssm": "^3.1149.0",
     "@aws-sdk/s3-request-presigner": "^3.758.0",
     "@hono/node-server": "^1.13.8",
-    "@supabase/supabase-js": "^2.49.1",
+    "@hono/swagger-ui": "^0.6.1",
+    "@hono/zod-openapi": "^1.6.3",
     "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.45.4",
+    "hash-wasm": "^4.12.0",
     "hono": "^4.7.2",
-    "zod": "^3.24.2"
+    "postgres": "^3.4.9",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-postgis": "^0.2.8",
+    "@electric-sql/pglite-socket": "^0.2.11",
     "@types/node": "^22.13.9",
+    "drizzle-kit": "^0.31.11",
     "esbuild": "^0.25.0",
     "serverless": "^3.39.0",
     "serverless-esbuild": "^1.54.0",
     "serverless-offline": "^13.9.0",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.2",
+    "vitest": "^3.2.7"
   }
 }

@@ -2,40 +2,43 @@ service: atlashacker-api
 
 frameworkVersion: '3'
 
-useDotenv: true
+# IMPORTANTE: los secretos NO se inyectan desde el .env al desplegar (no se usa useDotenv). Viven en AWS SSM
+# Parameter Store (SecureString) y la Lambda los lee en runtime:
+#   npm run secretos:subir -- --stage prod --set CORS_ORIGINS=https://atlashacker.vercel.app
 
 provider:
   name: aws
-  runtime: nodejs20.x
-  region: ${opt:region, env:AWS_REGION, 'us-east-1'}
+  runtime: nodejs22.x
+  architecture: arm64
+  region: ${opt:region, 'us-west-2'} # misma región que Supabase (aws-1-us-west-2): menor latencia
   stage: ${opt:stage, 'dev'}
-  memorySize: 256
-  timeout: 10
-  httpApi:
-    cors:
-      allowedOrigins:
-        - '*'
-      allowedHeaders:
-        - Content-Type
-        - Authorization
-        - X-Amz-Date
-        - X-Api-Key
-        - X-Amz-Security-Token
-      allowedMethods:
-        - GET
-        - POST
-        - PUT
-        - DELETE
-        - OPTIONS
+  memorySize: 512 # argon2id (contraseñas) usa ~20 MB de memoria
+  timeout: 15
+  logRetentionInDays: 30
   environment:
-    NODE_ENV: ${self:provider.stage}
-    SUPABASE_URL: ${env:SUPABASE_URL}
-    SUPABASE_SERVICE_ROLE_KEY: ${env:SUPABASE_SERVICE_ROLE_KEY}
-    R2_ACCOUNT_ID: ${env:R2_ACCOUNT_ID}
-    R2_ACCESS_KEY_ID: ${env:R2_ACCESS_KEY_ID}
-    R2_SECRET_ACCESS_KEY: ${env:R2_SECRET_ACCESS_KEY}
-    R2_BUCKET_NAME: ${env:R2_BUCKET_NAME}
-    R2_PUBLIC_URL: ${env:R2_PUBLIC_URL}
+    NODE_ENV: production # cookies Secure/SameSite=None y captcha obligatorio, también en el stage "dev" desplegado
+    SSM_PREFIX: /atlashacker/${self:provider.stage}
+    DB_POOL_MAX: '1'
+    NODE_OPTIONS: --enable-source-maps
+  iam:
+    role:
+      statements:
+        # Solo lectura de SUS parámetros (mínimo privilegio)
+        - Effect: Allow
+          Action:
+            - ssm:GetParametersByPath
+            - ssm:GetParameters
+            - ssm:GetParameter
+          Resource:
+            - arn:aws:ssm:${aws:region}:${aws:accountId}:parameter/atlashacker/${self:provider.stage}
+            - arn:aws:ssm:${aws:region}:${aws:accountId}:parameter/atlashacker/${self:provider.stage}/*
+        - Effect: Allow
+          Action: kms:Decrypt
+          Resource: '*'
+          Condition:
+            StringEquals:
+              kms:ViaService: ssm.${aws:region}.amazonaws.com
+  # CORS lo maneja la propia API (lista blanca en CORS_ORIGINS); no se declara aquí para que no lo pise.
 
 plugins:
   - serverless-esbuild
@@ -44,10 +47,11 @@ plugins:
 custom:
   esbuild:
     bundle: true
-    minify: false
+    minify: true
     sourcemap: true
-    target: node20
+    target: node22
     platform: node
+    format: cjs
     concurrency: 10
 
 functions:
@@ -60,3 +64,10 @@ functions:
       - httpApi:
           path: /{proxy+}
           method: ANY
+
+  # Limpieza diaria: auditoría vencida (según la retención configurada), sesiones y límites expirados
+  mantenimiento:
+    handler: src/index.mantenimiento
+    timeout: 60
+    events:
+      - schedule: rate(1 day)
