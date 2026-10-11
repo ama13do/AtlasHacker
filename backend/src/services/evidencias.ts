@@ -87,6 +87,7 @@ export async function presignarEvidencias(c: Ctx, testimonioId: string, input: P
     return tx.insert(evidencias).values(filas).returning({ id: evidencias.id, folio: evidencias.folio, storage_key: evidencias.storage_key, mime: evidencias.mime, bytes: evidencias.bytes_declarados });
   });
 
+  // sin-bd: Promise.all solo firma URLs de R2 (no toca la base)
   const archivos = await Promise.all(
     reservas.map(async (r) => ({
       evidencia_id: r.id,
@@ -185,6 +186,7 @@ export async function evidenciasPublicas(testimonioId: string) {
     .where(and(eq(evidencias.testimonio_id, testimonioId), eq(evidencias.publica, true), eq(evidencias.activo, true), eq(evidencias.estado_subida, 'subida')))
     .orderBy(asc(evidencias.created_at));
   try {
+    // sin-bd: Promise.all solo firma URLs de R2 (no toca la base)
     return await Promise.all(filas.map(async ({ key, ...f }) => ({ ...f, url: await firmarLectura(key, f.nombre, 3600) })));
   } catch (err) {
     console.error('No se pudieron firmar las evidencias públicas', (err as Error).message);

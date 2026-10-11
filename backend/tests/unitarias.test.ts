@@ -105,3 +105,28 @@ describe('geometrías GeoJSON', () => {
     expect(GeometriaSchema.safeParse({ type: 'GeometryCollection', geometries: [] }).success).toBe(false);
   });
 });
+
+describe('regla de la base de datos con el pooler de Supabase', () => {
+  it('no se usa Promise.all con consultas (cuelga el pooler en modo transacción): usar enSerie()', async () => {
+    const { readdirSync, readFileSync, statSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const archivos: string[] = [];
+    const recorrer = (d: string) => {
+      for (const f of readdirSync(d)) {
+        const r = join(d, f);
+        if (statSync(r).isDirectory()) recorrer(r);
+        else if (r.endsWith('.ts')) archivos.push(r);
+      }
+    };
+    recorrer(join(import.meta.dirname, '../src'));
+    // Excepción explícita: la línea anterior lleva el marcador "sin-bd" (p. ej. solo firmar URLs de R2)
+    const infractores = archivos.flatMap((f) => {
+      const lineas = readFileSync(f, 'utf8').split(/\r?\n/);
+      return lineas
+        .map((l, i) => ({ l, i }))
+        .filter(({ l, i }) => /Promise\.all\(/.test(l) && !l.trim().startsWith('*') && !(lineas[i - 1] ?? '').includes('sin-bd'))
+        .map(({ i }) => `${f}:${i + 1}`);
+    });
+    expect(infractores).toEqual([]);
+  });
+});

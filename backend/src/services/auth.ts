@@ -82,6 +82,9 @@ function cookieOpciones() {
     httpOnly: true,
     secure: prod,
     sameSite: (prod ? 'None' : 'Lax') as 'None' | 'Lax',
+    // Front (vercel.app) y API (amazonaws.com) son sitios distintos: la cookie es "de terceros".
+    // Partitioned (CHIPS) permite que siga funcionando en navegadores que bloquean cookies de terceros sin particionar.
+    partitioned: prod,
     path: '/api/auth',
     maxAge: env().REFRESH_TTL_DIAS * 86400,
   };
@@ -127,7 +130,7 @@ export async function refrescarSesion(c: Ctx) {
   const db = getDb();
   const [s] = await db.select().from(sesiones).where(eq(sesiones.token_hash, sha256(plano))).limit(1);
   if (!s || s.expira_en < new Date()) {
-    deleteCookie(c, COOKIE_REFRESH, { path: '/api/auth' });
+    deleteCookie(c, COOKIE_REFRESH, cookieOpciones());
     throw E.noAutenticado('Sesión expirada');
   }
   if (s.revocada_at) {
@@ -135,7 +138,7 @@ export async function refrescarSesion(c: Ctx) {
     if (Date.now() - s.revocada_at.getTime() > 15_000) {
       await db.update(sesiones).set({ revocada_at: new Date() }).where(and(eq(sesiones.familia_id, s.familia_id), isNull(sesiones.revocada_at)));
     }
-    deleteCookie(c, COOKIE_REFRESH, { path: '/api/auth' });
+    deleteCookie(c, COOKIE_REFRESH, cookieOpciones());
     throw E.noAutenticado('Sesión inválida');
   }
   const [usuario] = await db.select().from(usuarios).where(eq(usuarios.id, s.usuario_id)).limit(1);
@@ -154,7 +157,7 @@ export async function cerrarSesion(c: Ctx) {
     const [s] = await db.select({ familia_id: sesiones.familia_id }).from(sesiones).where(eq(sesiones.token_hash, sha256(plano))).limit(1);
     if (s) await db.update(sesiones).set({ revocada_at: new Date() }).where(and(eq(sesiones.familia_id, s.familia_id), isNull(sesiones.revocada_at)));
   }
-  deleteCookie(c, COOKIE_REFRESH, { path: '/api/auth' });
+  deleteCookie(c, COOKIE_REFRESH, cookieOpciones());
 }
 
 /** Cierra todas las sesiones de un usuario: revoca refresh tokens e invalida los access tokens ya emitidos. */

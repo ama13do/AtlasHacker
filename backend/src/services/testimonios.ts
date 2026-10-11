@@ -1,6 +1,6 @@
 import { and, asc, desc, eq, getTableColumns, sql, type SQL } from 'drizzle-orm';
 import type { Context } from 'hono';
-import { getDb, type Ejecutor } from '../db/client.js';
+import { enSerie, getDb, type Ejecutor } from '../db/client.js';
 import { colDe, geoJson } from '../db/geo.js';
 import { categorias, evidencias, expedientes, testimonios, testimonios_auditoria, v_testimonios_publicos } from '../db/schema.js';
 import { cifrar, hmac } from '../lib/crypto.js';
@@ -190,10 +190,10 @@ async function guardarAuditoria(tx: Ejecutor, c: Ctx, testimonioId: string, inpu
 
 async function categoriaYExpediente(t: { categoria_id: string; expediente_id: string }) {
   const db = getDb();
-  const [[cat], [exp]] = await Promise.all([
-    db.select({ id: categorias.id, slug: categorias.slug, nombre: categorias.nombre, color: categorias.color }).from(categorias).where(eq(categorias.id, t.categoria_id)),
-    db.select({ id: expedientes.id, codigo: expedientes.codigo, titulo: expedientes.titulo, materia: expedientes.materia }).from(expedientes).where(eq(expedientes.id, t.expediente_id)),
-  ]);
+  const [[cat], [exp]] = await enSerie(
+    () => db.select({ id: categorias.id, slug: categorias.slug, nombre: categorias.nombre, color: categorias.color }).from(categorias).where(eq(categorias.id, t.categoria_id)),
+    () => db.select({ id: expedientes.id, codigo: expedientes.codigo, titulo: expedientes.titulo, materia: expedientes.materia }).from(expedientes).where(eq(expedientes.id, t.expediente_id)),
+  );
   return { categoria: cat ?? null, expediente: exp ?? null };
 }
 
@@ -230,9 +230,9 @@ export async function obtenerStaff(id: string) {
   const db = getDb();
   const [t] = await db.select(selDetalle).from(testimonios).where(eq(testimonios.id, id)).limit(1);
   if (!t) throw E.noEncontrado('Testimonio');
-  const [ctx, evs, [aud]] = await Promise.all([
-    categoriaYExpediente(t),
-    db
+  const [ctx, evs, [aud]] = await enSerie(
+    () => categoriaYExpediente(t),
+    () => db
       .select({
         id: evidencias.id, folio: evidencias.folio, tipo: evidencias.tipo, estado_subida: evidencias.estado_subida, nombre_original: evidencias.nombre_original,
         mime: evidencias.mime, bytes: sql<number>`coalesce(${evidencias.bytes}, ${evidencias.bytes_declarados})`, descripcion: evidencias.descripcion,
@@ -241,8 +241,8 @@ export async function obtenerStaff(id: string) {
       .from(evidencias)
       .where(eq(evidencias.testimonio_id, id))
       .orderBy(asc(evidencias.created_at)),
-    db.select({ n: sql<number>`count(*)::int` }).from(testimonios_auditoria).where(eq(testimonios_auditoria.testimonio_id, id)),
-  ]);
+    () => db.select({ n: sql<number>`count(*)::int` }).from(testimonios_auditoria).where(eq(testimonios_auditoria.testimonio_id, id)),
+  );
   return { ...t, ...ctx, evidencias: evs, tiene_auditoria: (aud?.n ?? 0) > 0 };
 }
 

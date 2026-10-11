@@ -9,6 +9,7 @@ import { catalogosPublicos, colaboradoresPublicos, detallePublico, estadisticasP
 import { comentar, likeComentario, listarComentariosPublicos, misReacciones, quitarLikeComentario, quitarReaccion, reaccionar } from '../services/social.js';
 import { crearTestimonio } from '../services/testimonios.js';
 import { cachePublico, nuevoRouter, ok, sinCache } from './base.js';
+import { enSerie } from '../db/client.js';
 
 export const publico = nuevoRouter();
 const TAG_MAPA = ['Mapa público'];
@@ -30,7 +31,7 @@ publico.openapi(
   }),
   async (c) => {
     cachePublico(c, 60);
-    const [cat, cfg] = await Promise.all([catalogosPublicos(), obtenerConfiguracion()]);
+    const [cat, cfg] = await enSerie(() => catalogosPublicos(), () => obtenerConfiguracion());
     return c.json(ok({ ...cat, configuracion: configuracionPublica(cfg) }), 200);
   },
 );

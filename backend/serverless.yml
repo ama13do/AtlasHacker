@@ -2,15 +2,15 @@ service: atlashacker-api
 
 frameworkVersion: '3'
 
-# IMPORTANTE: los secretos NO se inyectan desde el .env al desplegar. Viven en AWS SSM Parameter Store
-# (SecureString) y la Lambda los lee en runtime:   npm run secretos:subir -- --stage dev
-useDotenv: false
+# IMPORTANTE: los secretos NO se inyectan desde el .env al desplegar (no se usa useDotenv). Viven en AWS SSM
+# Parameter Store (SecureString) y la Lambda los lee en runtime:
+#   npm run secretos:subir -- --stage prod --set CORS_ORIGINS=https://atlashacker.vercel.app
 
 provider:
   name: aws
-  runtime: nodejs20.x
+  runtime: nodejs22.x
   architecture: arm64
-  region: ${opt:region, 'us-east-1'}
+  region: ${opt:region, 'us-west-2'} # misma región que Supabase (aws-1-us-west-2): menor latencia
   stage: ${opt:stage, 'dev'}
   memorySize: 512 # argon2id (contraseñas) usa ~20 MB de memoria
   timeout: 15
@@ -49,7 +49,7 @@ custom:
     bundle: true
     minify: true
     sourcemap: true
-    target: node20
+    target: node22
     platform: node
     format: cjs
     concurrency: 10
