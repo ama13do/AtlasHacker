@@ -3,10 +3,10 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { Map as MapLibreMap, NavigationControl, setWorkerUrl } from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import type { FeatureCollection } from 'geojson'
-import mexicoGeo from '../assets/mexico.json'
+import mexicoGeo from '@map/assets/mexico.json'
 import { BRAND } from '@/core/config/theme'
-import { MAP_STYLE, MAX_ZOOM, MEXICO_BOUNDS, MEXICO_CENTER, MIN_ZOOM } from '../config'
-import { buildOutsideMask } from '../utils/mask'
+import { MAP_STYLE, MAX_ZOOM, MEXICO_BOUNDS, MEXICO_CENTER, MIN_ZOOM } from '@map/config'
+import { buildOutsideMask } from '@map/utils/mask'
 
 // MapLibre resuelve su worker relativo a su propio módulo; Vite lo reubica al pre-empaquetar
 setWorkerUrl(workerUrl)
