@@ -1,0 +1,5 @@
+.saropa
+node_modules
+build
+dist/
+.vscode
