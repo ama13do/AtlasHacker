@@ -64,6 +64,7 @@ const sections = computed(() => [
   {
     step: 4,
     title: '5 y 6 · Los datos y la pregunta',
+    wide: true,
     rows: [
       ['Dato', draft.dataText],
       ['Fuente', [draft.dataSource, draft.dataYear].filter(Boolean).join(', ')],
@@ -74,6 +75,7 @@ const sections = computed(() => [
   {
     step: 5,
     title: 'Consentimiento',
+    wide: true,
     rows: [
       ['Autorizo', draft.consent ? LABELS.consent[draft.consent] : '—'],
       ['Foto/audio/video', draft.mediaConsent ? LABELS.media[draft.mediaConsent] : '—'],
@@ -92,34 +94,41 @@ const sections = computed(() => [
 
 <template>
   <div class="space-y-4">
-    <div class="flex items-center gap-3">
+    <div class="flex flex-wrap items-center gap-3">
       <TopicBadge v-if="draft.topic" :topic="draft.topic" />
       <p class="text-sm" :class="publishable ? 'text-neon-green' : 'text-white/70'">
         {{ publishable ? 'Se publicará en el mapa' : 'No se publicará en el mapa' }}
       </p>
     </div>
 
-    <section v-for="section in sections" :key="section.step" class="rounded-2xl border border-white/15 p-4">
-      <header class="mb-3 flex items-center justify-between gap-3">
-        <h3 class="text-sm font-semibold">{{ section.title }}</h3>
-        <button
-          type="button"
-          class="rounded-full px-3 py-1 text-xs font-semibold text-neon-lime hover:bg-neon-lime/10 focus-visible:outline-2 focus-visible:outline-white"
-          :aria-label="`Editar ${section.title}`"
-          @click="goTo(section.step)"
-        >
-          Editar
-        </button>
-      </header>
-      <p v-if="section.text" class="text-sm whitespace-pre-line text-white/85">{{ section.text }}</p>
-      <dl v-else class="space-y-2 text-sm">
-        <template v-for="[label, value] in section.rows" :key="label">
-          <div v-if="value" class="grid grid-cols-[8rem_1fr] gap-3">
-            <dt class="text-white/50">{{ label }}</dt>
-            <dd class="whitespace-pre-line text-white/85">{{ value }}</dd>
-          </div>
-        </template>
-      </dl>
-    </section>
+    <div class="grid gap-4 lg:grid-cols-2">
+      <section
+        v-for="section in sections"
+        :key="section.step"
+        class="rounded-2xl border border-white/15 p-4"
+        :class="{ 'lg:col-span-2': 'wide' in section && section.wide }"
+      >
+        <header class="mb-3 flex items-center justify-between gap-3">
+          <h3 class="text-sm font-semibold">{{ section.title }}</h3>
+          <button
+            type="button"
+            class="rounded-full px-3 py-1 text-xs font-semibold text-neon-lime hover:bg-neon-lime/10 focus-visible:outline-2 focus-visible:outline-white"
+            :aria-label="`Editar ${section.title}`"
+            @click="goTo(section.step)"
+          >
+            Editar
+          </button>
+        </header>
+        <p v-if="section.text" class="text-sm whitespace-pre-line text-white/85">{{ section.text }}</p>
+        <dl v-else class="space-y-2 text-sm">
+          <template v-for="[label, value] in section.rows" :key="label">
+            <div v-if="value" class="grid grid-cols-[8rem_1fr] gap-3">
+              <dt class="text-white/50">{{ label }}</dt>
+              <dd class="whitespace-pre-line text-white/85">{{ value }}</dd>
+            </div>
+          </template>
+        </dl>
+      </section>
+    </div>
   </div>
 </template>

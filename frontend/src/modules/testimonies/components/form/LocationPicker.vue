@@ -53,7 +53,7 @@ function useMyLocation() {
 <template>
   <div class="space-y-2">
     <div
-      class="relative h-64 overflow-hidden rounded-2xl border sm:h-72"
+      class="relative h-64 overflow-hidden rounded-2xl border sm:h-72 lg:h-88"
       :class="error ? 'border-brand-orange' : 'border-white/20'"
     >
       <MapView

@@ -13,7 +13,7 @@ function shortPlace(place: string) {
 
 <template>
   <ul
-    class="flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    class="flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 py-2 md:justify-center-safe [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
     aria-label="Testimonios más populares"
   >
     <li v-for="(story, i) in stories" :key="story.id" class="shrink-0 snap-start">

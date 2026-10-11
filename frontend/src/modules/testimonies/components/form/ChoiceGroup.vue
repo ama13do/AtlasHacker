@@ -14,7 +14,8 @@ const props = defineProps<{
   multiple?: boolean
   error?: string
   hint?: string
-  columns?: 1 | 2 | 3
+  columns?: 1 | 2 | 3 | 4
+  required?: boolean
 }>()
 
 // Un valor (radio) o varios (checkbox)
@@ -24,7 +25,13 @@ const name = useId()
 const errorId = `${name}-error`
 
 const gridClass = computed(
-  () => ({ 1: 'grid-cols-1', 2: 'grid-cols-1 sm:grid-cols-2', 3: 'grid-cols-2 sm:grid-cols-3' })[props.columns ?? 2],
+  () =>
+    ({
+      1: 'grid-cols-1',
+      2: 'grid-cols-1 sm:grid-cols-2',
+      3: 'grid-cols-2 sm:grid-cols-3',
+      4: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
+    })[props.columns ?? 2],
 )
 
 function isChecked(value: T) {
@@ -42,14 +49,17 @@ function toggle(value: T) {
 </script>
 
 <template>
-  <fieldset class="space-y-2" :aria-describedby="error ? errorId : undefined">
-    <legend class="mb-2 text-sm font-semibold">{{ label }}</legend>
-    <p v-if="hint" class="-mt-1 mb-2 text-sm text-white/60">{{ hint }}</p>
+  <fieldset class="space-y-1.5" :aria-describedby="error ? errorId : undefined">
+    <legend class="mb-1.5 text-sm font-semibold text-white">
+      {{ label }}
+      <span v-if="required" class="text-neon-lime" aria-hidden="true">*</span>
+    </legend>
+    <p v-if="hint" class="mb-1.5 text-xs text-white/50">{{ hint }}</p>
     <div class="grid gap-2" :class="gridClass">
       <label
         v-for="option in options"
         :key="String(option.value)"
-        class="relative flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 transition has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-white"
+        class="relative flex cursor-pointer items-start gap-3 rounded-xl border px-3.5 py-2.5 transition has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-white"
         :class="[
           isChecked(option.value) ? 'border-neon-lime bg-neon-lime/10' : 'border-white/20 hover:border-white/40',
           option.disabled && 'cursor-not-allowed opacity-40',

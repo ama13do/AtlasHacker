@@ -44,7 +44,7 @@ watch(
 </script>
 
 <template>
-  <div class="space-y-7">
+  <div class="space-y-8">
     <div class="space-y-2">
       <label
         class="flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 text-sm transition"
@@ -62,32 +62,43 @@ watch(
       <p v-if="errors.voluntary" id="voluntary-error" class="text-sm text-brand-orange">{{ errors.voluntary }}</p>
     </div>
 
-    <ChoiceGroup v-model="draft.consent" label="Autorizo" :options="consentOptions" :error="errors.consent" />
+    <section class="space-y-4">
+      <h3 class="form-group-title">Uso del testimonio</h3>
+      <div class="grid gap-8 lg:grid-cols-[3fr_2fr]">
+        <ChoiceGroup v-model="draft.consent" label="Autorizo" required :options="consentOptions" :error="errors.consent" />
+        <ChoiceGroup
+          v-model="draft.mediaConsent"
+          label="Uso de foto, audio o video"
+          required
+          :options="mediaOptions"
+          :columns="3"
+          :error="errors.mediaConsent"
+        />
+      </div>
+    </section>
 
-    <ChoiceGroup
-      v-model="draft.mediaConsent"
-      label="Uso de foto, audio o video"
-      :options="mediaOptions"
-      :columns="3"
-      :error="errors.mediaConsent"
-    />
-
-    <ChoiceGroup
-      v-model="draft.sensitive"
-      label="¿Existe información que pueda poner a alguien en riesgo?"
-      :options="sensitiveOptions"
-      :error="errors.sensitive"
-    />
-
-    <ChoiceGroup
-      v-if="draft.sensitive"
-      v-model="draft.sensitiveHandling"
-      multiple
-      label="¿Qué hacemos con esa información?"
-      :options="handlingOptions"
-      :columns="1"
-      :error="errors.sensitiveHandling"
-    />
+    <section class="space-y-4">
+      <h3 class="form-group-title">Protección</h3>
+      <div class="grid gap-8 lg:grid-cols-[2fr_3fr]">
+        <ChoiceGroup
+          v-model="draft.sensitive"
+          label="¿Existe información que pueda poner a alguien en riesgo?"
+          required
+          :options="sensitiveOptions"
+          :error="errors.sensitive"
+        />
+        <ChoiceGroup
+          v-if="draft.sensitive"
+          v-model="draft.sensitiveHandling"
+          multiple
+          label="¿Qué hacemos con esa información?"
+          required
+          :options="handlingOptions"
+          :columns="3"
+          :error="errors.sensitiveHandling"
+        />
+      </div>
+    </section>
 
     <p
       v-if="draft.consent"

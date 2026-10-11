@@ -3,13 +3,13 @@ import type { TestimonyDraft } from '@testimonies/types/testimony'
 import { isPublishable } from '@testimonies/utils/publication'
 
 export const STEPS = [
-  'Datos generales',
-  'El testimonio',
-  'El territorio y la comunidad',
-  'El recibo / documento dice',
-  'Los datos y la pregunta',
-  'Consentimiento',
-  'Revisión',
+  { title: 'Datos generales', description: 'Qué tema es, dónde ocurre y cómo quieres aparecer.' },
+  { title: 'El testimonio', description: 'Cuéntanos qué sucede y qué es importante que el Tribunal conozca.' },
+  { title: 'El territorio y la comunidad', description: 'Qué ha cambiado en el lugar y cómo lo ha vivido la gente.' },
+  { title: 'El recibo / documento dice', description: 'Documentos, fotos u otra evidencia que ayude a documentarlo.' },
+  { title: 'Los datos y la pregunta', description: 'Un dato que lo respalde y la pregunta para quien tomó la decisión.' },
+  { title: 'Consentimiento', description: 'Cómo autorizas el uso de tu testimonio y cómo protegerte.' },
+  { title: 'Revisión', description: 'Revisa todo antes de enviarlo.' },
 ] as const
 
 export const LIMITS = { title: 80, short: 120, long: 1500 } as const
@@ -134,6 +134,8 @@ export function useTestimonyForm() {
   const saved = loadSaved()
   const draft = reactive<TestimonyDraft>({ ...emptyDraft(), ...saved?.draft, files: [] })
   const step = ref(Math.min(saved?.step ?? 0, STEPS.length - 1))
+  // Paso más avanzado alcanzado: hasta ahí se puede saltar desde el stepper
+  const maxReached = ref(step.value)
   const errors = ref<FormErrors>({})
   // Solo cuenta como restaurado si había algo escrito
   const restored = !!saved && hasContent(saved.draft)
@@ -177,9 +179,12 @@ export function useTestimonyForm() {
     skipNextSave = true
     Object.assign(draft, emptyDraft())
     step.value = 0
+    maxReached.value = 0
     errors.value = {}
     clearSaved()
   }
+
+  watch(step, (n) => (maxReached.value = Math.max(maxReached.value, n)))
 
   // Limpia el error de un campo en cuanto se corrige
   watch(
@@ -203,7 +208,7 @@ export function useTestimonyForm() {
     { deep: true },
   )
 
-  return { draft, step, errors, restored, isLast, publishable, validateStep, firstInvalidStep, next, back, goTo, reset }
+  return { draft, step, maxReached, errors, restored, isLast, publishable, validateStep, firstInvalidStep, next, back, goTo, reset }
 }
 
 export type TestimonyForm = ReturnType<typeof useTestimonyForm>

@@ -6,11 +6,12 @@ const { draft, errors } = useTestimonyFormContext()
 </script>
 
 <template>
-  <div class="space-y-7">
+  <div class="grid gap-8 lg:grid-cols-2">
     <FormField
       id="territory"
       v-slot="field"
       label="El territorio dice"
+      required
       hint="¿Qué ha cambiado o qué puede observarse? ¿Dónde y desde cuándo?"
       :error="errors.territory"
       :length="draft.territory.length"
@@ -19,7 +20,7 @@ const { draft, errors } = useTestimonyFormContext()
       <textarea
         :id="field.id"
         v-model="draft.territory"
-        rows="6"
+        rows="8"
         class="field-input resize-y"
         :maxlength="LIMITS.long"
         :aria-invalid="field.invalid"
@@ -39,7 +40,7 @@ const { draft, errors } = useTestimonyFormContext()
       <textarea
         :id="field.id"
         v-model="draft.community"
-        rows="6"
+        rows="8"
         class="field-input resize-y"
         :maxlength="LIMITS.long"
         :aria-describedby="field.describedby"
