@@ -38,3 +38,15 @@ export async function cerrarDb(): Promise<void> {
   cliente = undefined;
   instancia = undefined;
 }
+
+/**
+ * Ejecuta consultas UNA TRAS OTRA (conservando los tipos, como un Promise.all).
+ * IMPORTANTE: no usar Promise.all con consultas a la base. Con el pooler de Supabase en modo transacción
+ * (Supavisor, puerto 6543) y 1 conexión por Lambda, postgres.js envía las consultas en pipeline por la misma
+ * conexión y el pooler se queda colgado (la Lambda llega a su timeout).
+ */
+export async function enSerie<T extends unknown[]>(...tareas: { [K in keyof T]: () => PromiseLike<T[K]> }): Promise<T> {
+  const resultados: unknown[] = [];
+  for (const tarea of tareas as (() => PromiseLike<unknown>)[]) resultados.push(await tarea());
+  return resultados as T;
+}

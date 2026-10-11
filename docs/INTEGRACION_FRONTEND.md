@@ -4,6 +4,18 @@ Todas las rutas y esquemas exactos están en **Swagger (`/docs`)**. Esta guía r
 Formato: éxito `{ success: true, data, … }` · error `{ success: false, error: { codigo, mensaje, detalles? } }`.
 Geometrías: GeoJSON, **`[longitud, latitud]`**.
 
+## Variables del front (Vercel → Settings → Environment Variables)
+
+| Variable | Valor |
+|---|---|
+| `VITE_API_URL` | `https://rwxdsyv0c2.execute-api.us-west-2.amazonaws.com` (en local: `http://localhost:3000`) |
+| `VITE_TURNSTILE_SITE_KEY` | `0x4AAAAAAFTqtoFiVa1yH9RI` (site key pública de Turnstile) |
+| `VITE_SUPABASE_URL` | `https://xirskbfqycougrtfpyqm.supabase.co` (solo para escuchar el tiempo real) |
+| `VITE_SUPABASE_ANON_KEY` | la `anon` key de Supabase (Project Settings → API). Es pública; **nunca** la `service_role`. |
+
+Después de cambiarlas en Vercel hay que volver a desplegar el front.
+El widget de Turnstile debe tener agregado el dominio `atlashacker.vercel.app` (Cloudflare → Turnstile → widget → Hostnames).
+
 ## Cabeceras que usa el front
 
 | Cabecera | Cuándo |
@@ -109,4 +121,5 @@ Si pierde el folio: *«escribe a nuestro número/correo para recuperarlo»* (el 
 2. Renueva con `POST /api/auth/refresh` (con `credentials: 'include'`) antes de que expire o al recibir 401.
 3. Pantallas → endpoints: resumen `GET /api/admin/resumen` · series `GET /api/admin/estadisticas/serie` · mapa de calor `…/geografia` · cola de moderación `GET /api/admin/testimonios?estado=pendiente` · detalle/edición `GET|PATCH /api/admin/testimonios/{id}` · `POST …/{id}/aprobar|rechazar|desaprobar|activar|desactivar` · lote `POST …/moderar-lote` · personas `GET /api/admin/participantes` · comentarios `GET /api/admin/comentarios` · configuración `GET|PATCH /api/admin/configuracion` · usuarios · categorías · expedientes · bitácora.
 4. Ocultar en la UI lo que el rol no puede hacer (`GET /api/auth/me` → `rol`); el servidor igual lo impide (403).
-5. Con `fetch`, `credentials: 'include'` solo en `/api/auth/*`.
+5. Con `fetch`, `credentials: 'include'` solo en `/api/auth/*` (en axios: `withCredentials: true` en esas llamadas).
+6. El front (vercel.app) y la API (amazonaws.com) son dominios distintos: la cookie de refresh es de terceros (va marcada `Partitioned`). En Chrome, Edge y Firefox funciona; **Safari** puede bloquearla, y entonces la sesión dura 15 min y hay que volver a iniciar sesión. Se resuelve del todo cuando haya un dominio propio con la API en un subdominio (p. ej. `api.tudominio.org`).

@@ -68,25 +68,27 @@ npm run typecheck
 - **Swagger:** `http://localhost:3000/docs` → pide **usuario y contraseña de un usuario del dashboard** (HTTP Basic). Para probar rutas protegidas: `POST /api/auth/login`, copia el `access_token` y pulsa **Authorize**.
 - El frontend local (`http://localhost:5173` y `:3000`) ya está permitido por CORS; cámbialo con `CORS_ORIGINS`.
 
-## 5. AWS (despliegue serverless)
+## 5. AWS (despliegue serverless) — ya desplegado
 
-1. Credenciales de despliegue: **no uses `AdministratorAccess`**. Crea un usuario/rol de despliegue con permisos para CloudFormation, Lambda, API Gateway, IAM (roles de la función), CloudWatch Logs, S3 (bucket de artefactos de Serverless), Events y SSM. Configúralo con `aws configure` (o SSO); no es necesario ponerlo en `.env`.
-2. Sube los secretos a SSM (cifrados con KMS; la Lambda los lee en runtime, no quedan como variables visibles en la consola):
+**Producción actual:** `https://rwxdsyv0c2.execute-api.us-west-2.amazonaws.com` (stage `prod`, región `us-west-2`, la misma de Supabase) · Swagger en `/docs`.
+Front permitido por CORS: `https://atlashacker.vercel.app`.
+
+1. Credenciales de despliegue: no uses `AdministratorAccess`. Usuario/rol con permisos para CloudFormation, Lambda, API Gateway, IAM (roles de la función), CloudWatch Logs, S3 (artefactos de Serverless), EventBridge y SSM. Configúralo con `aws configure`.
+2. Secretos a SSM (cifrados con KMS; la Lambda los lee en runtime). En producción el CORS lleva SOLO el dominio del front:
    ```bash
-   npm run secretos:subir -- --stage dev
+   npm run secretos:subir -- --stage prod --set CORS_ORIGINS=https://atlashacker.vercel.app --set PUBLIC_API_URL=https://rwxdsyv0c2.execute-api.us-west-2.amazonaws.com
    ```
-   Deben estar en `.env`: `DATABASE_URL` (pooler 6543), secretos propios, Supabase, R2, `TURNSTILE_SECRET_KEY`, `CORS_ORIGINS` (dominio real del frontend), `PUBLIC_API_URL`.
-3. Desplegar:
-   ```bash
-   npm run deploy                # stage dev
-   npm run deploy:prod           # stage prod
-   ```
-   Devuelve la URL del API Gateway. Ponla en `PUBLIC_API_URL`, vuelve a ejecutar `secretos:subir` y despliega de nuevo si quieres que el Swagger la use como servidor.
-4. Hay una tarea diaria (`mantenimiento`) que purga la auditoría vencida, sesiones y límites caducados.
+   `ENCRYPTION_KEY` y `HASH_PEPPER` deben ser **los mismos** que se usaron para crear los datos de esa base.
+3. Desplegar: `npm run deploy:prod` (≈1 min). Los cambios de SSM se toman en los arranques nuevos de la Lambda; para forzarlo, vuelve a desplegar.
+4. CORS del bucket R2 (para que el navegador suba evidencias): `npm run r2:cors -- https://atlashacker.vercel.app http://localhost:5173`.
+5. Tarea diaria `mantenimiento`: purga auditoría vencida, sesiones y límites caducados.
+6. Logs: CloudWatch → `/aws/lambda/atlashacker-api-prod-api`.
 
-## 6. Cuando haya dominio
+> Regla técnica: no usar `Promise.all` con consultas a la base (con el pooler de Supabase en modo transacción y 1 conexión por Lambda se cuelga). Usar `enSerie()` de `src/db/client.ts`; hay una prueba que lo vigila.
 
-Actualiza `CORS_ORIGINS` (y `PUBLIC_API_URL`), agrega el dominio en el widget de Turnstile y en el CORS del bucket R2, y vuelve a ejecutar `npm run secretos:subir`.
+## 6. Si cambia el dominio del front
+
+Repite el paso 2 con el nuevo `CORS_ORIGINS` (separa varios con coma), `npm run deploy:prod`, `npm run r2:cors -- <dominios>` y agrega el dominio al widget de Turnstile en Cloudflare.
 
 ## Tiempo real
 

@@ -1,5 +1,5 @@
 import { and, desc, eq, inArray, sql, type SQL } from 'drizzle-orm';
-import { getDb } from '../db/client.js';
+import { enSerie, getDb } from '../db/client.js';
 import { bboxSql, colDe, featureCollection, geoJson, geoJsonSimple, puntoSql, tsPreciso } from '../db/geo.js';
 import { categorias, expedientes, participantes, testimonios, v_testimonios_publicos as v } from '../db/schema.js';
 import { E } from '../lib/errors.js';
@@ -99,10 +99,10 @@ export async function detallePublico(id: string) {
 
 export async function catalogosPublicos() {
   const db = getDb();
-  const [cats, exps] = await Promise.all([
-    db.select({ id: categorias.id, slug: categorias.slug, nombre: categorias.nombre, descripcion: categorias.descripcion, color: categorias.color, icono: categorias.icono }).from(categorias).where(eq(categorias.activo, true)).orderBy(categorias.orden, categorias.nombre),
-    db.select({ id: expedientes.id, codigo: expedientes.codigo, titulo: expedientes.titulo, materia: expedientes.materia, descripcion: expedientes.descripcion }).from(expedientes).where(eq(expedientes.activo, true)).orderBy(expedientes.codigo),
-  ]);
+  const [cats, exps] = await enSerie(
+    () => db.select({ id: categorias.id, slug: categorias.slug, nombre: categorias.nombre, descripcion: categorias.descripcion, color: categorias.color, icono: categorias.icono }).from(categorias).where(eq(categorias.activo, true)).orderBy(categorias.orden, categorias.nombre),
+    () => db.select({ id: expedientes.id, codigo: expedientes.codigo, titulo: expedientes.titulo, materia: expedientes.materia, descripcion: expedientes.descripcion }).from(expedientes).where(eq(expedientes.activo, true)).orderBy(expedientes.codigo),
+  );
   return { categorias: cats, expedientes: exps };
 }
 
@@ -112,15 +112,15 @@ let cacheStats: { valor: unknown; hasta: number } | null = null;
 export async function estadisticasPublicas() {
   if (cacheStats && cacheStats.hasta > Date.now()) return cacheStats.valor;
   const db = getDb();
-  const [[tot], porCategoria, porEntidad] = await Promise.all([
-    db.select({ testimonios: sql<number>`count(*)::int`, ultimo: sql<string | null>`max(${v.publicado_at})` }).from(v),
-    db.execute<{ slug: string; nombre: string; color: string | null; total: number }>(sql`
+  const [[tot], porCategoria, porEntidad] = await enSerie(
+    () => db.select({ testimonios: sql<number>`count(*)::int`, ultimo: sql<string | null>`max(${v.publicado_at})` }).from(v),
+    () => db.execute<{ slug: string; nombre: string; color: string | null; total: number }>(sql`
       select c.slug, c.nombre, c.color, count(v.id)::int as total
       from categorias c left join v_testimonios_publicos v on v.categoria_id = c.id
       where c.activo group by c.id order by c.orden, c.nombre`),
-    db.execute<{ entidad: string; total: number }>(sql`
+    () => db.execute<{ entidad: string; total: number }>(sql`
       select entidad, count(*)::int as total from v_testimonios_publicos where entidad is not null group by entidad order by total desc limit 40`),
-  ]);
+  );
   const valor = {
     testimonios: tot?.testimonios ?? 0,
     ultimo_publicado_at: tot?.ultimo ?? null,

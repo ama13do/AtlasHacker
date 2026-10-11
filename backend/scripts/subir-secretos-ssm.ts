@@ -1,6 +1,7 @@
 /**
  * Sube los secretos del .env a AWS Systems Manager Parameter Store (SecureString, cifrados con KMS).
- *   npm run secretos:subir -- --stage dev
+ *   npm run secretos:subir -- --stage prod --set CORS_ORIGINS=https://atlashacker.vercel.app
+ * --set CLAVE=valor (repetible) sube ese valor en lugar del del .env (p. ej. CORS solo con el dominio de producción).
  * La Lambda los lee en runtime desde /atlashacker/<stage>/<NOMBRE> (ver SSM_PREFIX en serverless.yml),
  * así NO quedan como variables de entorno visibles en la consola de Lambda.
  *
@@ -16,15 +17,23 @@ const CLAVES = [
   'TURNSTILE_SECRET_KEY', 'CORS_ORIGINS', 'PUBLIC_API_URL', 'DOCS_ENABLED',
 ];
 
+const sobrescritos: Record<string, string> = {};
+process.argv.forEach((a, j) => {
+  if (a === '--set') {
+    const [k, ...v] = (process.argv[j + 1] ?? '').split('=');
+    if (k) sobrescritos[k] = v.join('=');
+  }
+});
+
 const i = process.argv.indexOf('--stage');
 const stage = i >= 0 ? process.argv[i + 1] : 'dev';
-const region = process.env.AWS_REGION ?? 'us-east-1';
+const region = process.env.AWS_REGION ?? 'us-west-2';
 const prefijo = `/atlashacker/${stage}`;
 const ssm = new SSMClient({ region });
 
 let subidos = 0;
 for (const clave of CLAVES) {
-  const valor = process.env[clave];
+  const valor = sobrescritos[clave] ?? process.env[clave];
   if (!valor) {
     console.log(`  - ${clave}: (vacío, se omite)`);
     continue;

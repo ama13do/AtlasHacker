@@ -1,6 +1,6 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import { and, desc, eq, sql } from 'drizzle-orm';
-import { getDb } from '../../db/client.js';
+import { enSerie, getDb } from '../../db/client.js';
 import { featureCollection, geoJson } from '../../db/geo.js';
 import { bitacora, categorias, expedientes, testimonios } from '../../db/schema.js';
 import { descifrarOpcional } from '../../lib/crypto.js';
@@ -142,10 +142,10 @@ adminSistema.openapi(
   }),
   async (c) => {
     const db = getDb();
-    const [[a], [s]] = await Promise.all([
-      db.execute<{ n: number }>(sql`select purgar_auditoria_vencida() as n`),
-      db.execute<{ n: number }>(sql`select purgar_sesiones_y_limites() as n`),
-    ]);
+    const [[a], [s]] = await enSerie(
+      () => db.execute<{ n: number }>(sql`select purgar_auditoria_vencida() as n`),
+      () => db.execute<{ n: number }>(sql`select purgar_sesiones_y_limites() as n`),
+    );
     const r = { auditoria: Number(a?.n ?? 0), sesiones_y_limites: Number(s?.n ?? 0) };
     await registrarBitacora(c, { accion: 'mantenimiento.purgar', entidad: 'sistema', detalle: r });
     return c.json(ok(r), 200);
@@ -184,10 +184,10 @@ adminSistema.openapi(
       q.hasta ? sql`${bitacora.created_at} < (${q.hasta}::date + 1)` : undefined,
     );
     const db = getDb();
-    const [filas, [t]] = await Promise.all([
-      db.select().from(bitacora).where(cond).orderBy(desc(bitacora.created_at), desc(bitacora.id)).limit(q.por_pagina).offset((q.pagina - 1) * q.por_pagina),
-      db.select({ total: sql<number>`count(*)::int` }).from(bitacora).where(cond),
-    ]);
+    const [filas, [t]] = await enSerie(
+      () => db.select().from(bitacora).where(cond).orderBy(desc(bitacora.created_at), desc(bitacora.id)).limit(q.por_pagina).offset((q.pagina - 1) * q.por_pagina),
+      () => db.select({ total: sql<number>`count(*)::int` }).from(bitacora).where(cond),
+    );
     const data = filas.map(({ ip_enc, ...f }) => ({ ...f, ip: descifrarOpcional(ip_enc, 'bitacora.ip') }));
     return c.json({ success: true as const, data, total: t?.total ?? 0, pagina: q.pagina, por_pagina: q.por_pagina }, 200);
   },
