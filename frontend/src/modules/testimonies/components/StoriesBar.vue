@@ -24,8 +24,8 @@ function shortPlace(place: string) {
         @click="$emit('open', i)"
       >
         <span
-          class="relative grid size-16 place-items-center rounded-full bg-black ring-2 ring-offset-2 ring-offset-black transition group-hover:scale-105 group-focus-visible:ring-white"
-          :class="[i < 3 ? 'ring-neon-lime' : TOPIC_META[story.topic].ring, TOPIC_META[story.topic].text]"
+          class="relative grid size-16 place-items-center rounded-full bg-surface ring-2 ring-offset-2 ring-offset-surface transition group-hover:scale-105 group-focus-visible:ring-fg"
+          :class="[i < 3 ? 'ring-neon-lime' : TOPIC_META[story.topic].ring, TOPIC_META[story.topic].text, TOPIC_META[story.topic].chip]"
         >
           <TopicIcon :topic="story.topic" class="size-7" />
           <span
@@ -35,7 +35,7 @@ function shortPlace(place: string) {
             Top
           </span>
         </span>
-        <span class="w-full truncate text-center text-xs text-white/90">{{ shortPlace(story.place) }}</span>
+        <span class="w-full truncate text-center text-xs text-fg/90">{{ shortPlace(story.place) }}</span>
       </button>
     </li>
   </ul>

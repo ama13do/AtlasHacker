@@ -1,6 +1,11 @@
 import type { LngLatBoundsLike, LngLatLike } from 'maplibre-gl'
 
-export const MAP_STYLE = 'https://tiles.openfreemap.org/styles/dark'
+import type { Theme } from '@/core/theme/useTheme'
+
+export const MAP_STYLES: Record<Theme, string> = {
+  dark: 'https://tiles.openfreemap.org/styles/dark',
+  light: 'https://tiles.openfreemap.org/styles/positron',
+}
 
 // Rectángulo de México con margen; limita paneo y zoom
 export const MEXICO_BOUNDS: LngLatBoundsLike = [

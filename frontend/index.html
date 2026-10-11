@@ -6,6 +6,15 @@
     <meta name="theme-color" content="#000000" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AtlasHacker</title>
+    <script>
+      // Aplica el tema guardado antes de pintar (ver src/core/theme/useTheme.ts)
+      try {
+        if (localStorage.getItem('atlashacker:theme') === 'light') {
+          document.documentElement.dataset.theme = 'light'
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="app"></div>

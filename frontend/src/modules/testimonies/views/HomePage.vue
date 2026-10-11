@@ -8,6 +8,7 @@ import { useTestimoniesStore } from '@testimonies/stores/testimonies'
 import StoriesBar from '@testimonies/components/StoriesBar.vue'
 import StoryViewer from '@testimonies/components/StoryViewer.vue'
 import TestimonyCard from '@testimonies/components/TestimonyCard.vue'
+import ThemeToggle from '@/shared/components/ThemeToggle.vue'
 
 const MD_BREAKPOINT = 768
 
@@ -52,7 +53,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <main class="relative h-dvh w-screen overflow-hidden bg-black">
+  <main class="relative h-dvh w-screen overflow-hidden bg-surface">
     <MapView
       ref="mapView"
       class="absolute inset-0"
@@ -65,13 +66,16 @@ onMounted(async () => {
 
     <!-- Header + historias -->
     <header
-      class="pointer-events-none absolute inset-x-0 top-0 z-10 bg-linear-to-b from-black via-black/80 to-transparent pt-[max(env(safe-area-inset-top),0.75rem)] pb-8"
+      class="pointer-events-none absolute inset-x-0 top-0 z-10 bg-linear-to-b from-surface via-surface/80 to-transparent pt-[max(env(safe-area-inset-top),0.75rem)] pb-8"
     >
-      <div class="pointer-events-auto flex items-baseline justify-between px-4 pb-3">
+      <div class="pointer-events-auto flex items-center justify-between gap-3 px-4 pb-3">
         <h1 class="text-lg font-semibold tracking-tight">
-          AtlasHacker<span class="text-neon-green">_</span>
+          AtlasHacker<span class="text-neon-green light:text-fg">_</span>
         </h1>
-        <p class="text-xs text-white/60">Tribunal Popular · FUTURO/001</p>
+        <div class="flex items-center gap-3">
+          <p class="hidden text-xs text-fg/60 sm:block">Tribunal Popular · FUTURO/001</p>
+          <ThemeToggle />
+        </div>
       </div>
       <StoriesBar class="pointer-events-auto" :stories="popular" @open="store.openStory" />
     </header>
@@ -95,7 +99,7 @@ onMounted(async () => {
     <!-- Subir testimonio -->
     <RouterLink
       :to="{ name: 'testimony-new' }"
-      class="absolute right-4 bottom-20 z-10 flex md:bottom-12 items-center gap-2 rounded-full bg-neon-lime px-5 py-3 font-semibold text-black shadow-lg shadow-black/50 transition hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+      class="absolute right-4 bottom-20 z-10 flex md:bottom-12 items-center gap-2 rounded-full bg-neon-lime px-5 py-3 font-semibold text-black shadow-lg shadow-black/50 transition hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
       :class="{ 'max-md:hidden': selected }"
     >
       <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">

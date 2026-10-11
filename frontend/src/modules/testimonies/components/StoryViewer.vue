@@ -108,21 +108,21 @@ onBeforeUnmount(() => {
 <template>
   <Teleport to="body">
     <div
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 md:p-6"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-surface/80 md:p-6"
       role="dialog"
       aria-modal="true"
       :aria-label="`Historia: ${story.title}`"
       @click.self="emit('close')"
     >
       <article
-        class="relative flex h-full w-full flex-col overflow-hidden bg-black bg-linear-to-b to-black to-60% md:aspect-9/16 md:h-auto md:max-h-full md:w-auto md:max-w-[420px] md:rounded-3xl"
+        class="relative flex h-full w-full flex-col overflow-hidden bg-surface bg-linear-to-b to-surface to-60% md:aspect-9/16 md:h-auto md:max-h-full md:w-auto md:max-w-[420px] md:rounded-3xl"
         :class="meta.from"
       >
         <!-- Progreso -->
         <div class="flex gap-1 px-3 pt-3">
-          <div v-for="(s, i) in stories" :key="s.id" class="h-1 flex-1 overflow-hidden rounded-full bg-white/25">
+          <div v-for="(s, i) in stories" :key="s.id" class="h-1 flex-1 overflow-hidden rounded-full bg-fg/25">
             <div
-              class="h-full rounded-full bg-white"
+              class="h-full rounded-full bg-fg"
               :style="{ width: `${i < index ? 100 : i === index ? Math.min(progress, 1) * 100 : 0}%` }"
             />
           </div>
@@ -132,12 +132,12 @@ onBeforeUnmount(() => {
         <header class="flex items-center justify-between gap-3 px-4 pt-3">
           <div class="min-w-0">
             <p class="truncate text-sm font-semibold">{{ story.place }}</p>
-            <p class="text-xs text-white/70">{{ story.folio }} · {{ date }}</p>
+            <p class="text-xs text-fg/70">{{ story.folio }} · {{ date }}</p>
           </div>
           <button
             ref="closeButton"
             type="button"
-            class="grid size-10 shrink-0 place-items-center rounded-full hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-white"
+            class="grid size-10 shrink-0 place-items-center rounded-full hover:bg-fg/10 focus-visible:outline-2 focus-visible:outline-fg"
             aria-label="Cerrar historia"
             @click="emit('close')"
           >
@@ -157,15 +157,15 @@ onBeforeUnmount(() => {
         >
           <TopicBadge :topic="story.topic" class="self-start" />
           <h2 class="text-3xl leading-tight font-semibold text-balance">{{ story.title }}</h2>
-          <p class="line-clamp-5 text-base text-white/85">{{ story.testimony }}</p>
+          <p class="line-clamp-5 text-base text-fg/85">{{ story.testimony }}</p>
 
-          <div class="rounded-2xl border border-neon-lime/40 bg-neon-lime/10 p-4">
-            <p class="text-xs font-semibold tracking-wide text-neon-lime uppercase">El Tribunal pregunta</p>
-            <p class="mt-1 text-lg font-semibold text-neon-lime">{{ story.tribunalQuestion }}</p>
+          <div class="rounded-2xl border border-neon-lime/40 light:border-fg/15 bg-neon-lime/10 light:bg-neon-lime/35 p-4">
+            <p class="text-xs font-semibold tracking-wide text-accent-ink uppercase">El Tribunal pregunta</p>
+            <p class="mt-1 text-lg font-semibold text-accent-ink">{{ story.tribunalQuestion }}</p>
           </div>
 
-          <p class="text-xs text-white/60">
-            <span class="font-semibold text-white/80">{{ story.supports }}</span> personas respaldan este testimonio
+          <p class="text-xs text-fg/60">
+            <span class="font-semibold text-fg/80">{{ story.supports }}</span> personas respaldan este testimonio
           </p>
         </div>
 
@@ -173,7 +173,7 @@ onBeforeUnmount(() => {
         <footer class="space-y-3 px-6 pb-6">
           <button
             type="button"
-            class="flex w-full items-center justify-center gap-2 rounded-full bg-white py-3 font-semibold text-black transition hover:bg-neon-lime focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            class="flex w-full items-center justify-center gap-2 rounded-full bg-fg py-3 font-semibold text-surface transition hover:bg-neon-lime hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
             @click="emit('viewOnMap', story.id)"
           >
             <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -182,7 +182,7 @@ onBeforeUnmount(() => {
             </svg>
             Ver en el mapa
           </button>
-          <p class="text-center text-[11px] leading-snug text-white/50">
+          <p class="text-center text-[11px] leading-snug text-fg/50">
             El recibo dice. El territorio dice. La comunidad dice. Los datos dicen. El Tribunal pregunta.
           </p>
         </footer>

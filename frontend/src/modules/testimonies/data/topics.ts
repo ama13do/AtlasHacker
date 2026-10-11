@@ -4,7 +4,7 @@ import type { EvidenceType, Topic } from '@testimonies/types/testimony'
 // Clases completas (no interpoladas) para que Tailwind las detecte
 export const TOPIC_META: Record<
   Topic,
-  { label: string; color: string; text: string; bg: string; ring: string; from: string }
+  { label: string; color: string; text: string; bg: string; ring: string; from: string; chip: string }
 > = {
   transicion: {
     label: 'Transición energética',
@@ -13,6 +13,8 @@ export const TOPIC_META: Record<
     bg: 'bg-neon-green',
     ring: 'ring-neon-green',
     from: 'from-neon-green/35',
+    // En claro: relleno del color con ícono negro (el color sobre blanco se pierde)
+    chip: 'light:bg-neon-green light:text-black',
   },
   contaminacion: {
     label: 'Contaminación',
@@ -21,6 +23,7 @@ export const TOPIC_META: Record<
     bg: 'bg-brand-orange',
     ring: 'ring-brand-orange',
     from: 'from-brand-orange/35',
+    chip: 'light:bg-brand-orange light:text-black',
   },
   suceso: {
     label: 'Suceso',
@@ -29,6 +32,7 @@ export const TOPIC_META: Record<
     bg: 'bg-brand-blue',
     ring: 'ring-brand-blue',
     from: 'from-brand-blue/35',
+    chip: 'light:bg-brand-blue light:text-black',
   },
 }
 

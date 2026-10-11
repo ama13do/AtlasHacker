@@ -60,26 +60,26 @@ function remove(file: File) {
   <div class="space-y-3">
     <div class="space-y-1.5">
       <div class="flex items-baseline justify-between">
-        <p class="text-sm font-semibold">Adjuntar archivos <span class="text-xs font-normal text-white/40">(opcional)</span></p>
-        <span class="text-xs text-white/40 tabular-nums">{{ model.length }}/{{ MAX_FILES }}</span>
+        <p class="text-sm font-semibold">Adjuntar archivos <span class="text-xs font-normal text-fg/40">(opcional)</span></p>
+        <span class="text-xs text-fg/40 tabular-nums">{{ model.length }}/{{ MAX_FILES }}</span>
       </div>
-      <p class="text-xs text-white/50">Fotos, video, audio o PDF. Máximo 20 MB por archivo.</p>
+      <p class="text-xs text-fg/50">Fotos, video, audio o PDF. Máximo 20 MB por archivo.</p>
     </div>
 
     <ul v-if="items.length" class="grid grid-cols-2 gap-2 sm:grid-cols-3">
-      <li v-for="item in items" :key="item.url" class="relative overflow-hidden rounded-xl border border-white/20 bg-white/5">
+      <li v-for="item in items" :key="item.url" class="relative overflow-hidden rounded-xl border border-fg/20 bg-fg/5">
         <img v-if="item.kind === 'image'" :src="item.url" :alt="item.file.name" class="aspect-square w-full object-cover" />
         <video v-else-if="item.kind === 'video'" :src="item.url" class="aspect-square w-full object-cover" muted />
         <div v-else class="grid aspect-square w-full place-items-center p-3 text-center">
-          <span class="text-xs font-semibold text-white/80 uppercase">{{ item.kind === 'audio' ? 'Audio' : 'PDF' }}</span>
+          <span class="text-xs font-semibold text-fg/80 uppercase">{{ item.kind === 'audio' ? 'Audio' : 'PDF' }}</span>
         </div>
-        <div class="absolute inset-x-0 bottom-0 bg-black/80 px-2 py-1">
+        <div class="absolute inset-x-0 bottom-0 bg-surface/80 px-2 py-1">
           <p class="truncate text-xs">{{ item.file.name }}</p>
-          <p class="text-[10px] text-white/60">{{ formatSize(item.file.size) }}</p>
+          <p class="text-[10px] text-fg/60">{{ formatSize(item.file.size) }}</p>
         </div>
         <button
           type="button"
-          class="absolute top-1.5 right-1.5 grid size-7 place-items-center rounded-full bg-black/80 hover:bg-black focus-visible:outline-2 focus-visible:outline-white"
+          class="absolute top-1.5 right-1.5 grid size-7 place-items-center rounded-full bg-surface/80 hover:bg-surface focus-visible:outline-2 focus-visible:outline-fg"
           :aria-label="`Quitar ${item.file.name}`"
           @click="remove(item.file)"
         >
@@ -92,7 +92,7 @@ function remove(file: File) {
 
     <label
       v-if="model.length < MAX_FILES"
-      class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/30 px-4 py-4 text-sm lg:flex-col lg:py-10 font-semibold transition hover:border-neon-lime hover:text-neon-lime has-focus-visible:outline-2 has-focus-visible:outline-white"
+      class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-fg/30 px-4 py-4 text-sm lg:flex-col lg:py-10 font-semibold transition hover:border-neon-lime hover:text-accent-ink has-focus-visible:outline-2 has-focus-visible:outline-fg"
     >
       <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
@@ -101,6 +101,6 @@ function remove(file: File) {
       <input ref="input" type="file" class="sr-only" multiple :accept="ACCEPT" @change="onChange" />
     </label>
 
-    <p v-if="message" role="status" class="text-sm text-brand-orange">{{ message }}</p>
+    <p v-if="message" role="status" class="text-sm text-danger">{{ message }}</p>
   </div>
 </template>

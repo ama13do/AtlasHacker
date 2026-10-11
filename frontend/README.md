@@ -57,6 +57,24 @@ src/
 
 Los tokens viven en `src/style.css` (`@theme`) y se usan como utilidades de Tailwind. Para código que no lee CSS (capas de MapLibre) usar `BRAND` de `src/core/config/theme.ts`; mantener ambos alineados.
 
+### Claro / oscuro
+
+La app arranca en **oscuro** (identidad de marca). El botón sol/luna (`src/shared/components/ThemeToggle.vue`) cambia a claro y la elección se guarda (`useTheme` en `src/core/theme/`). Un script inline en `index.html` aplica el tema antes de pintar.
+
+Para que los componentes respondan al tema, no usar `white`/`black` para fondo y texto, sino los tokens semánticos:
+
+| Token | Oscuro | Claro | Uso |
+| --- | --- | --- | --- |
+| `surface` | negro | blanco | fondos (`bg-surface`) |
+| `fg` | blanco | negro | texto y bordes, con opacidad (`text-fg/60`, `border-fg/15`) |
+| `accent-ink` | lima | negro | texto de acento (asterisco de requerido, "Editar"…) |
+| `danger` | naranja | negro | texto de error; el borde del campo sigue en naranja |
+
+- En claro, los acentos (lima, verde, naranja, azul) se usan como **fondo o resalte**, no como texto sobre blanco.
+- La variante `light:` permite ajustes puntuales, p. ej. `bg-neon-lime/10 light:bg-neon-lime/35`.
+- `text-black` sobre fondos de acento (botones lima, badges) se mantiene en ambos temas.
+- El mapa usa el estilo `dark` u OpenFreeMap `positron` según el tema (`MAP_STYLES` en `src/modules/map/config.ts`).
+
 ### Tipografía
 
 Parkinsans (`@fontsource-variable/parkinsans`, self-hosted), aplicada por defecto con `font-sans`.

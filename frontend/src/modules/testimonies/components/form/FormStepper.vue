@@ -11,11 +11,11 @@ defineEmits<{ go: [step: number] }>()
       <li v-for="(item, i) in STEPS" :key="item.title">
         <button
           type="button"
-          class="group relative flex w-full items-center gap-3 rounded-xl py-2 pr-3 pl-4 text-left text-sm transition focus-visible:outline-2 focus-visible:outline-white disabled:cursor-default"
+          class="group relative flex w-full items-center gap-3 rounded-xl py-2 pr-3 pl-4 text-left text-sm transition focus-visible:outline-2 focus-visible:outline-fg disabled:cursor-default"
           :class="[
-            i === step && !done ? 'bg-white/5 font-semibold text-white' : 'text-white/60',
-            i <= maxReached && i !== step && !done ? 'hover:bg-white/5 hover:text-white' : '',
-            i > maxReached && !done ? 'text-white/30' : '',
+            i === step && !done ? 'bg-fg/5 font-semibold text-fg' : 'text-fg/60',
+            i <= maxReached && i !== step && !done ? 'hover:bg-fg/5 hover:text-fg' : '',
+            i > maxReached && !done ? 'text-fg/30' : '',
           ]"
           :disabled="done || i > maxReached || i === step"
           :aria-current="i === step && !done ? 'step' : undefined"
@@ -33,8 +33,8 @@ defineEmits<{ go: [step: number] }>()
               done || i < step || (i <= maxReached && i !== step)
                 ? 'bg-neon-lime text-black'
                 : i === step
-                  ? 'border-2 border-neon-lime text-neon-lime'
-                  : 'border border-white/20'
+                  ? 'border-2 border-neon-lime text-accent-ink light:border-fg'
+                  : 'border border-fg/20'
             "
             aria-hidden="true"
           >

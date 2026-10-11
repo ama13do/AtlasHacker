@@ -13,6 +13,7 @@ import StepTerritory from '@testimonies/components/form/StepTerritory.vue'
 import StepTestimony from '@testimonies/components/form/StepTestimony.vue'
 import FormStepper from '@testimonies/components/form/FormStepper.vue'
 import SubmitSuccess from '@testimonies/components/form/SubmitSuccess.vue'
+import ThemeToggle from '@/shared/components/ThemeToggle.vue'
 
 const STEP_COMPONENTS: Component[] = [
   StepGeneral,
@@ -95,46 +96,50 @@ function viewOnMap() {
 </script>
 
 <template>
-  <main class="min-h-dvh bg-black md:h-dvh md:p-6">
+  <main class="min-h-dvh bg-surface md:h-dvh md:p-6">
     <div
-      class="mx-auto flex min-h-dvh flex-col md:grid md:h-full md:min-h-0 md:max-w-6xl md:grid-cols-[17rem_1fr] md:overflow-hidden md:rounded-3xl md:border md:border-white/15"
+      class="mx-auto flex min-h-dvh flex-col md:grid md:h-full md:min-h-0 md:max-w-6xl md:grid-cols-[17rem_1fr] md:overflow-hidden md:rounded-3xl md:border md:border-fg/15"
     >
       <!-- Lateral (escritorio): marca, pasos y salida -->
-      <aside class="hidden flex-col gap-8 border-r border-white/10 bg-white/[0.03] p-6 md:flex">
+      <aside class="hidden flex-col gap-8 border-r border-fg/10 bg-fg/[0.03] p-6 md:flex">
         <div>
-          <p class="text-xs text-white/50">Tribunal Popular · FUTURO/001</p>
+          <p class="text-xs text-fg/50">Tribunal Popular · FUTURO/001</p>
           <p class="text-lg font-semibold">Subir testimonio</p>
         </div>
 
         <FormStepper :step="step" :max-reached="maxReached" :done="!!result" @go="form.goTo" />
 
         <div class="mt-auto space-y-4">
-          <p class="text-xs leading-relaxed text-white/40">
+          <p class="text-xs leading-relaxed text-fg/40">
             El recibo dice. El territorio dice. La comunidad dice. Los datos dicen. El Tribunal pregunta.
           </p>
-          <RouterLink
-            :to="{ name: 'home' }"
-            class="inline-flex items-center gap-2 text-sm text-white/70 hover:text-white focus-visible:outline-2 focus-visible:outline-white"
-          >
-            <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
-            Cerrar · tu borrador se guarda
-          </RouterLink>
+          <div class="flex items-center justify-between gap-3">
+            <RouterLink
+              :to="{ name: 'home' }"
+              class="inline-flex items-center gap-2 text-sm text-fg/70 hover:text-fg focus-visible:outline-2 focus-visible:outline-fg"
+            >
+              <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+              Cerrar · tu borrador se guarda
+            </RouterLink>
+            <ThemeToggle />
+          </div>
         </div>
       </aside>
 
       <section class="flex flex-1 flex-col md:min-h-0">
         <!-- Header (móvil) -->
-        <header class="sticky top-0 z-10 border-b border-white/10 bg-black/95 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur md:hidden">
+        <header class="sticky top-0 z-10 border-b border-fg/10 bg-surface/95 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur md:hidden">
           <div class="flex items-center justify-between gap-3">
             <div class="min-w-0">
-              <p class="text-xs text-white/50">Tribunal Popular · FUTURO/001</p>
+              <p class="text-xs text-fg/50">Tribunal Popular · FUTURO/001</p>
               <p class="font-semibold">Subir testimonio</p>
             </div>
+            <ThemeToggle class="ml-auto" />
             <RouterLink
               :to="{ name: 'home' }"
-              class="grid size-10 shrink-0 place-items-center rounded-full bg-white/10 hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-white"
+              class="grid size-10 shrink-0 place-items-center rounded-full bg-fg/10 hover:bg-fg/20 focus-visible:outline-2 focus-visible:outline-fg"
               aria-label="Cerrar (tu borrador se guarda)"
             >
               <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
@@ -148,7 +153,7 @@ function viewOnMap() {
               v-for="(_, i) in STEPS"
               :key="i"
               class="h-1 flex-1 rounded-full transition-colors"
-              :class="i <= step ? 'bg-neon-lime' : 'bg-white/15'"
+              :class="i <= step ? 'bg-neon-lime' : 'bg-fg/15'"
             />
           </div>
         </header>
@@ -160,23 +165,23 @@ function viewOnMap() {
           <template v-else>
             <div
               v-if="showRestored"
-              class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white/5 px-4 py-3 text-sm"
+              class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-fg/5 px-4 py-3 text-sm"
               role="status"
             >
               <span>Recuperamos tu borrador. Los archivos adjuntos hay que volver a elegirlos.</span>
-              <button type="button" class="font-semibold text-neon-lime hover:underline" @click="startOver">
+              <button type="button" class="font-semibold text-accent-ink hover:underline" @click="startOver">
                 Empezar de nuevo
               </button>
             </div>
 
             <div class="mb-8 space-y-1">
-              <p class="text-xs font-semibold tracking-wider text-neon-lime uppercase">
+              <p class="text-xs font-semibold tracking-wider text-accent-ink uppercase">
                 Paso {{ step + 1 }} de {{ STEPS.length }}
               </p>
               <h2 ref="heading" tabindex="-1" class="text-2xl font-semibold focus:outline-none md:text-3xl">
                 {{ STEPS[step].title }}
               </h2>
-              <p class="text-sm text-white/60">{{ STEPS[step].description }}</p>
+              <p class="text-sm text-fg/60">{{ STEPS[step].description }}</p>
             </div>
 
             <component :is="STEP_COMPONENTS[step]" />
@@ -186,14 +191,14 @@ function viewOnMap() {
         <!-- Acciones (fijas abajo) -->
         <footer
           v-if="!result"
-          class="sticky bottom-0 border-t border-white/10 bg-black/95 px-4 pt-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] backdrop-blur md:static md:px-10 md:py-4"
+          class="sticky bottom-0 border-t border-fg/10 bg-surface/95 px-4 pt-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] backdrop-blur md:static md:px-10 md:py-4"
         >
-          <p v-if="submitError" role="alert" class="mb-3 text-sm text-brand-orange">{{ submitError }}</p>
+          <p v-if="submitError" role="alert" class="mb-3 text-sm text-danger">{{ submitError }}</p>
           <div class="flex gap-3 md:justify-end">
             <button
               v-if="step > 0"
               type="button"
-              class="rounded-full border border-white/30 px-6 py-3 font-semibold transition hover:border-white focus-visible:outline-2 focus-visible:outline-white md:py-2.5"
+              class="rounded-full border border-fg/30 px-6 py-3 font-semibold transition hover:border-fg focus-visible:outline-2 focus-visible:outline-fg md:py-2.5"
               @click="form.back"
             >
               Atrás
@@ -201,7 +206,7 @@ function viewOnMap() {
             <button
               v-if="!isLast"
               type="button"
-              class="flex-1 rounded-full bg-white py-3 font-semibold text-black transition hover:bg-neon-lime focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white md:flex-none md:px-8 md:py-2.5"
+              class="flex-1 rounded-full bg-fg py-3 font-semibold text-surface transition hover:bg-neon-lime hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg md:flex-none md:px-8 md:py-2.5"
               @click="onNext"
             >
               Siguiente
@@ -209,7 +214,7 @@ function viewOnMap() {
             <button
               v-else
               type="button"
-              class="flex-1 rounded-full bg-neon-lime py-3 font-semibold text-black transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-60 md:flex-none md:px-8 md:py-2.5"
+              class="flex-1 rounded-full bg-neon-lime py-3 font-semibold text-black transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg disabled:opacity-60 md:flex-none md:px-8 md:py-2.5"
               :disabled="submitting"
               @click="onSubmit"
             >

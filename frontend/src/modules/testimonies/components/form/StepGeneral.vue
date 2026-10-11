@@ -39,17 +39,17 @@ const visibility = computed({
             <label
               v-for="[value, meta] in topics"
               :key="value"
-              class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-white"
-              :class="draft.topic === value ? ['bg-white/5', meta.ring, 'ring-2', 'border-transparent'] : 'border-white/20 hover:border-white/40'"
+              class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-fg"
+              :class="draft.topic === value ? ['bg-fg/5', meta.ring, 'ring-2', 'border-transparent'] : 'border-fg/20 hover:border-fg/40'"
             >
               <input v-model="draft.topic" type="radio" name="topic" :value="value" class="sr-only" />
-              <span class="grid size-8 shrink-0 place-items-center rounded-full bg-black ring-2" :class="[meta.ring, meta.text]">
+              <span class="grid size-8 shrink-0 place-items-center rounded-full bg-surface ring-2" :class="[meta.ring, meta.text, meta.chip]">
                 <TopicIcon :topic="value" class="size-4" />
               </span>
               <span class="text-sm leading-tight font-semibold">{{ meta.label }}</span>
             </label>
           </div>
-          <p v-if="errors.topic" id="topic-error" class="mt-2 text-sm text-brand-orange">{{ errors.topic }}</p>
+          <p v-if="errors.topic" id="topic-error" class="mt-2 text-sm text-danger">{{ errors.topic }}</p>
         </fieldset>
 
         <FormField

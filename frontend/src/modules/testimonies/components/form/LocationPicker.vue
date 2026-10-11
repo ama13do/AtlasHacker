@@ -54,7 +54,7 @@ function useMyLocation() {
   <div class="space-y-2">
     <div
       class="relative h-64 overflow-hidden rounded-2xl border sm:h-72 lg:h-88"
-      :class="error ? 'border-brand-orange' : 'border-white/20'"
+      :class="error ? 'border-brand-orange' : 'border-fg/20'"
     >
       <MapView
         ref="mapView"
@@ -67,7 +67,7 @@ function useMyLocation() {
       />
       <p
         v-if="!model"
-        class="pointer-events-none absolute inset-x-0 top-3 mx-auto w-fit rounded-full bg-black/80 px-3 py-1.5 text-xs text-white"
+        class="pointer-events-none absolute inset-x-0 top-3 mx-auto w-fit rounded-full bg-surface/80 px-3 py-1.5 text-xs text-fg"
       >
         Toca el mapa para marcar el lugar
       </p>
@@ -76,7 +76,7 @@ function useMyLocation() {
     <div class="flex flex-wrap items-center justify-between gap-2">
       <button
         type="button"
-        class="inline-flex items-center gap-2 rounded-full border border-white/30 px-4 py-2 text-sm font-semibold transition hover:border-neon-lime hover:text-neon-lime focus-visible:outline-2 focus-visible:outline-white disabled:opacity-50"
+        class="inline-flex items-center gap-2 rounded-full border border-fg/30 px-4 py-2 text-sm font-semibold transition hover:border-neon-lime hover:text-accent-ink focus-visible:outline-2 focus-visible:outline-fg disabled:opacity-50"
         :disabled="locating"
         :aria-describedby="describedby"
         @click="useMyLocation"
@@ -87,11 +87,11 @@ function useMyLocation() {
         </svg>
         {{ locating ? 'Obteniendo ubicación…' : 'Usar mi ubicación' }}
       </button>
-      <p v-if="model" class="text-xs text-white/60 tabular-nums">
+      <p v-if="model" class="text-xs text-fg/60 tabular-nums">
         {{ model[1].toFixed(4) }}, {{ model[0].toFixed(4) }}
       </p>
     </div>
 
-    <p v-if="message" role="status" class="text-sm text-brand-orange">{{ message }}</p>
+    <p v-if="message" role="status" class="text-sm text-danger">{{ message }}</p>
   </div>
 </template>

@@ -14,7 +14,8 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import type { FeatureCollection, Point } from 'geojson'
 import mexicoGeo from '@map/assets/mexico.json'
 import { BRAND } from '@/core/config/theme'
-import { MAP_STYLE, MAX_ZOOM, MEXICO_BOUNDS, MEXICO_CENTER, MIN_ZOOM } from '@map/config'
+import { useTheme, type Theme } from '@/core/theme/useTheme'
+import { MAP_STYLES, MAX_ZOOM, MEXICO_BOUNDS, MEXICO_CENTER, MIN_ZOOM } from '@map/config'
 import { buildOutsideMask } from '@map/utils/mask'
 import type { MapPoint } from '@map/types/map'
 
@@ -37,6 +38,13 @@ const props = withDefaults(
 const emit = defineEmits<{ select: [id: string]; pick: [coordinates: [number, number]] }>()
 
 const mexico = mexicoGeo as FeatureCollection
+const { theme } = useTheme()
+
+// Colores de las capas propias según el tema del mapa base
+const LAYER_COLORS: Record<Theme, { mask: string; maskOpacity: number; outline: string; ink: string }> = {
+  dark: { mask: BRAND.black, maskOpacity: 0.6, outline: BRAND.neonGreen, ink: BRAND.white },
+  light: { mask: BRAND.white, maskOpacity: 0.7, outline: BRAND.black, ink: BRAND.black },
+}
 
 // Valor según si el punto es el seleccionado
 function bySelected(id: string | null, selected: number, other: number): ExpressionSpecification {
@@ -57,7 +65,8 @@ function pointsToGeoJSON(points: MapPoint[]): FeatureCollection<Point> {
 const container = ref<HTMLDivElement | null>(null)
 // Instancia fuera de la reactividad de Vue para evitar proxies
 let map: MapLibreMap | null = null
-// Si se pidió un flyTo antes de cargar el estilo, no pisarlo con el encuadre inicial
+// Si se pidió un flyTo antes de cargar el estilo, no pisarlo con el encuadre inicial;
+// tras el primer encuadre tampoco se re-encuadra (p. ej. al cambiar de tema)
 let cameraRequested = false
 
 onMounted(() => {
@@ -65,7 +74,7 @@ onMounted(() => {
 
   const instance = new MapLibreMap({
     container: container.value,
-    style: MAP_STYLE,
+    style: MAP_STYLES[theme.value],
     center: MEXICO_CENTER,
     zoom: 4.5,
     minZoom: MIN_ZOOM,
@@ -81,13 +90,16 @@ onMounted(() => {
   instance.addControl(new NavigationControl({ showCompass: false }), props.navigationPosition)
 
   // style.load no espera a las teselas: las capas propias aparecen de inmediato
+  // También se dispara tras setStyle (cambio de tema): las capas propias se vuelven a añadir
   instance.on('style.load', () => {
+    const colors = LAYER_COLORS[theme.value]
+
     instance.addSource('mexico-mask', { type: 'geojson', data: buildOutsideMask(mexico) })
     instance.addLayer({
       id: 'mexico-mask',
       type: 'fill',
       source: 'mexico-mask',
-      paint: { 'fill-color': BRAND.black, 'fill-opacity': 0.6 },
+      paint: { 'fill-color': colors.mask, 'fill-opacity': colors.maskOpacity },
     })
 
     instance.addSource('mexico', { type: 'geojson', data: mexico })
@@ -95,7 +107,7 @@ onMounted(() => {
       id: 'mexico-outline',
       type: 'line',
       source: 'mexico',
-      paint: { 'line-color': BRAND.neonGreen, 'line-width': 1.5 },
+      paint: { 'line-color': colors.outline, 'line-width': 1.5 },
     })
 
     instance.addSource('points', { type: 'geojson', data: pointsToGeoJSON(props.points) })
@@ -116,12 +128,13 @@ onMounted(() => {
       paint: {
         'circle-color': ['get', 'color'],
         'circle-radius': bySelected(props.selectedId, 9, 6),
-        'circle-stroke-color': BRAND.white,
-        'circle-stroke-width': bySelected(props.selectedId, 2.5, 0),
+        'circle-stroke-color': colors.ink,
+        'circle-stroke-width': bySelected(props.selectedId, 2.5, 1),
       },
     })
 
     if (!cameraRequested) instance.fitBounds(MEXICO_BOUNDS, { padding: props.fitPadding, animate: false })
+    cameraRequested = true
   })
 
   instance.on('click', 'points', (e) => {
@@ -151,9 +164,11 @@ watch(
     if (!map?.getLayer('points')) return
     map.setPaintProperty('points-halo', 'circle-radius', bySelected(id, 22, 12))
     map.setPaintProperty('points', 'circle-radius', bySelected(id, 9, 6))
-    map.setPaintProperty('points', 'circle-stroke-width', bySelected(id, 2.5, 0))
+    map.setPaintProperty('points', 'circle-stroke-width', bySelected(id, 2.5, 1))
   },
 )
+
+watch(theme, (value) => map?.setStyle(MAP_STYLES[value], { diff: false }))
 
 function flyTo(coordinates: [number, number], padding?: FlyToOptions['padding']) {
   cameraRequested = true

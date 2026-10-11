@@ -19,24 +19,24 @@ const author = computed(() =>
 
 <template>
   <aside
-    class="flex max-h-[60dvh] flex-col overflow-hidden rounded-t-3xl border-t border-white/15 bg-black shadow-2xl md:max-h-none md:rounded-3xl md:border"
+    class="flex max-h-[60dvh] flex-col overflow-hidden rounded-t-3xl border-t border-fg/15 bg-surface shadow-2xl md:max-h-none md:rounded-3xl md:border"
     :aria-label="`Testimonio ${testimony.folio}`"
   >
     <!-- Asa del bottom sheet (móvil) -->
     <div class="flex justify-center pt-2 md:hidden" aria-hidden="true">
-      <span class="h-1 w-10 rounded-full bg-white/30" />
+      <span class="h-1 w-10 rounded-full bg-fg/30" />
     </div>
 
     <header class="flex items-start justify-between gap-3 px-5 pt-3 pb-4 md:pt-5">
       <div class="min-w-0 space-y-2">
         <TopicBadge :topic="testimony.topic" />
         <h2 class="text-xl leading-tight font-semibold">{{ testimony.title }}</h2>
-        <p class="text-sm text-white/70">{{ testimony.place }}</p>
-        <p class="text-xs text-white/50">{{ testimony.folio }} · {{ date }} · {{ author }}</p>
+        <p class="text-sm text-fg/70">{{ testimony.place }}</p>
+        <p class="text-xs text-fg/50">{{ testimony.folio }} · {{ date }} · {{ author }}</p>
       </div>
       <button
         type="button"
-        class="grid size-9 shrink-0 place-items-center rounded-full bg-white/10 hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-white"
+        class="grid size-9 shrink-0 place-items-center rounded-full bg-fg/10 hover:bg-fg/20 focus-visible:outline-2 focus-visible:outline-fg"
         aria-label="Cerrar testimonio"
         @click="$emit('close')"
       >
@@ -46,7 +46,7 @@ const author = computed(() =>
       </button>
     </header>
 
-    <div class="space-y-5 overflow-y-auto px-5 pb-6 [scrollbar-color:rgb(255_255_255/0.25)_transparent] [scrollbar-width:thin] text-sm leading-relaxed text-white/85">
+    <div class="space-y-5 overflow-y-auto px-5 pb-6 [scrollbar-color:color-mix(in_oklab,var(--fg)_25%,transparent)_transparent] [scrollbar-width:thin] text-sm leading-relaxed text-fg/85">
       <section>
         <h3 class="section-title">1 · El testimonio</h3>
         <p>{{ testimony.testimony }}</p>
@@ -64,8 +64,8 @@ const author = computed(() =>
 
       <section>
         <h3 class="section-title">4 · El recibo / documento dice</h3>
-        <p class="text-white/60">
-          Evidencia: <span class="font-semibold text-white">{{ DOCUMENT_STATUS[testimony.document.status] }}</span>
+        <p class="text-fg/60">
+          Evidencia: <span class="font-semibold text-fg">{{ DOCUMENT_STATUS[testimony.document.status] }}</span>
           <template v-if="testimony.document.folio"> · {{ testimony.document.folio }}</template>
         </p>
         <p v-if="testimony.document.description" class="mt-1">{{ testimony.document.description }}</p>
@@ -76,22 +76,22 @@ const author = computed(() =>
         <p>
           {{ testimony.data.text }}
           <template v-if="testimony.data.source || testimony.data.year">
-            <span class="text-white/60">
+            <span class="text-fg/60">
               — {{ [testimony.data.source, testimony.data.year].filter(Boolean).join(', ') }}
             </span>
           </template>
         </p>
         <p
           v-if="testimony.data.pendingVerification"
-          class="mt-2 inline-flex rounded-full border border-brand-orange/50 px-2.5 py-0.5 text-xs text-brand-orange"
+          class="mt-2 inline-flex rounded-full border border-brand-orange/50 px-2.5 py-0.5 text-xs text-danger"
         >
           Fuente pendiente de verificación
         </p>
       </section>
 
-      <section class="rounded-2xl border border-neon-lime/40 bg-neon-lime/10 p-4">
-        <h3 class="text-xs font-semibold tracking-wide text-neon-lime uppercase">6 · La pregunta del Tribunal</h3>
-        <p class="mt-1 text-base font-semibold text-neon-lime">{{ testimony.tribunalQuestion }}</p>
+      <section class="rounded-2xl border border-neon-lime/40 light:border-fg/15 bg-neon-lime/10 light:bg-neon-lime/35 p-4">
+        <h3 class="text-xs font-semibold tracking-wide text-accent-ink uppercase">6 · La pregunta del Tribunal</h3>
+        <p class="mt-1 text-base font-semibold text-accent-ink">{{ testimony.tribunalQuestion }}</p>
       </section>
 
       <section>
@@ -100,7 +100,7 @@ const author = computed(() =>
           <li
             v-for="item in testimony.evidence"
             :key="item"
-            class="rounded-full border border-white/25 px-2.5 py-0.5 text-xs text-white/85"
+            class="rounded-full border border-fg/25 px-2.5 py-0.5 text-xs text-fg/85"
           >
             {{ EVIDENCE_LABELS[item] }}
           </li>
@@ -114,6 +114,6 @@ const author = computed(() =>
 @reference "@/style.css";
 
 .section-title {
-  @apply mb-1 text-xs font-semibold tracking-wide text-white/50 uppercase;
+  @apply mb-1 text-xs font-semibold tracking-wide text-fg/50 uppercase;
 }
 </style>

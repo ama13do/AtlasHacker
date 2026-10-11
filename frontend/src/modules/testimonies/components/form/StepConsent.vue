@@ -48,7 +48,7 @@ watch(
     <div class="space-y-2">
       <label
         class="flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 text-sm transition"
-        :class="draft.voluntary ? 'border-neon-lime bg-neon-lime/10' : errors.voluntary ? 'border-brand-orange' : 'border-white/20'"
+        :class="draft.voluntary ? 'border-neon-lime bg-neon-lime/10 light:border-fg light:bg-neon-lime/35' : errors.voluntary ? 'border-brand-orange' : 'border-fg/20'"
       >
         <input
           v-model="draft.voluntary"
@@ -59,7 +59,7 @@ watch(
         />
         <span>Declaro que participo voluntariamente y entiendo el uso de mi testimonio.</span>
       </label>
-      <p v-if="errors.voluntary" id="voluntary-error" class="text-sm text-brand-orange">{{ errors.voluntary }}</p>
+      <p v-if="errors.voluntary" id="voluntary-error" class="text-sm text-danger">{{ errors.voluntary }}</p>
     </div>
 
     <section class="space-y-4">
@@ -103,7 +103,7 @@ watch(
     <p
       v-if="draft.consent"
       class="rounded-xl px-4 py-3 text-sm"
-      :class="publishable ? 'bg-neon-green/10 text-neon-green' : 'bg-white/5 text-white/80'"
+      :class="publishable ? 'bg-neon-green/10 light:bg-neon-green/25 text-neon-green light:text-fg' : 'bg-fg/5 text-fg/80'"
     >
       {{
         publishable

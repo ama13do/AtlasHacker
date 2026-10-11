@@ -96,7 +96,7 @@ const sections = computed(() => [
   <div class="space-y-4">
     <div class="flex flex-wrap items-center gap-3">
       <TopicBadge v-if="draft.topic" :topic="draft.topic" />
-      <p class="text-sm" :class="publishable ? 'text-neon-green' : 'text-white/70'">
+      <p class="text-sm" :class="publishable ? 'text-neon-green light:text-fg' : 'text-fg/70'">
         {{ publishable ? 'Se publicará en el mapa' : 'No se publicará en el mapa' }}
       </p>
     </div>
@@ -105,26 +105,26 @@ const sections = computed(() => [
       <section
         v-for="section in sections"
         :key="section.step"
-        class="rounded-2xl border border-white/15 p-4"
+        class="rounded-2xl border border-fg/15 p-4"
         :class="{ 'lg:col-span-2': 'wide' in section && section.wide }"
       >
         <header class="mb-3 flex items-center justify-between gap-3">
           <h3 class="text-sm font-semibold">{{ section.title }}</h3>
           <button
             type="button"
-            class="rounded-full px-3 py-1 text-xs font-semibold text-neon-lime hover:bg-neon-lime/10 focus-visible:outline-2 focus-visible:outline-white"
+            class="rounded-full px-3 py-1 text-xs font-semibold text-accent-ink hover:bg-neon-lime/10 light:hover:bg-neon-lime/40 focus-visible:outline-2 focus-visible:outline-fg"
             :aria-label="`Editar ${section.title}`"
             @click="goTo(section.step)"
           >
             Editar
           </button>
         </header>
-        <p v-if="section.text" class="text-sm whitespace-pre-line text-white/85">{{ section.text }}</p>
+        <p v-if="section.text" class="text-sm whitespace-pre-line text-fg/85">{{ section.text }}</p>
         <dl v-else class="space-y-2 text-sm">
           <template v-for="[label, value] in section.rows" :key="label">
             <div v-if="value" class="grid grid-cols-[8rem_1fr] gap-3">
-              <dt class="text-white/50">{{ label }}</dt>
-              <dd class="whitespace-pre-line text-white/85">{{ value }}</dd>
+              <dt class="text-fg/50">{{ label }}</dt>
+              <dd class="whitespace-pre-line text-fg/85">{{ value }}</dd>
             </div>
           </template>
         </dl>

@@ -28,12 +28,12 @@ const { draft, errors } = useTestimonyFormContext()
       />
     </FormField>
 
-    <aside class="h-fit rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-sm">
+    <aside class="h-fit rounded-2xl border border-fg/10 bg-fg/[0.03] p-4 text-sm">
       <p class="form-group-title mb-3">Puedes contar</p>
-      <ul class="space-y-2.5 text-white/70">
-        <li class="flex gap-2"><span class="text-neon-lime" aria-hidden="true">→</span> Qué pasa y qué te preocupa.</li>
-        <li class="flex gap-2"><span class="text-neon-lime" aria-hidden="true">→</span> Dónde ocurre y desde cuándo.</li>
-        <li class="flex gap-2"><span class="text-neon-lime" aria-hidden="true">→</span> A quiénes afecta y cómo.</li>
+      <ul class="space-y-2.5 text-fg/70">
+        <li class="flex gap-2"><span class="text-accent-ink" aria-hidden="true">→</span> Qué pasa y qué te preocupa.</li>
+        <li class="flex gap-2"><span class="text-accent-ink" aria-hidden="true">→</span> Dónde ocurre y desde cuándo.</li>
+        <li class="flex gap-2"><span class="text-accent-ink" aria-hidden="true">→</span> A quiénes afecta y cómo.</li>
       </ul>
     </aside>
   </div>

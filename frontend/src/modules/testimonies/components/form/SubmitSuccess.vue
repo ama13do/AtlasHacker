@@ -15,7 +15,7 @@ defineEmits<{ viewOnMap: []; home: [] }>()
 
     <div class="space-y-2">
       <h2 class="text-2xl font-semibold">Gracias por tu testimonio</h2>
-      <p class="text-white/70">
+      <p class="text-fg/70">
         {{
           result.published
             ? 'Ya aparece en el mapa.'
@@ -24,13 +24,13 @@ defineEmits<{ viewOnMap: []; home: [] }>()
       </p>
     </div>
 
-    <dl class="w-full max-w-sm space-y-2 rounded-2xl border border-white/15 p-4 text-left text-sm">
+    <dl class="w-full max-w-sm space-y-2 rounded-2xl border border-fg/15 p-4 text-left text-sm">
       <div class="flex justify-between gap-3">
-        <dt class="text-white/50">Folio</dt>
+        <dt class="text-fg/50">Folio</dt>
         <dd class="font-semibold tabular-nums">{{ result.testimony.folio }}</dd>
       </div>
       <div v-if="result.evidenceFolio" class="flex justify-between gap-3">
-        <dt class="text-white/50">Folio de evidencia</dt>
+        <dt class="text-fg/50">Folio de evidencia</dt>
         <dd class="font-semibold tabular-nums">{{ result.evidenceFolio }}</dd>
       </div>
     </dl>
@@ -39,20 +39,20 @@ defineEmits<{ viewOnMap: []; home: [] }>()
       <button
         v-if="result.published"
         type="button"
-        class="rounded-full bg-neon-lime py-3 font-semibold text-black transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+        class="rounded-full bg-neon-lime py-3 font-semibold text-black transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
         @click="$emit('viewOnMap')"
       >
         Ver en el mapa
       </button>
       <button
         type="button"
-        class="rounded-full border border-white/30 py-3 font-semibold transition hover:border-white focus-visible:outline-2 focus-visible:outline-white"
+        class="rounded-full border border-fg/30 py-3 font-semibold transition hover:border-fg focus-visible:outline-2 focus-visible:outline-fg"
         @click="$emit('home')"
       >
         Volver al inicio
       </button>
     </div>
 
-    <p class="text-xs tracking-widest text-white/50 uppercase">Escucha · Registra · Verifica · Protege</p>
+    <p class="text-xs tracking-widest text-fg/50 uppercase">Escucha · Registra · Verifica · Protege</p>
   </div>
 </template>
