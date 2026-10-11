@@ -2,11 +2,11 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { Map as MapLibreMap, NavigationControl, setWorkerUrl } from 'maplibre-gl'
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
-import 'maplibre-gl/dist/maplibre-gl.css'
 import type { FeatureCollection } from 'geojson'
-import mexicoGeo from '@/assets/geo/mexico.json'
-import { MAP_STYLE, MAX_ZOOM, MEXICO_BOUNDS, MEXICO_CENTER, MIN_ZOOM } from '@/config/map'
-import { buildOutsideMask } from '@/utils/mask'
+import mexicoGeo from '../assets/mexico.json'
+import { BRAND } from '@/core/config/theme'
+import { MAP_STYLE, MAX_ZOOM, MEXICO_BOUNDS, MEXICO_CENTER, MIN_ZOOM } from '../config'
+import { buildOutsideMask } from '../utils/mask'
 
 // MapLibre resuelve su worker relativo a su propio módulo; Vite lo reubica al pre-empaquetar
 setWorkerUrl(workerUrl)
@@ -41,7 +41,7 @@ onMounted(() => {
       id: 'mexico-mask',
       type: 'fill',
       source: 'mexico-mask',
-      paint: { 'fill-color': '#000000', 'fill-opacity': 0.6 },
+      paint: { 'fill-color': BRAND.black, 'fill-opacity': 0.6 },
     })
 
     instance.addSource('mexico', { type: 'geojson', data: mexico })
@@ -49,7 +49,7 @@ onMounted(() => {
       id: 'mexico-outline',
       type: 'line',
       source: 'mexico',
-      paint: { 'line-color': '#22d3ee', 'line-width': 1.5 },
+      paint: { 'line-color': BRAND.neonGreen, 'line-width': 1.5 },
     })
 
     instance.fitBounds(MEXICO_BOUNDS, { padding: 20, animate: false })
