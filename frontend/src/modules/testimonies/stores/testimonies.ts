@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { testimoniesService } from '@testimonies/services/testimonies.service'
-import type { Testimony } from '@testimonies/types/testimony'
+import type { Testimony, TestimonyDraft } from '@testimonies/types/testimony'
 
 const POPULAR_LIMIT = 8
 
@@ -26,6 +26,14 @@ export const useTestimoniesStore = defineStore('testimonies', () => {
     }
   }
 
+  async function create(draft: TestimonyDraft) {
+    const result = await testimoniesService.create(draft)
+    // Sin datos cargados, load() ya trae el nuevo; si no, se agrega solo si es público
+    if (!items.value.length) await load()
+    else if (result.published) items.value.push(result.testimony)
+    return result
+  }
+
   function select(id: string | null) {
     selectedId.value = id
   }
@@ -38,5 +46,5 @@ export const useTestimoniesStore = defineStore('testimonies', () => {
     storyIndex.value = null
   }
 
-  return { items, loading, selectedId, storyIndex, popular, selected, load, select, openStory, closeStory }
+  return { items, loading, selectedId, storyIndex, popular, selected, load, create, select, openStory, closeStory }
 })

@@ -26,12 +26,14 @@ src/
     │   ├── index.ts       # API pública: MapView, MapPoint
     │   ├── components/  types/  utils/  assets/
     │   └── config.ts
-    └── testimonies/       # testimonios (ficha FUTURO/001), dueño de la ruta '/'
+    └── testimonies/       # testimonios (ficha FUTURO/001): rutas '/' y '/testimonios/nuevo'
         ├── index.ts       # API pública: testimoniesRoutes
         ├── routes.ts
-        ├── views/HomePage.vue
+        ├── views/         # HomePage, CreateTestimonyPage (wizard)
         ├── components/    # StoriesBar, StoryViewer, TestimonyCard, TopicBadge…
-        ├── stores/  services/  types/
+        │   └── form/      # pasos del wizard y campos (FormField, ChoiceGroup, LocationPicker…)
+        ├── composables/   # useTestimonyForm: estado, validación por paso y borrador
+        ├── stores/  services/  types/  utils/
         └── data/          # mock (temporal) y metadatos de temas
 ```
 

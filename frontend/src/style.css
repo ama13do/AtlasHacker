@@ -68,3 +68,10 @@
 .maplibregl-ctrl-attrib-button {
   filter: invert(1);
 }
+
+@layer components {
+  /* Campos de formulario */
+  .field-input {
+    @apply w-full rounded-xl border border-white/20 bg-white/5 px-4 py-3 text-base text-white transition placeholder:text-white/40 focus:border-neon-lime focus:outline-none aria-invalid:border-brand-orange;
+  }
+}

@@ -28,11 +28,13 @@ const props = withDefaults(
     navigationPosition?: ControlPosition
     // Margen del encuadre inicial, p. ej. para no quedar bajo un header superpuesto
     fitPadding?: FitBoundsOptions['padding']
+    // Permite elegir una ubicación con un clic (emite `pick`)
+    pickable?: boolean
   }>(),
-  { points: () => [], selectedId: null, navigationPosition: 'top-right', fitPadding: 20 },
+  { points: () => [], selectedId: null, navigationPosition: 'top-right', fitPadding: 20, pickable: false },
 )
 
-const emit = defineEmits<{ select: [id: string] }>()
+const emit = defineEmits<{ select: [id: string]; pick: [coordinates: [number, number]] }>()
 
 const mexico = mexicoGeo as FeatureCollection
 
@@ -55,6 +57,8 @@ function pointsToGeoJSON(points: MapPoint[]): FeatureCollection<Point> {
 const container = ref<HTMLDivElement | null>(null)
 // Instancia fuera de la reactividad de Vue para evitar proxies
 let map: MapLibreMap | null = null
+// Si se pidió un flyTo antes de cargar el estilo, no pisarlo con el encuadre inicial
+let cameraRequested = false
 
 onMounted(() => {
   if (!container.value) return
@@ -117,7 +121,7 @@ onMounted(() => {
       },
     })
 
-    instance.fitBounds(MEXICO_BOUNDS, { padding: props.fitPadding, animate: false })
+    if (!cameraRequested) instance.fitBounds(MEXICO_BOUNDS, { padding: props.fitPadding, animate: false })
   })
 
   instance.on('click', 'points', (e) => {
@@ -125,7 +129,12 @@ onMounted(() => {
     if (typeof id === 'string') emit('select', id)
   })
   instance.on('mouseenter', 'points', () => (instance.getCanvas().style.cursor = 'pointer'))
-  instance.on('mouseleave', 'points', () => (instance.getCanvas().style.cursor = ''))
+  instance.on('mouseleave', 'points', () => (instance.getCanvas().style.cursor = props.pickable ? 'crosshair' : ''))
+
+  if (props.pickable) {
+    instance.getCanvas().style.cursor = 'crosshair'
+    instance.on('click', (e) => emit('pick', [e.lngLat.lng, e.lngLat.lat]))
+  }
 
   map = instance
 })
@@ -147,6 +156,7 @@ watch(
 )
 
 function flyTo(coordinates: [number, number], padding?: FlyToOptions['padding']) {
+  cameraRequested = true
   map?.flyTo({ center: coordinates, zoom: Math.max(map.getZoom(), 7), padding, essential: true })
 }
 

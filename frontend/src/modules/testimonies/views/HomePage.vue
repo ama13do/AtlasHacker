@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useRoute, useRouter } from 'vue-router'
 import { MapView, type MapPoint } from '@/modules/map'
 import { TOPIC_META } from '@testimonies/data/topics'
 import { useTestimoniesStore } from '@testimonies/stores/testimonies'
@@ -10,12 +11,12 @@ import TestimonyCard from '@testimonies/components/TestimonyCard.vue'
 
 const MD_BREAKPOINT = 768
 
+const route = useRoute()
+const router = useRouter()
 const store = useTestimoniesStore()
 const { items, popular, selected, selectedId, storyIndex } = storeToRefs(store)
 
 const mapView = ref<InstanceType<typeof MapView> | null>(null)
-const toast = ref<string | null>(null)
-let toastTimer: ReturnType<typeof setTimeout> | undefined
 
 const points = computed<MapPoint[]>(() =>
   items.value.map((t) => ({ id: t.id, coordinates: t.coordinates, color: TOPIC_META[t.topic].color })),
@@ -38,14 +39,15 @@ function viewOnMap(id: string) {
   focusTestimony(id)
 }
 
-function showSoon() {
-  toast.value = 'Próximamente podrás subir tu testimonio'
-  clearTimeout(toastTimer)
-  toastTimer = setTimeout(() => (toast.value = null), 2500)
-}
+onMounted(async () => {
+  if (!items.value.length) await store.load()
 
-onMounted(() => {
-  if (!items.value.length) store.load()
+  // ?t=<id>: abrir un testimonio concreto (p. ej. tras crearlo) y limpiar la URL
+  const id = route.query.t
+  if (typeof id === 'string') {
+    focusTestimony(id)
+    router.replace({ query: {} })
+  }
 })
 </script>
 
@@ -91,28 +93,16 @@ onMounted(() => {
     </Transition>
 
     <!-- Subir testimonio -->
-    <button
-      type="button"
+    <RouterLink
+      :to="{ name: 'testimony-new' }"
       class="absolute right-4 bottom-20 z-10 flex md:bottom-12 items-center gap-2 rounded-full bg-neon-lime px-5 py-3 font-semibold text-black shadow-lg shadow-black/50 transition hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       :class="{ 'max-md:hidden': selected }"
-      @click="showSoon"
     >
       <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
         <path d="M12 5v14M5 12h14" />
       </svg>
       Subir testimonio
-    </button>
-
-    <!-- Aviso -->
-    <Transition enter-from-class="opacity-0 translate-y-2" leave-to-class="opacity-0" enter-active-class="transition" leave-active-class="transition">
-      <p
-        v-if="toast"
-        role="status"
-        class="absolute bottom-36 left-1/2 z-30 md:bottom-28 -translate-x-1/2 rounded-full bg-white px-4 py-2 text-sm font-semibold whitespace-nowrap text-black shadow-lg"
-      >
-        {{ toast }}
-      </p>
-    </Transition>
+    </RouterLink>
 
     <StoryViewer
       v-if="storyIndex !== null"
