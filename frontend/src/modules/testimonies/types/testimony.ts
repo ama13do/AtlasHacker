@@ -1,5 +1,7 @@
 // Modelo basado en la ficha FUTURO/001 del Tribunal Popular por Nuestro Futuro
 
+import type { CoverName } from '@testimonies/data/covers'
+
 export type Topic = 'transicion' | 'contaminacion' | 'suceso'
 
 export type EvidenceType =
@@ -30,6 +32,7 @@ export interface Testimony {
   tribunalQuestion: string // 6 · La pregunta del tribunal
   evidence: EvidenceType[]
   supports: number // Popularidad
+  cover?: CoverName // Sticker de portada; si falta se elige por tema
 }
 
 // --- Creación de testimonio (formulario) ---

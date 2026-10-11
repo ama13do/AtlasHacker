@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { TOPIC_META } from '@testimonies/data/topics'
 import type { Testimony } from '@testimonies/types/testimony'
-import TopicIcon from '@testimonies/components/TopicIcon.vue'
+import { coverFor } from '@testimonies/data/covers'
 
 defineProps<{ stories: Testimony[] }>()
 defineEmits<{ open: [index: number] }>()
@@ -25,9 +25,9 @@ function shortPlace(place: string) {
       >
         <span
           class="relative grid size-16 place-items-center rounded-full bg-surface ring-2 ring-offset-2 ring-offset-surface transition group-hover:scale-105 group-focus-visible:ring-fg"
-          :class="[i < 3 ? 'ring-neon-lime' : TOPIC_META[story.topic].ring, TOPIC_META[story.topic].text, TOPIC_META[story.topic].chip]"
+          :class="i < 3 ? 'ring-neon-lime' : TOPIC_META[story.topic].ring"
         >
-          <TopicIcon :topic="story.topic" class="size-7" />
+          <img :src="coverFor(story)" alt="" class="size-12 object-contain" loading="lazy" decoding="async" />
           <span
             v-if="i < 3"
             class="absolute -bottom-1 rounded-full bg-neon-lime px-1.5 text-[10px] font-semibold leading-4 text-black"

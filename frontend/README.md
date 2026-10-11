@@ -100,6 +100,12 @@ Ejemplos: `bg-neon-green`, `text-brand-pink`, `border-neon-lime`.
 - Los acentos se usan con moderación (~30%): resaltes, botones, etiquetas, stickers.
 - El beige de la marca (`#FAF5E1`) **no** se usa en esta plataforma.
 
+### Íconos (stickers de marca)
+
+- Originales en `src/assets/icons/originals/*.png` (no entran al build); versiones web en `src/assets/icons/*.webp`.
+- Para regenerar los `.webp` tras agregar o cambiar un original: `npm run icons:optimize` (usa `sharp`, máx. 192px).
+- Se usan como portada de las historias (`src/modules/testimonies/data/covers.ts`): cada testimonio puede traer `cover`; si no, se elige uno fijo del grupo de su tema.
+
 ### Logotipo
 
 - Solo en blanco o negro; nunca a color.

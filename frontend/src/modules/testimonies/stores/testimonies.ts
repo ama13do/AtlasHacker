@@ -16,6 +16,7 @@ export const useTestimoniesStore = defineStore('testimonies', () => {
     [...items.value].sort((a, b) => b.supports - a.supports).slice(0, POPULAR_LIMIT),
   )
   const selected = computed(() => items.value.find((t) => t.id === selectedId.value) ?? null)
+  const recent = computed(() => [...items.value].sort((a, b) => b.date.localeCompare(a.date)))
 
   async function load() {
     loading.value = true
@@ -46,5 +47,5 @@ export const useTestimoniesStore = defineStore('testimonies', () => {
     storyIndex.value = null
   }
 
-  return { items, loading, selectedId, storyIndex, popular, selected, load, create, select, openStory, closeStory }
+  return { items, loading, selectedId, storyIndex, popular, selected, recent, load, create, select, openStory, closeStory }
 })

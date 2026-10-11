@@ -22,6 +22,7 @@ export const TESTIMONIES_MOCK: Testimony[] = [
     tribunalQuestion: '¿Por qué no se hizo una consulta libre, previa e informada antes de firmar?',
     evidence: ['documento', 'foto', 'mapa'],
     supports: 412,
+    cover: 'rayo',
   },
   {
     id: 't-0002',
@@ -43,6 +44,7 @@ export const TESTIMONIES_MOCK: Testimony[] = [
     tribunalQuestion: '¿Qué medidas se tomaron para reducir las emisiones y quién las vigila?',
     evidence: ['foto', 'video', 'estudio'],
     supports: 389,
+    cover: 'sol-naranja',
   },
   {
     id: 't-0003',
@@ -63,6 +65,7 @@ export const TESTIMONIES_MOCK: Testimony[] = [
     tribunalQuestion: '¿Cómo se define la tarifa para zonas de calor extremo y quién la revisa?',
     evidence: ['recibo', 'foto'],
     supports: 356,
+    cover: 'sol-rojo',
   },
   {
     id: 't-0004',
@@ -84,6 +87,7 @@ export const TESTIMONIES_MOCK: Testimony[] = [
     tribunalQuestion: '¿Quién es responsable de la fuga y por qué no se informó a la población?',
     evidence: ['foto', 'video', 'mapa', 'estudio'],
     supports: 331,
+    cover: 'agua',
   },
   {
     id: 't-0005',
@@ -105,6 +109,7 @@ export const TESTIMONIES_MOCK: Testimony[] = [
     tribunalQuestion: '¿Por qué la energía solar no llega a los hogares que más la necesitan?',
     evidence: ['datos'],
     supports: 298,
+    cover: 'solecito',
   },
   {
     id: 't-0006',
@@ -125,6 +130,7 @@ export const TESTIMONIES_MOCK: Testimony[] = [
     tribunalQuestion: '¿Qué plan existe para que las contingencias dejen de ser normales?',
     evidence: ['foto', 'datos'],
     supports: 244,
+    cover: 'sol-naranja',
   },
   {
     id: 't-0007',
@@ -145,6 +151,7 @@ export const TESTIMONIES_MOCK: Testimony[] = [
     tribunalQuestion: '¿Con qué criterios se decide a quién se le corta la luz primero?',
     evidence: ['documento', 'foto'],
     supports: 207,
+    cover: 'corazon',
   },
   {
     id: 't-0008',
@@ -166,5 +173,6 @@ export const TESTIMONIES_MOCK: Testimony[] = [
     tribunalQuestion: '¿Cómo se autorizó el cambio de uso de suelo sin consultar a las comunidades?',
     evidence: ['mapa', 'foto', 'estudio'],
     supports: 188,
+    cover: 'hoja',
   },
 ]
