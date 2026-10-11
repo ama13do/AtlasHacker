@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { mapRoutes } from '@/modules/map'
+import { testimoniesRoutes } from '@/modules/testimonies'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    ...mapRoutes,
-    { path: '/:pathMatch(.*)*', redirect: { name: 'map' } },
+    ...testimoniesRoutes,
+    { path: '/:pathMatch(.*)*', redirect: { name: 'home' } },
   ],
 })
 

@@ -22,11 +22,17 @@ src/
 ├── shared/            # reutilizable entre módulos
 │   ├── components/  composables/  stores/  types/  utils/
 └── modules/
-    └── map/
-        ├── index.ts       # API pública del módulo
+    ├── map/               # mapa genérico (MapView con puntos), sin rutas propias
+    │   ├── index.ts       # API pública: MapView, MapPoint
+    │   ├── components/  types/  utils/  assets/
+    │   └── config.ts
+    └── testimonies/       # testimonios (ficha FUTURO/001), dueño de la ruta '/'
+        ├── index.ts       # API pública: testimoniesRoutes
         ├── routes.ts
-        ├── views/  components/  stores/  services/  types/  utils/  assets/
-        └── config.ts
+        ├── views/HomePage.vue
+        ├── components/    # StoriesBar, StoryViewer, TestimonyCard, TopicBadge…
+        ├── stores/  services/  types/
+        └── data/          # mock (temporal) y metadatos de temas
 ```
 
 ### Reglas de dependencias
