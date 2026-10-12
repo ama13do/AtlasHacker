@@ -1,9 +1,9 @@
 import { computed, inject, provide, reactive, ref, watch, type InjectionKey } from 'vue'
-import type { TestimonyDraft } from '@testimonies/types/testimony'
+import type { EvidenceType, TestimonyDraft } from '@testimonies/types/testimony'
 import { isPublishable } from '@testimonies/utils/publication'
 
 export const STEPS = [
-  { title: 'Datos generales', description: 'Qué tema es, dónde ocurre y cómo quieres aparecer.' },
+  { title: 'Datos generales', description: 'De qué trata, dónde ocurre y cómo quieres aparecer.' },
   { title: 'El testimonio', description: 'Cuéntanos qué sucede y qué es importante que el Tribunal conozca.' },
   { title: 'El territorio y la comunidad', description: 'Qué ha cambiado en el lugar y cómo lo ha vivido la gente.' },
   { title: 'El recibo / documento dice', description: 'Documentos, fotos u otra evidencia que ayude a documentarlo.' },
@@ -52,11 +52,17 @@ function emptyDraft(): TestimonyDraft {
   }
 }
 
+// Tipos de evidencia de borradores anteriores a la conexión con la API
+const LEGACY_EVIDENCE: Record<string, EvidenceType> = { recibo: 'recibo_factura', documento: 'documento_oficial' }
+
 // Borrador guardado sin archivos (File no es serializable)
 function loadSaved(): { draft: Partial<TestimonyDraft>; step: number } | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? JSON.parse(raw) : null
+    if (!raw) return null
+    const saved = JSON.parse(raw) as { draft: Partial<TestimonyDraft>; step: number }
+    if (saved.draft.evidence) saved.draft.evidence = saved.draft.evidence.map((e) => LEGACY_EVIDENCE[e] ?? e)
+    return saved
   } catch {
     return null
   }
@@ -90,7 +96,7 @@ function validate(step: number, d: TestimonyDraft): FormErrors {
 
   switch (step) {
     case 0:
-      if (!d.topic) e.topic = 'Elige el tema del testimonio.'
+      if (!d.topic) e.topic = 'Elige la categoría del testimonio.'
       if (!required(d.title)) e.title = 'Escribe un título corto.'
       if (!required(d.place)) e.place = 'Indica el lugar o territorio.'
       if (!d.coordinates) e.coordinates = 'Marca la ubicación en el mapa.'

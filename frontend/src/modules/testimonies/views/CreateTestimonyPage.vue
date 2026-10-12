@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { nextTick, ref, watch, type Component } from 'vue'
+import { nextTick, onMounted, ref, watch, type Component } from 'vue'
 import { useRouter } from 'vue-router'
 import { provideTestimonyForm, STEPS, useTestimonyForm } from '@testimonies/composables/useTestimonyForm'
+import { useCategoriesStore } from '@testimonies/stores/categories'
 import { useTestimoniesStore } from '@testimonies/stores/testimonies'
 import type { CreateTestimonyResult } from '@testimonies/types/testimony'
 import StepConsent from '@testimonies/components/form/StepConsent.vue'
@@ -38,6 +39,17 @@ const showRestored = ref(form.restored)
 const submitting = ref(false)
 const submitError = ref<string | null>(null)
 const result = ref<CreateTestimonyResult | null>(null)
+
+// Un borrador guardado puede traer una categoría que ya no existe (o de antes de la API)
+onMounted(async () => {
+  const categories = useCategoriesStore()
+  try {
+    await categories.load()
+  } catch {
+    return // El paso 1 muestra el error y permite reintentar
+  }
+  if (draft.topic && !categories.categories.some((c) => c.slug === draft.topic)) draft.topic = null
+})
 
 // Al cambiar de paso: arriba y foco en el título para lectores de pantalla
 watch(step, async () => {
@@ -79,7 +91,8 @@ async function onSubmit() {
     form.reset()
   } catch (error) {
     console.error(error)
-    submitError.value = 'No pudimos enviar tu testimonio. Intenta de nuevo.'
+    submitError.value =
+      error instanceof Error ? error.message : 'No pudimos enviar tu testimonio. Intenta de nuevo.'
   } finally {
     submitting.value = false
   }

@@ -30,11 +30,14 @@ src/
         ├── index.ts       # API pública: testimoniesRoutes
         ├── routes.ts
         ├── views/         # HomePage, CreateTestimonyPage (wizard)
-        ├── components/    # StoriesBar, StoryViewer, TestimonyCard, TopicBadge…
+        ├── components/    # StoriesBar, StoryViewer, TestimonySidebar, CategoryBadge…
         │   └── form/      # pasos del wizard y campos (FormField, ChoiceGroup, LocationPicker…)
         ├── composables/   # useTestimonyForm: estado, validación por paso y borrador
-        ├── stores/  services/  types/  utils/
-        └── data/          # mock (temporal) y metadatos de temas
+        ├── services/      # testimonies.service (llamadas a la API) y mappers (API → modelo)
+        ├── stores/        # testimonies (resúmenes + fichas en caché) y categories (/api/config)
+        ├── types/         # api.ts (contratos crudos) y testimony.ts (modelo del front)
+        ├── utils/
+        └── data/          # estilo de marca por categoría y portadas
 ```
 
 ### Reglas de dependencias
@@ -52,6 +55,24 @@ src/
 4. Registrar las rutas en `src/core/router/index.ts`.
 5. Alias `@<nombre>` → `src/modules/<nombre>` en `vite.config.ts` (`resolve.alias`) y `tsconfig.app.json` (`paths`); dentro del módulo importar con ese alias (p. ej. `@map/config`).
 6. Servicios: usar `http` de `@/core/http/client`; stores de Pinia con `defineStore('<nombre>/...', ...)`.
+
+## API
+
+Backend en `../backend` (Hono; **no se modifica desde aquí**). Guía: `../docs/INTEGRACION_FRONTEND.md`; referencia completa en Swagger (`<API>/docs`).
+
+- `VITE_API_URL` es la URL base **sin** `/api`: la API de pruebas en AWS o `http://localhost:3000` para el back local (ver `.env.example`).
+- **Dev:** las llamadas van a `/api/...` en el mismo origen y el proxy de Vite las reenvía a `VITE_API_URL`. Así se evita el CORS de AWS, que solo permite el dominio de Vercel. Tras cambiar `.env`, reinicia `npm run dev`.
+- **Build:** se llama directo a `VITE_API_URL`.
+- Respuestas: éxito `{ success: true, data, … }` y error `{ success: false, error: { codigo, mensaje, detalles? } }`. El cliente (`src/core/http/client.ts`) convierte los errores en `ApiError { status, code, message, details }`.
+- La forma de la API (español, snake_case) solo la conocen `types/api.ts` y `services/mappers.ts`; el resto usa el modelo de `types/testimony.ts`.
+- Las categorías vienen de `/api/config`; su color se asigna con los acentos de la marca por slug (`data/categories.ts`), no con el color de la API.
+
+| Etapa | Alcance | Estado |
+| --- | --- | --- |
+| 1 · Lectura | Pines (`/api/mapa`), historias, lista y ficha (`/api/testimonios/{id}`), estados de carga, vacío y error | Lista |
+| 2 · Crear | `POST /api/testimonios` con Turnstile (`X-Captcha-Token`) y folio de participante | Pendiente |
+| 3 · Evidencias | Reservar → `PUT` a R2 → confirmar | Pendiente |
+| 4 · Social | Reacciones, comentarios, tiempo real (Supabase) y «mi folio» | Pendiente |
 
 ## Tema
 
@@ -104,7 +125,7 @@ Ejemplos: `bg-neon-green`, `text-brand-pink`, `border-neon-lime`.
 
 - Originales en `src/assets/icons/originals/*.png` (no entran al build); versiones web en `src/assets/icons/*.webp`.
 - Para regenerar los `.webp` tras agregar o cambiar un original: `npm run icons:optimize` (usa `sharp`, máx. 192px).
-- Se usan como portada de las historias (`src/modules/testimonies/data/covers.ts`): cada testimonio puede traer `cover`; si no, se elige uno fijo del grupo de su tema.
+- Se usan como portada de las historias (`src/modules/testimonies/data/covers.ts`): cada testimonio puede traer `cover`; si no, se elige uno fijo del grupo de su categoría.
 
 ### Logotipo
 

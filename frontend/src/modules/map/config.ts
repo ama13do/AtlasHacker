@@ -8,10 +8,10 @@ export const MAP_STYLES: Record<Theme, string> = {
 }
 
 // Rectángulo de México con margen; limita paneo y zoom
-export const MEXICO_BOUNDS: LngLatBoundsLike = [
+export const MEXICO_BOUNDS = [
   [-119.5, 13.5],
   [-85.0, 35.5], // norte con holgura para el header superpuesto
-]
+] satisfies LngLatBoundsLike as [[number, number], [number, number]]
 
 export const MEXICO_CENTER: LngLatLike = [-102.5, 23.6]
 export const MIN_ZOOM = 4

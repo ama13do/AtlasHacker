@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { TOPIC_META } from '@testimonies/data/topics'
-import type { Testimony } from '@testimonies/types/testimony'
-import TopicBadge from '@testimonies/components/TopicBadge.vue'
+import { categoryStyle } from '@testimonies/data/categories'
+import type { TestimonyDetail, TestimonySummary } from '@testimonies/types/testimony'
+import CategoryBadge from '@testimonies/components/CategoryBadge.vue'
 
 const STORY_DURATION = 7000
 const HOLD_THRESHOLD = 200
 
-const props = defineProps<{ stories: Testimony[]; index: number }>()
+// `detail`: ficha completa de la historia actual; mientras llega se muestra el resumen
+const props = defineProps<{
+  stories: TestimonySummary[]
+  index: number
+  detail: TestimonyDetail | null
+  detailFailed?: boolean
+}>()
 const emit = defineEmits<{
   close: []
   'update:index': [index: number]
@@ -15,7 +21,7 @@ const emit = defineEmits<{
 }>()
 
 const story = computed(() => props.stories[props.index])
-const meta = computed(() => TOPIC_META[story.value.topic])
+const meta = computed(() => categoryStyle(story.value.category))
 const date = computed(() =>
   new Date(`${story.value.date}T00:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }),
 )
@@ -155,17 +161,26 @@ onBeforeUnmount(() => {
           @pointercancel="onPointerCancel"
           @pointerleave="onPointerCancel"
         >
-          <TopicBadge :topic="story.topic" class="self-start" />
-          <h2 class="text-3xl leading-tight font-semibold text-balance">{{ story.title }}</h2>
-          <p class="line-clamp-5 text-base text-fg/85">{{ story.testimony }}</p>
-
-          <div class="rounded-2xl border border-neon-lime/40 light:border-fg/15 bg-neon-lime/10 light:bg-neon-lime/35 p-4">
-            <p class="text-xs font-semibold tracking-wide text-accent-ink uppercase">El Tribunal pregunta</p>
-            <p class="mt-1 text-lg font-semibold text-accent-ink">{{ story.tribunalQuestion }}</p>
+          <CategoryBadge :category="story.category" class="self-start" />
+          <h2 class="text-3xl leading-tight font-semibold text-balance">{{ detail?.title ?? story.title }}</h2>
+          <p v-if="detail" class="line-clamp-5 text-base text-fg/85">{{ detail.testimony }}</p>
+          <div v-else-if="!detailFailed" class="space-y-2" aria-hidden="true">
+            <span class="block h-3.5 w-full animate-pulse rounded-full bg-fg/15" />
+            <span class="block h-3.5 w-full animate-pulse rounded-full bg-fg/15" />
+            <span class="block h-3.5 w-3/5 animate-pulse rounded-full bg-fg/15" />
           </div>
 
-          <p class="text-xs text-fg/60">
-            <span class="font-semibold text-fg/80">{{ story.supports }}</span> personas respaldan este testimonio
+          <div
+            v-if="detail?.tribunalQuestion"
+            class="rounded-2xl border border-neon-lime/40 light:border-fg/15 bg-neon-lime/10 light:bg-neon-lime/35 p-4"
+          >
+            <p class="text-xs font-semibold tracking-wide text-accent-ink uppercase">El Tribunal pregunta</p>
+            <p class="mt-1 text-lg font-semibold text-accent-ink">{{ detail.tribunalQuestion }}</p>
+          </div>
+
+          <p v-if="story.reactions" class="text-xs text-fg/60">
+            <span class="font-semibold text-fg/80">{{ story.reactions }}</span>
+            {{ story.reactions === 1 ? 'reacción' : 'reacciones' }} a este testimonio
           </p>
         </div>
 

@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { Testimony } from '@testimonies/types/testimony'
+import type { LoadStatus } from '@testimonies/stores/testimonies'
+import type { TestimonyDetail as Detail, TestimonySummary } from '@testimonies/types/testimony'
 import TestimonyDetail from '@testimonies/components/TestimonyDetail.vue'
 
-defineProps<{ testimony: Testimony }>()
-defineEmits<{ close: [] }>()
+defineProps<{ testimony: TestimonySummary; detail: Detail | null; status?: LoadStatus }>()
+defineEmits<{ close: []; retry: [] }>()
 </script>
 
 <!-- Bottom sheet del testimonio seleccionado (móvil) -->
@@ -14,7 +15,7 @@ defineEmits<{ close: [] }>()
     </div>
 
     <div class="overflow-y-auto px-5 pt-3 pb-6 [scrollbar-color:color-mix(in_oklab,var(--fg)_25%,transparent)_transparent] [scrollbar-width:thin]">
-      <TestimonyDetail :testimony="testimony">
+      <TestimonyDetail :testimony="testimony" :detail="detail" :status="status" @retry="$emit('retry')">
         <template #actions>
           <button
             type="button"

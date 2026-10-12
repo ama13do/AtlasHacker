@@ -1,16 +1,30 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { LIMITS, useTestimonyFormContext } from '@testimonies/composables/useTestimonyForm'
-import { TOPIC_META } from '@testimonies/data/topics'
-import type { Topic, Visibility } from '@testimonies/types/testimony'
-import TopicIcon from '@testimonies/components/TopicIcon.vue'
+import { useCategoriesStore } from '@testimonies/stores/categories'
+import type { Visibility } from '@testimonies/types/testimony'
+import CategoryIcon from '@testimonies/components/CategoryIcon.vue'
 import ChoiceGroup, { type Choice } from '@testimonies/components/form/ChoiceGroup.vue'
 import FormField from '@testimonies/components/form/FormField.vue'
 import LocationPicker from '@testimonies/components/form/LocationPicker.vue'
 
 const { draft, errors } = useTestimonyFormContext()
 
-const topics = Object.entries(TOPIC_META) as [Topic, (typeof TOPIC_META)[Topic]][]
+const categoriesStore = useCategoriesStore()
+const categories = computed(() => categoriesStore.categories.map((c) => categoriesStore.bySlug(c.slug)))
+const categoriesError = ref(false)
+
+async function loadCategories() {
+  categoriesError.value = false
+  try {
+    await categoriesStore.load()
+  } catch {
+    categoriesError.value = true
+  }
+}
+loadCategories()
+
+const selectedDescription = computed(() => categories.value.find((c) => c.slug === draft.topic)?.description)
 const today = new Date().toLocaleDateString('en-CA')
 
 const visibilityOptions: Choice<Visibility>[] = [
@@ -32,23 +46,32 @@ const visibility = computed({
     <!-- Columna principal -->
     <div class="space-y-8">
       <section class="space-y-5">
-        <h3 class="form-group-title">Tema</h3>
+        <h3 class="form-group-title">Categoría</h3>
         <fieldset :aria-describedby="errors.topic ? 'topic-error' : undefined">
           <legend class="sr-only">¿De qué trata tu testimonio?</legend>
-          <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div v-if="categoriesError" class="flex flex-wrap items-center gap-3 rounded-xl bg-fg/5 px-4 py-3 text-sm" role="alert">
+            <span>No pudimos cargar las categorías.</span>
+            <button type="button" class="font-semibold text-accent-ink hover:underline" @click="loadCategories">Reintentar</button>
+          </div>
+          <div v-else-if="!categories.length" class="grid grid-cols-1 gap-2 sm:grid-cols-3" aria-hidden="true">
+            <span v-for="n in 3" :key="n" class="h-16 animate-pulse rounded-xl bg-fg/10" />
+          </div>
+          <div v-else class="grid grid-cols-1 gap-2 sm:grid-cols-3">
             <label
-              v-for="[value, meta] in topics"
-              :key="value"
+              v-for="meta in categories"
+              :key="meta.slug"
+              :title="meta.description ?? undefined"
               class="flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 transition has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-fg"
-              :class="draft.topic === value ? ['bg-fg/5', meta.ring, 'ring-2', 'border-transparent'] : 'border-fg/20 hover:border-fg/40'"
+              :class="draft.topic === meta.slug ? ['bg-fg/5', meta.ring, 'ring-2', 'border-transparent'] : 'border-fg/20 hover:border-fg/40'"
             >
-              <input v-model="draft.topic" type="radio" name="topic" :value="value" class="sr-only" />
+              <input v-model="draft.topic" type="radio" name="topic" :value="meta.slug" class="sr-only" />
               <span class="grid size-8 shrink-0 place-items-center rounded-full bg-surface ring-2" :class="[meta.ring, meta.text, meta.chip]">
-                <TopicIcon :topic="value" class="size-4" />
+                <CategoryIcon :category="meta.slug" class="size-4" />
               </span>
               <span class="text-sm leading-tight font-semibold">{{ meta.label }}</span>
             </label>
           </div>
+          <p v-if="selectedDescription" class="mt-2 text-xs text-fg/60">{{ selectedDescription }}</p>
           <p v-if="errors.topic" id="topic-error" class="mt-2 text-sm text-danger">{{ errors.topic }}</p>
         </fieldset>
 

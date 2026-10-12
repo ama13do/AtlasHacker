@@ -2,3 +2,4 @@
 export { default as MapView } from './components/MapView.vue'
 export type { MapPoint } from './types/map'
 export { isInsideMexico } from './utils/geo'
+export { MEXICO_BOUNDS } from './config'

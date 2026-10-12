@@ -1,15 +1,23 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue'
-import type { Testimony } from '@testimonies/types/testimony'
+import type { LoadStatus } from '@testimonies/stores/testimonies'
+import type { TestimonyDetail as Detail, TestimonySummary } from '@testimonies/types/testimony'
+import FeedNotice from '@testimonies/components/FeedNotice.vue'
 import TestimonyDetail from '@testimonies/components/TestimonyDetail.vue'
 import TestimonyListItem from '@testimonies/components/TestimonyListItem.vue'
 import ThemeToggle from '@/shared/components/ThemeToggle.vue'
 
-const props = defineProps<{ testimonies: Testimony[]; selected: Testimony | null }>()
-const emit = defineEmits<{ select: [id: string | null] }>()
+const props = defineProps<{
+  testimonies: TestimonySummary[]
+  status: LoadStatus
+  selected: TestimonySummary | null
+  detail: Detail | null
+  detailStatus?: LoadStatus
+}>()
+const emit = defineEmits<{ select: [id: string | null]; retry: []; retryDetail: [] }>()
 
 const scroller = ref<HTMLElement | null>(null)
-const detail = ref<InstanceType<typeof TestimonyDetail> | null>(null)
+const detailView = ref<InstanceType<typeof TestimonyDetail> | null>(null)
 const list = ref<HTMLElement | null>(null)
 
 // Al abrir un testimonio: arriba y foco en su título; al volver: foco en su fila de la lista
@@ -18,7 +26,7 @@ watch(
   async (id, previousId) => {
     scroller.value?.scrollTo({ top: 0 })
     await nextTick()
-    if (id) detail.value?.focusTitle()
+    if (id) detailView.value?.focusTitle()
     else if (previousId) list.value?.querySelector<HTMLElement>(`[data-id="${previousId}"] button`)?.focus()
   },
 )
@@ -52,8 +60,29 @@ watch(
           </svg>
           Todos los testimonios
         </button>
-        <TestimonyDetail ref="detail" :key="selected.id" :testimony="selected" />
+        <TestimonyDetail
+          ref="detailView"
+          :key="selected.id"
+          :testimony="selected"
+          :detail="detail"
+          :status="detailStatus"
+          @retry="emit('retryDetail')"
+        />
       </div>
+
+      <!-- Cargando -->
+      <ul v-else-if="status === 'loading' || status === 'idle'" class="space-y-1 px-3 py-4" aria-label="Cargando testimonios">
+        <li v-for="n in 6" :key="n" class="flex gap-3 px-3 py-3" aria-hidden="true">
+          <span class="size-9 shrink-0 animate-pulse rounded-full bg-fg/10" />
+          <span class="flex-1 space-y-2">
+            <span class="block h-3 w-4/5 animate-pulse rounded-full bg-fg/10" />
+            <span class="block h-3 w-1/2 animate-pulse rounded-full bg-fg/10" />
+          </span>
+        </li>
+      </ul>
+
+      <FeedNotice v-else-if="status === 'error'" kind="error" class="mt-8" @retry="emit('retry')" />
+      <FeedNotice v-else-if="!testimonies.length" kind="empty" class="mt-8" />
 
       <!-- Lista -->
       <div v-else class="px-3 py-4">

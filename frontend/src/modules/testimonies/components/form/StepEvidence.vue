@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { LIMITS, useTestimonyFormContext } from '@testimonies/composables/useTestimonyForm'
-import { EVIDENCE_LABELS } from '@testimonies/data/topics'
+import { EVIDENCE_LABELS } from '@testimonies/data/categories'
 import type { DocumentStatus, EvidenceType } from '@testimonies/types/testimony'
 import ChoiceGroup, { type Choice } from '@testimonies/components/form/ChoiceGroup.vue'
 import EvidenceFiles from '@testimonies/components/form/EvidenceFiles.vue'

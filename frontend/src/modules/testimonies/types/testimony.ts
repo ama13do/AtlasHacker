@@ -1,44 +1,62 @@
-// Modelo basado en la ficha FUTURO/001 del Tribunal Popular por Nuestro Futuro
+// Modelo basado en la ficha FUTURO/001 del Tribunal Popular por Nuestro Futuro.
+// Se llena desde la API con services/mappers.ts
 
 import type { CoverName } from '@testimonies/data/covers'
+import type { ApiTipoEvidencia } from '@testimonies/types/api'
 
-export type Topic = 'transicion' | 'contaminacion' | 'suceso'
+// Slug de la categoría de la API (p. ej. 'megaproyectos'); las categorías vienen de /api/config
+export type CategorySlug = string
 
-export type EvidenceType =
-  | 'recibo'
-  | 'documento'
-  | 'foto'
-  | 'video'
-  | 'audio'
-  | 'mapa'
-  | 'estudio'
-  | 'datos'
-  | 'otro'
+export type EvidenceType = ApiTipoEvidencia
 
-export interface Testimony {
+export interface Category {
+  slug: CategorySlug
+  label: string
+  description: string | null
+}
+
+// Lo necesario para pines, historias y lista (GET /api/mapa)
+export interface TestimonySummary {
   id: string
-  folio: string // FUTURO/001-T0001
-  date: string // ISO
+  folio: string // FUTURO/001-T7K3MQ9X
+  date: string // AAAA-MM-DD
   place: string // Lugar / territorio
-  coordinates: [number, number] // lng, lat
+  coordinates: [number, number] // lng, lat (pin)
+  approximate: boolean // Ubicación generalizada (~1 km)
+  category: CategorySlug
+  title: string
+  reactions: number // Popularidad
+  comments: number
+  cover?: CoverName // Sticker de portada; si falta se elige por categoría
+}
+
+export interface EvidenceFile {
+  id: string
+  folio: string
+  type: EvidenceType
+  mime: string
+  name: string
+  url: string
+  description: string | null
+}
+
+// Ficha completa (GET /api/testimonios/{id})
+export interface TestimonyDetail extends TestimonySummary {
   author: { visibility: 'nombre' | 'anonimo'; name?: string }
-  topic: Topic
-  title: string // Titular corto para la historia
   testimony: string // 1 · El testimonio
-  territory: string // 2 · El territorio dice
-  community: string // 3 · La comunidad dice
-  document: { status: 'si' | 'no' | 'pendiente'; folio?: string; description?: string } // 4 · El recibo / documento dice
-  data?: { text: string; source?: string; year?: number; pendingVerification: boolean } // 5 · Los datos dicen
-  tribunalQuestion: string // 6 · La pregunta del tribunal
+  territory?: string // 2 · El territorio dice
+  community?: string // 3 · La comunidad dice
+  document: { status: 'si' | 'no' | 'pendiente' } // 4 · El recibo / documento dice
+  data?: { text: string; pendingVerification: boolean } // 5 · Los datos dicen (dato / fuente / año)
+  tribunalQuestion?: string // 6 · La pregunta del tribunal
   evidence: EvidenceType[]
-  supports: number // Popularidad
-  cover?: CoverName // Sticker de portada; si falta se elige por tema
+  files: EvidenceFile[]
 }
 
 // --- Creación de testimonio (formulario) ---
 
-export type Visibility = Testimony['author']['visibility']
-export type DocumentStatus = Testimony['document']['status']
+export type Visibility = TestimonyDetail['author']['visibility']
+export type DocumentStatus = TestimonyDetail['document']['status']
 
 export type Consent = 'publico-nombre' | 'publico-anonimo' | 'interno' | 'no-publicar'
 export type MediaConsent = 'si' | 'no' | 'na'
@@ -46,7 +64,7 @@ export type SensitiveHandling = 'anonimizar' | 'interno' | 'revision'
 
 export interface TestimonyDraft {
   // Datos generales
-  topic: Topic | null
+  topic: CategorySlug | null
   title: string
   place: string
   coordinates: [number, number] | null
@@ -79,7 +97,7 @@ export interface TestimonyDraft {
 }
 
 export interface CreateTestimonyResult {
-  testimony: Testimony
+  testimony: TestimonySummary
   evidenceFolio: string | null
   published: boolean
 }

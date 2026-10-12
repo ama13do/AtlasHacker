@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useTestimonyFormContext } from '@testimonies/composables/useTestimonyForm'
-import { EVIDENCE_LABELS, TOPIC_META } from '@testimonies/data/topics'
-import TopicBadge from '@testimonies/components/TopicBadge.vue'
+import { EVIDENCE_LABELS } from '@testimonies/data/categories'
+import { useCategoriesStore } from '@testimonies/stores/categories'
+import CategoryBadge from '@testimonies/components/CategoryBadge.vue'
 
 const { draft, publishable, goTo } = useTestimonyFormContext()
+const categories = useCategoriesStore()
 
 const LABELS = {
   document: { si: 'Sí', no: 'No', pendiente: 'Pendiente' },
@@ -33,7 +35,7 @@ const sections = computed(() => [
     step: 0,
     title: 'Datos generales',
     rows: [
-      ['Tema', draft.topic ? TOPIC_META[draft.topic].label : '—'],
+      ['Categoría', draft.topic ? categories.bySlug(draft.topic).label : '—'],
       ['Título', draft.title],
       ['Lugar', draft.place],
       ['Ubicación', draft.coordinates ? `${draft.coordinates[1].toFixed(4)}, ${draft.coordinates[0].toFixed(4)}` : '—'],
@@ -95,7 +97,7 @@ const sections = computed(() => [
 <template>
   <div class="space-y-4">
     <div class="flex flex-wrap items-center gap-3">
-      <TopicBadge v-if="draft.topic" :topic="draft.topic" />
+      <CategoryBadge v-if="draft.topic" :category="draft.topic" />
       <p class="text-sm" :class="publishable ? 'text-neon-green light:text-fg' : 'text-fg/70'">
         {{ publishable ? 'Se publicará en el mapa' : 'No se publicará en el mapa' }}
       </p>

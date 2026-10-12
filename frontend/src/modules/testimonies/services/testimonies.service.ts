@@ -1,72 +1,45 @@
-import { TESTIMONIES_MOCK } from '@testimonies/data/testimonies.mock'
-import type { CreateTestimonyResult, Testimony, TestimonyDraft } from '@testimonies/types/testimony'
-import { isPublishable } from '@testimonies/utils/publication'
+import http, { type ApiResponse } from '@/core/http/client'
+import { MEXICO_BOUNDS } from '@/modules/map'
+import { fromCategory, fromDetail, fromMapFeature } from '@testimonies/services/mappers'
+import type { ApiConfig, ApiMapa, ApiTestimonioDetalle } from '@testimonies/types/api'
+import type { Category, CreateTestimonyResult, TestimonyDetail, TestimonySummary, TestimonyDraft } from '@testimonies/types/testimony'
 
-const FOLIO_PREFIX = 'FUTURO/001'
-const FAKE_LATENCY = 600
+// Tope de pines por petición (la API admite hasta 5000); si se supera, la API marca `truncado`
+const MAP_LIMIT = 1000
 
-// Testimonios creados en esta sesión (simula la base de datos mientras no hay API)
-const created: Testimony[] = []
-let lastNumber = Math.max(...TESTIMONIES_MOCK.map((t) => Number(t.folio.split('-T')[1])))
+export interface PublicConfig {
+  categories: Category[]
+  limits: { maxFiles: number; maxBytes: number; mimeTypes: string[] }
+  captchaRequired: boolean
+}
 
-const pad = (n: number) => String(n).padStart(4, '0')
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
-// TODO: reemplazar el mock por la API cuando exista, p. ej.:
-//   const { data } = await http.get<Testimony[]>('/testimonies')  // http de '@/core/http/client'
-//   create → http.post('/testimonies', formData) con los archivos en multipart
 export const testimoniesService = {
-  async getAll(): Promise<Testimony[]> {
-    return structuredClone([...TESTIMONIES_MOCK, ...created])
-  },
-
-  async getPopular(limit = 8): Promise<Testimony[]> {
-    const all = await this.getAll()
-    return all.sort((a, b) => b.supports - a.supports).slice(0, limit)
-  },
-
-  async create(draft: TestimonyDraft): Promise<CreateTestimonyResult> {
-    await wait(FAKE_LATENCY)
-
-    const number = ++lastNumber
-    const hasEvidence = draft.documentStatus === 'si' || draft.files.length > 0
-    const evidenceFolio = hasEvidence ? `${FOLIO_PREFIX}-E${pad(number)}` : null
-    const anonymous = draft.visibility === 'anonimo' || draft.consent === 'publico-anonimo'
-
-    const testimony: Testimony = {
-      id: `t-${pad(number)}`,
-      folio: `${FOLIO_PREFIX}-T${pad(number)}`,
-      date: draft.date,
-      place: draft.place.trim(),
-      // Copias planas: el borrador llega como proxy reactivo y structuredClone no lo acepta
-      coordinates: [draft.coordinates![0], draft.coordinates![1]],
-      author: anonymous ? { visibility: 'anonimo' } : { visibility: 'nombre', name: draft.name.trim() },
-      topic: draft.topic!,
-      title: draft.title.trim(),
-      testimony: draft.testimony.trim(),
-      territory: draft.territory.trim(),
-      community: draft.community.trim(),
-      document: {
-        status: draft.documentStatus ?? 'no',
-        folio: evidenceFolio ?? undefined,
-        description: draft.documentDescription.trim() || undefined,
-      },
-      data: draft.dataText.trim()
-        ? {
-            text: draft.dataText.trim(),
-            source: draft.dataSource.trim() || undefined,
-            year: draft.dataYear ? Number(draft.dataYear) : undefined,
-            pendingVerification: draft.dataPendingVerification,
-          }
-        : undefined,
-      tribunalQuestion: draft.tribunalQuestion.trim(),
-      evidence: [...draft.evidence],
-      supports: 0,
+  async getConfig(): Promise<PublicConfig> {
+    const { data } = await http.get<ApiResponse<ApiConfig>>('/api/config')
+    const c = data.data.configuracion
+    return {
+      categories: data.data.categorias.map(fromCategory),
+      limits: { maxFiles: c.max_archivos_por_testimonio, maxBytes: c.max_bytes_totales_por_testimonio, mimeTypes: c.tipos_mime_permitidos },
+      captchaRequired: c.captcha_requerido,
     }
+  },
 
-    const published = isPublishable(draft)
-    if (published) created.push(testimony)
+  // Pines de todo México (resumen de cada testimonio público)
+  async getSummaries(): Promise<{ items: TestimonySummary[]; truncated: boolean }> {
+    const [[west, south], [east, north]] = MEXICO_BOUNDS
+    const { data } = await http.get<ApiResponse<ApiMapa>>('/api/mapa', {
+      params: { bbox: [west, south, east, north].join(','), limite: MAP_LIMIT },
+    })
+    return { items: data.data.features.map(fromMapFeature), truncated: data.data.truncado }
+  },
 
-    return { testimony: structuredClone(testimony), evidenceFolio, published }
+  async getDetail(id: string): Promise<TestimonyDetail> {
+    const { data } = await http.get<ApiResponse<ApiTestimonioDetalle>>(`/api/testimonios/${encodeURIComponent(id)}`)
+    return fromDetail(data.data)
+  },
+
+  // TODO etapa 2: POST /api/testimonios con captcha (X-Captcha-Token) y folio (X-Folio)
+  async create(_draft: TestimonyDraft): Promise<CreateTestimonyResult> {
+    throw new Error('El envío de testimonios a la API llega en la siguiente etapa.')
   },
 }
