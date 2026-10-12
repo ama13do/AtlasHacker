@@ -1,5 +1,6 @@
 import { computed, inject, provide, reactive, ref, watch, type InjectionKey } from 'vue'
 import type { EvidenceType, TestimonyDraft } from '@testimonies/types/testimony'
+import { normalizeParticipantFolio } from '@testimonies/utils/folio'
 import { isPublishable } from '@testimonies/utils/publication'
 
 export const STEPS = [
@@ -27,6 +28,8 @@ function emptyDraft(): TestimonyDraft {
     title: '',
     place: '',
     coordinates: null,
+    locationSource: null,
+    gpsAccuracy: null,
     date: today(),
     name: '',
     visibility: 'anonimo',
@@ -48,20 +51,25 @@ function emptyDraft(): TestimonyDraft {
     consent: null,
     mediaConsent: null,
     sensitive: null,
-    sensitiveHandling: [],
+    sensitiveHandling: null,
+    folio: '',
+    email: '',
+    phone: '',
   }
 }
 
 // Tipos de evidencia de borradores anteriores a la conexión con la API
 const LEGACY_EVIDENCE: Record<string, EvidenceType> = { recibo: 'recibo_factura', documento: 'documento_oficial' }
 
-// Borrador guardado sin archivos (File no es serializable)
+// Borrador guardado sin archivos (File no es serializable) ni folio o contacto (no se guardan sin pedirlo)
 function loadSaved(): { draft: Partial<TestimonyDraft>; step: number } | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
     const saved = JSON.parse(raw) as { draft: Partial<TestimonyDraft>; step: number }
     if (saved.draft.evidence) saved.draft.evidence = saved.draft.evidence.map((e) => LEGACY_EVIDENCE[e] ?? e)
+    // Antes se podían elegir varias medidas de protección; la API acepta una
+    if (Array.isArray(saved.draft.sensitiveHandling)) saved.draft.sensitiveHandling = saved.draft.sensitiveHandling[0] ?? null
     return saved
   } catch {
     return null
@@ -70,7 +78,7 @@ function loadSaved(): { draft: Partial<TestimonyDraft>; step: number } | null {
 
 function save(draft: TestimonyDraft, step: number) {
   try {
-    const { files: _files, ...rest } = draft
+    const { files: _files, folio: _folio, email: _email, phone: _phone, ...rest } = draft
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ draft: rest, step }))
   } catch {
     // Sin almacenamiento disponible: el borrador simplemente no se conserva
@@ -86,6 +94,11 @@ function clearSaved() {
 }
 
 const required = (value: string) => value.trim().length > 0
+
+// Mismos límites que la API (CrearTestimonioSchema)
+const MIN_TESTIMONY = 10
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const PHONE = /^\+?[\d\s().-]{7,25}$/
 
 function hasContent(d: Partial<TestimonyDraft>) {
   return !!(d.topic || d.coordinates || d.title?.trim() || d.place?.trim() || d.testimony?.trim())
@@ -106,6 +119,7 @@ function validate(step: number, d: TestimonyDraft): FormErrors {
       break
     case 1:
       if (!required(d.testimony)) e.testimony = 'Cuéntanos qué está ocurriendo.'
+      else if (d.testimony.trim().length < MIN_TESTIMONY) e.testimony = `Escribe al menos ${MIN_TESTIMONY} caracteres.`
       break
     case 2:
       if (!required(d.territory)) e.territory = 'Describe qué ha cambiado o qué puede observarse.'
@@ -129,7 +143,10 @@ function validate(step: number, d: TestimonyDraft): FormErrors {
         e.consent = 'Elegiste aparecer como anónimo; elige "Público anónimo".'
       if (!d.mediaConsent) e.mediaConsent = 'Indica si autorizas el uso de foto, audio o video.'
       if (d.sensitive === null) e.sensitive = 'Indica si hay información que pueda poner a alguien en riesgo.'
-      else if (d.sensitive && !d.sensitiveHandling.length) e.sensitiveHandling = 'Elige al menos una medida de protección.'
+      else if (d.sensitive && !d.sensitiveHandling) e.sensitiveHandling = 'Elige qué hacer con esa información.'
+      if (d.folio.trim() && !normalizeParticipantFolio(d.folio)) e.folio = 'El folio tiene el formato P-XXXX-XXXX-XXXX-XXXX.'
+      if (d.email.trim() && !EMAIL.test(d.email.trim())) e.email = 'Correo no válido.'
+      if (d.phone.trim() && !PHONE.test(d.phone.trim())) e.phone = 'Teléfono no válido.'
       break
   }
 
@@ -180,6 +197,12 @@ export function useTestimonyForm() {
     step.value = n
   }
 
+  // Errores que devuelve la API: se muestran en su paso
+  function showErrors(n: number, apiErrors: FormErrors) {
+    step.value = n
+    errors.value = apiErrors
+  }
+
   function reset() {
     clearTimeout(saveTimer)
     skipNextSave = true
@@ -214,7 +237,7 @@ export function useTestimonyForm() {
     { deep: true },
   )
 
-  return { draft, step, maxReached, errors, restored, isLast, publishable, validateStep, firstInvalidStep, next, back, goTo, reset }
+  return { draft, step, maxReached, errors, restored, isLast, publishable, validateStep, firstInvalidStep, next, back, goTo, showErrors, reset }
 }
 
 export type TestimonyForm = ReturnType<typeof useTestimonyForm>

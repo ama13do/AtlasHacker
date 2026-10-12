@@ -61,8 +61,8 @@ export const useTestimoniesStore = defineStore('testimonies', () => {
     }
   }
 
-  async function create(draft: TestimonyDraft) {
-    const result = await testimoniesService.create(draft)
+  async function create(draft: TestimonyDraft, auth: Parameters<typeof testimoniesService.create>[1]) {
+    const result = await testimoniesService.create(draft, auth)
     if (result.published) await load()
     return result
   }

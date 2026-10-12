@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, watch, type Component } from 'vue'
+import { computed, nextTick, onMounted, ref, watch, type Component } from 'vue'
 import { useRouter } from 'vue-router'
 import { provideTestimonyForm, STEPS, useTestimonyForm } from '@testimonies/composables/useTestimonyForm'
 import { useCategoriesStore } from '@testimonies/stores/categories'
@@ -15,6 +15,11 @@ import StepTestimony from '@testimonies/components/form/StepTestimony.vue'
 import FormStepper from '@testimonies/components/form/FormStepper.vue'
 import SubmitSuccess from '@testimonies/components/form/SubmitSuccess.vue'
 import ThemeToggle from '@/shared/components/ThemeToggle.vue'
+import TurnstileWidget from '@/shared/components/TurnstileWidget.vue'
+import type { ApiError } from '@/core/http/client'
+import { useParticipantFolio } from '@testimonies/composables/useParticipantFolio'
+import { fieldErrorsFromApi } from '@testimonies/utils/apiErrors'
+import { normalizeParticipantFolio } from '@testimonies/utils/folio'
 
 const STEP_COMPONENTS: Component[] = [
   StepGeneral,
@@ -40,15 +45,36 @@ const submitting = ref(false)
 const submitError = ref<string | null>(null)
 const result = ref<CreateTestimonyResult | null>(null)
 
+// Captcha (Turnstile): se pide en el último paso si la API lo exige. El token sirve para un solo envío
+const SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY
+const categoriesStore = useCategoriesStore()
+const captchaRequired = computed(() => categoriesStore.config?.captchaRequired ?? true)
+const captcha = ref<InstanceType<typeof TurnstileWidget> | null>(null)
+const captchaToken = ref<string | null>(null)
+const captchaUnavailable = ref(!SITE_KEY)
+const canSubmit = computed(() => !captchaRequired.value || !!captchaToken.value)
+
+function onCaptchaError(code: string) {
+  captchaToken.value = null
+  console.warn('Turnstile:', code)
+  captchaUnavailable.value = true
+}
+
+function resetCaptcha() {
+  captchaToken.value = null
+  captcha.value?.reset()
+}
+
+const { remembered: rememberedFolio } = useParticipantFolio()
+
 // Un borrador guardado puede traer una categoría que ya no existe (o de antes de la API)
 onMounted(async () => {
-  const categories = useCategoriesStore()
   try {
-    await categories.load()
+    await categoriesStore.load()
   } catch {
     return // El paso 1 muestra el error y permite reintentar
   }
-  if (draft.topic && !categories.categories.some((c) => c.slug === draft.topic)) draft.topic = null
+  if (draft.topic && !categoriesStore.categories.some((c) => c.slug === draft.topic)) draft.topic = null
 })
 
 // Al cambiar de paso: arriba y foco en el título para lectores de pantalla
@@ -87,14 +113,46 @@ async function onSubmit() {
   submitting.value = true
   submitError.value = null
   try {
-    result.value = await store.create({ ...draft, files: [...draft.files] })
+    result.value = await store.create(
+      { ...draft, files: [...draft.files] },
+      { captchaToken: captchaToken.value, folio: normalizeParticipantFolio(draft.folio) ?? rememberedFolio.value },
+    )
     form.reset()
   } catch (error) {
     console.error(error)
-    submitError.value =
-      error instanceof Error ? error.message : 'No pudimos enviar tu testimonio. Intenta de nuevo.'
+    handleSubmitError(error as Partial<ApiError>)
   } finally {
     submitting.value = false
+    // El token ya se consumió (con éxito o no)
+    if (!result.value) resetCaptcha()
+  }
+}
+
+// Errores de la API → mensaje claro y, si aplica, el paso y campo a corregir
+function handleSubmitError(error: Partial<ApiError>) {
+  if (error.code === 'DATOS_INVALIDOS') {
+    const mapped = fieldErrorsFromApi(error.details)
+    if (mapped) {
+      form.showErrors(mapped.step, mapped.errors)
+      submitError.value = 'Revisa los campos marcados.'
+      focusFirstError()
+      return
+    }
+  }
+  if (error.code === 'CAPTCHA_INVALIDO') {
+    submitError.value = 'La verificación expiró. Vuelve a verificar e intenta de nuevo.'
+  } else if (error.status === 401) {
+    // Folio inválido (el escrito o el recordado)
+    form.showErrors(5, { folio: 'Este folio no es válido. Revísalo o envía sin folio.' })
+    if (!draft.folio.trim()) draft.folio = rememberedFolio.value ?? ''
+    submitError.value = 'Tu folio no es válido.'
+    focusFirstError()
+  } else if (error.status === 429) {
+    submitError.value = 'Hiciste demasiados envíos. Intenta de nuevo más tarde.'
+  } else if (error.status === null) {
+    submitError.value = 'No hay conexión con el servidor. Tu borrador sigue guardado; intenta de nuevo.'
+  } else {
+    submitError.value = error.message ?? 'No pudimos enviar tu testimonio. Intenta de nuevo.'
   }
 }
 
@@ -104,7 +162,7 @@ function startOver() {
 }
 
 function viewOnMap() {
-  if (result.value) router.push({ name: 'home', query: { t: result.value.testimony.id } })
+  if (result.value) router.push({ name: 'home', query: { t: result.value.id } })
 }
 </script>
 
@@ -198,6 +256,28 @@ function viewOnMap() {
             </div>
 
             <component :is="STEP_COMPONENTS[step]" />
+
+            <!-- Verificación antes de enviar -->
+            <section v-if="isLast && captchaRequired" class="mt-6 space-y-2" aria-label="Verificación">
+              <p
+                v-if="captchaUnavailable"
+                class="rounded-xl bg-fg/5 px-4 py-3 text-sm text-fg/80"
+                role="alert"
+              >
+                La verificación anti-spam no está disponible en este sitio, así que por ahora no se puede enviar.
+                Tu borrador se guarda.
+              </p>
+              <template v-else>
+                <p class="text-sm text-fg/60">Confirma que eres una persona para enviar.</p>
+                <TurnstileWidget
+                  ref="captcha"
+                  :site-key="SITE_KEY!"
+                  @token="captchaToken = $event"
+                  @expired="captchaToken = null"
+                  @error="onCaptchaError"
+                />
+              </template>
+            </section>
           </template>
         </div>
 
@@ -228,7 +308,7 @@ function viewOnMap() {
               v-else
               type="button"
               class="flex-1 rounded-full bg-neon-lime py-3 font-semibold text-black transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg disabled:opacity-60 md:flex-none md:px-8 md:py-2.5"
-              :disabled="submitting"
+              :disabled="submitting || !canSubmit"
               @click="onSubmit"
             >
               {{ submitting ? 'Enviando…' : 'Enviar testimonio' }}

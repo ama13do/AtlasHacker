@@ -70,9 +70,16 @@ Backend en `../backend` (Hono; **no se modifica desde aquí**). Guía: `../docs/
 | Etapa | Alcance | Estado |
 | --- | --- | --- |
 | 1 · Lectura | Pines (`/api/mapa`), historias, lista y ficha (`/api/testimonios/{id}`), estados de carga, vacío y error | Lista |
-| 2 · Crear | `POST /api/testimonios` con Turnstile (`X-Captcha-Token`) y folio de participante | Pendiente |
+| 2 · Crear | `POST /api/testimonios` con Turnstile (`X-Captcha-Token`) y folio de participante (`X-Folio`) | Lista |
 | 3 · Evidencias | Reservar → `PUT` a R2 → confirmar | Pendiente |
 | 4 · Social | Reacciones, comentarios, tiempo real (Supabase) y «mi folio» | Pendiente |
+
+### Subir testimonios
+
+- **Captcha:** `VITE_TURNSTILE_SITE_KEY` (site key pública de Cloudflare Turnstile). El widget solo funciona en los dominios dados de alta en Cloudflare (Turnstile → widget → Hostnames). Si `localhost` no está, el paso de Revisión avisa que no se puede enviar (error `110200`) y el borrador se conserva.
+- **Folio de participante:** la API lo devuelve **una sola vez**, en el primer envío. Se muestra con botón de copiar y la persona decide si recordarlo en el dispositivo (`localStorage` `atlashacker:folio`, se manda en `X-Folio`). El folio, el correo y el teléfono no se guardan en el borrador.
+- **Errores:** los de validación de la API (`DATOS_INVALIDOS`) se llevan al paso y campo del wizard (`utils/apiErrors.ts`).
+- Por ahora los archivos de evidencia no se envían (etapa 3).
 
 ## Tema
 

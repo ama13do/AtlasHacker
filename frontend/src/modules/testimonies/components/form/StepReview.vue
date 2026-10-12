@@ -4,9 +4,18 @@ import { useTestimonyFormContext } from '@testimonies/composables/useTestimonyFo
 import { EVIDENCE_LABELS } from '@testimonies/data/categories'
 import { useCategoriesStore } from '@testimonies/stores/categories'
 import CategoryBadge from '@testimonies/components/CategoryBadge.vue'
+import { useParticipantFolio } from '@testimonies/composables/useParticipantFolio'
+import { maskFolio, normalizeParticipantFolio } from '@testimonies/utils/folio'
 
 const { draft, publishable, goTo } = useTestimonyFormContext()
 const categories = useCategoriesStore()
+const { remembered } = useParticipantFolio()
+
+const folio = computed(() => {
+  const typed = normalizeParticipantFolio(draft.folio)
+  if (typed) return maskFolio(typed)
+  return remembered.value ? maskFolio(remembered.value) : 'Se te dará uno al enviar'
+})
 
 const LABELS = {
   document: { si: 'Sí', no: 'No', pendiente: 'Pendiente' },
@@ -60,7 +69,7 @@ const sections = computed(() => [
       ['Documento', draft.documentStatus ? LABELS.document[draft.documentStatus] : '—'],
       ['Descripción', draft.documentDescription],
       ['Evidencias', evidence.value.join(', ')],
-      ['Archivos', draft.files.map((f) => f.name).join(', ')],
+      ['Archivos', draft.files.length ? `${draft.files.map((f) => f.name).join(', ')} (aún no se envían)` : ''],
     ],
   },
   {
@@ -86,9 +95,11 @@ const sections = computed(() => [
         draft.sensitive === null
           ? '—'
           : draft.sensitive
-            ? `Sí · ${draft.sensitiveHandling.map((h) => LABELS.handling[h]).join(', ')}`
+            ? `Sí · ${draft.sensitiveHandling ? LABELS.handling[draft.sensitiveHandling] : '—'}`
             : 'No',
       ],
+      ['Folio', folio.value],
+      ['Contacto', [draft.email.trim(), draft.phone.trim()].filter(Boolean).join(' · ')],
     ],
   },
 ])
@@ -99,7 +110,7 @@ const sections = computed(() => [
     <div class="flex flex-wrap items-center gap-3">
       <CategoryBadge v-if="draft.topic" :category="draft.topic" />
       <p class="text-sm" :class="publishable ? 'text-neon-green light:text-fg' : 'text-fg/70'">
-        {{ publishable ? 'Se publicará en el mapa' : 'No se publicará en el mapa' }}
+        {{ publishable ? 'Se publicará en el mapa después de una revisión' : 'No se publicará en el mapa' }}
       </p>
     </div>
 

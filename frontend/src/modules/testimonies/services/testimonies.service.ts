@@ -1,7 +1,7 @@
 import http, { type ApiResponse } from '@/core/http/client'
 import { MEXICO_BOUNDS } from '@/modules/map'
-import { fromCategory, fromDetail, fromMapFeature } from '@testimonies/services/mappers'
-import type { ApiConfig, ApiMapa, ApiTestimonioDetalle } from '@testimonies/types/api'
+import { fromCategory, fromCreateResponse, fromDetail, fromMapFeature, toCreatePayload } from '@testimonies/services/mappers'
+import type { ApiConfig, ApiCrearTestimonioRespuesta, ApiMapa, ApiTestimonioDetalle } from '@testimonies/types/api'
 import type { Category, CreateTestimonyResult, TestimonyDetail, TestimonySummary, TestimonyDraft } from '@testimonies/types/testimony'
 
 // Tope de pines por petición (la API admite hasta 5000); si se supera, la API marca `truncado`
@@ -38,8 +38,12 @@ export const testimoniesService = {
     return fromDetail(data.data)
   },
 
-  // TODO etapa 2: POST /api/testimonios con captcha (X-Captcha-Token) y folio (X-Folio)
-  async create(_draft: TestimonyDraft): Promise<CreateTestimonyResult> {
-    throw new Error('El envío de testimonios a la API llega en la siguiente etapa.')
+  // Sin folio, la API crea a la persona y devuelve su folio una única vez
+  async create(draft: TestimonyDraft, auth: { captchaToken?: string | null; folio?: string | null } = {}): Promise<CreateTestimonyResult> {
+    const headers: Record<string, string> = {}
+    if (auth.captchaToken) headers['X-Captcha-Token'] = auth.captchaToken
+    if (auth.folio) headers['X-Folio'] = auth.folio
+    const { data } = await http.post<ApiResponse<ApiCrearTestimonioRespuesta>>('/api/testimonios', toCreatePayload(draft), { headers })
+    return fromCreateResponse(data.data)
   },
 }

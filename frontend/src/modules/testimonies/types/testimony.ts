@@ -61,6 +61,7 @@ export type DocumentStatus = TestimonyDetail['document']['status']
 export type Consent = 'publico-nombre' | 'publico-anonimo' | 'interno' | 'no-publicar'
 export type MediaConsent = 'si' | 'no' | 'na'
 export type SensitiveHandling = 'anonimizar' | 'interno' | 'revision'
+export type LocationSource = 'gps' | 'mapa'
 
 export interface TestimonyDraft {
   // Datos generales
@@ -68,6 +69,8 @@ export interface TestimonyDraft {
   title: string
   place: string
   coordinates: [number, number] | null
+  locationSource: LocationSource | null
+  gpsAccuracy: number | null // metros
   date: string // YYYY-MM-DD
   name: string
   visibility: Visibility
@@ -93,11 +96,18 @@ export interface TestimonyDraft {
   consent: Consent | null
   mediaConsent: MediaConsent | null
   sensitive: boolean | null
-  sensitiveHandling: SensitiveHandling[]
+  sensitiveHandling: SensitiveHandling | null
+  // Folio de participante y contacto (opcionales)
+  folio: string
+  email: string
+  phone: string
 }
 
 export interface CreateTestimonyResult {
-  testimony: TestimonySummary
-  evidenceFolio: string | null
+  id: string
+  folio: string // Folio del testimonio (FUTURO/001-T…)
+  status: 'pendiente' | 'aprobado' | 'rechazado'
   published: boolean
+  message: string
+  participantFolio: string | null // Solo la primera vez: se muestra una única vez
 }

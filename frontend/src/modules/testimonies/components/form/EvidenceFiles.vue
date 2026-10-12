@@ -66,6 +66,11 @@ function remove(file: File) {
       <p class="text-xs text-fg/50">Fotos, video, audio o PDF. Máximo 20 MB por archivo.</p>
     </div>
 
+    <!-- TODO etapa 3: subir a R2 (reservar → PUT → confirmar) con el folio -->
+    <p class="rounded-xl bg-fg/5 px-3 py-2 text-xs text-fg/70" role="note">
+      Por ahora los archivos no se envían con el testimonio. Podrás agregarlos después con tu folio.
+    </p>
+
     <ul v-if="items.length" class="grid grid-cols-2 gap-2 sm:grid-cols-3">
       <li v-for="item in items" :key="item.url" class="relative overflow-hidden rounded-xl border border-fg/20 bg-fg/5">
         <img v-if="item.kind === 'image'" :src="item.url" :alt="item.file.name" class="aspect-square w-full object-cover" />

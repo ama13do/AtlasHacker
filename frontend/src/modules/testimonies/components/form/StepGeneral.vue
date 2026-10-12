@@ -156,7 +156,12 @@ const visibility = computed({
         />
       </FormField>
       <FormField id="coordinates" v-slot="field" label="Ubicación en el mapa" required :error="errors.coordinates">
-        <LocationPicker v-model="draft.coordinates" :error="errors.coordinates" :describedby="field.describedby" />
+        <LocationPicker
+          v-model="draft.coordinates"
+          :error="errors.coordinates"
+          :describedby="field.describedby"
+          @located="(source, accuracy) => ((draft.locationSource = source), (draft.gpsAccuracy = accuracy))"
+        />
       </FormField>
     </section>
   </div>

@@ -3,7 +3,11 @@ import { computed, ref } from 'vue'
 import { isInsideMexico, MapView, type MapPoint } from '@/modules/map'
 import { BRAND } from '@/core/config/theme'
 
+import type { LocationSource } from '@testimonies/types/testimony'
+
 defineProps<{ error?: string; describedby?: string }>()
+// Además del punto: de dónde salió y, con GPS, su precisión en metros
+const emit = defineEmits<{ located: [source: LocationSource, accuracy: number | null] }>()
 const model = defineModel<[number, number] | null>({ required: true })
 
 const mapView = ref<InstanceType<typeof MapView> | null>(null)
@@ -14,13 +18,14 @@ const points = computed<MapPoint[]>(() =>
   model.value ? [{ id: 'pick', coordinates: model.value, color: BRAND.neonLime }] : [],
 )
 
-function setPoint(coordinates: [number, number]) {
+function setPoint(coordinates: [number, number], source: LocationSource = 'mapa', accuracy: number | null = null) {
   if (!isInsideMexico(coordinates)) {
     message.value = 'Ese punto está fuera de México. Elige un lugar dentro del país.'
     return
   }
   message.value = null
   model.value = coordinates
+  emit('located', source, accuracy)
 }
 
 function useMyLocation() {
@@ -38,7 +43,7 @@ function useMyLocation() {
         message.value = 'Tu ubicación está fuera de México. Toca el mapa para marcar el lugar.'
         return
       }
-      setPoint(point)
+      setPoint(point, 'gps', coords.accuracy)
       mapView.value?.flyTo(point)
     },
     () => {
@@ -63,7 +68,7 @@ function useMyLocation() {
         :points="points"
         selected-id="pick"
         navigation-position="bottom-right"
-        @pick="setPoint"
+        @pick="setPoint($event)"
       />
       <p
         v-if="!model"

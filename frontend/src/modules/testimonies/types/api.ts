@@ -118,3 +118,40 @@ export interface ApiTestimonioDetalle {
   created_at: string
   evidencias: ApiEvidenciaPublica[]
 }
+
+// POST /api/testimonios (CrearTestimonioSchema en el back)
+export interface ApiCrearTestimonio {
+  categoria: string
+  expediente?: string
+  fecha?: string
+  titulo?: string
+  lugar_territorio?: string
+  ubicacion: Point
+  origen_ubicacion?: 'gps' | 'mapa' | 'manual'
+  aparecer_como?: 'nombre' | 'anonimo'
+  nombre?: string
+  facilitador_nombre?: string
+  relato: string
+  territorio_dice?: string
+  comunidad_dice?: string
+  tiene_evidencia?: 'si' | 'no' | 'pendiente'
+  evidencia_descripcion?: string
+  evidencia_tipos?: ApiTipoEvidencia[]
+  evidencia_otro?: string
+  dato_fuente_anio?: string
+  fuente_pendiente_verificacion?: boolean
+  pregunta_tribunal?: string
+  autorizacion: 'publico_con_nombre' | 'publico_anonimo' | 'solo_documentacion_interna' | 'no_autoriza'
+  autoriza_multimedia?: 'si' | 'no' | 'na'
+  info_sensible?: boolean
+  sensible_accion?: 'anonimizar' | 'uso_interno' | 'revision_antes_publicar'
+  consentimiento_aceptado: true
+  contacto?: { correo?: string; telefono?: string }
+  auditoria?: { precision_gps_m?: number; zona_horaria?: string; idioma?: string; pantalla?: string }
+}
+
+export interface ApiCrearTestimonioRespuesta {
+  testimonio: { id: string; folio: string; estado: 'pendiente' | 'aprobado' | 'rechazado'; publicado: boolean }
+  participante: { folio: string; aviso: string } | null
+  mensaje: string
+}
