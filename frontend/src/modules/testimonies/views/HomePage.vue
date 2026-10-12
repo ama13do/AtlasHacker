@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { MapView, type MapPoint } from '@/modules/map'
 import { categoryStyle } from '@testimonies/data/categories'
+import { useMapRealtime } from '@testimonies/composables/useMapRealtime'
 import { useTestimoniesStore } from '@testimonies/stores/testimonies'
 import FeedNotice from '@testimonies/components/FeedNotice.vue'
 import StoriesBar from '@testimonies/components/StoriesBar.vue'
@@ -17,7 +18,7 @@ const MD_BREAKPOINT = 768
 const route = useRoute()
 const router = useRouter()
 const store = useTestimoniesStore()
-const { items, status, popular, recent, selected, selectedId, selectedDetail, details, detailStatus, storyIndex } =
+const { items, status, popular, stories, recent, selected, selectedId, selectedDetail, details, detailStatus, storyIndex } =
   storeToRefs(store)
 
 const loading = computed(() => status.value === 'idle' || status.value === 'loading')
@@ -25,7 +26,7 @@ const loading = computed(() => status.value === 'idle' || status.value === 'load
 const notice = computed(() =>
   status.value === 'error' ? 'error' : status.value === 'ready' && !items.value.length ? 'empty' : null,
 )
-const currentStory = computed(() => (storyIndex.value !== null ? popular.value[storyIndex.value] : undefined))
+const currentStory = computed(() => (storyIndex.value !== null ? stories.value[storyIndex.value] : undefined))
 const storyDetail = computed(() => (currentStory.value ? (details.value[currentStory.value.id] ?? null) : null))
 
 const mapView = ref<InstanceType<typeof MapView> | null>(null)
@@ -55,6 +56,14 @@ function onSidebarSelect(id: string | null) {
 function onKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape' && selectedId.value && storyIndex.value === null) store.select(null)
 }
+
+// Pines en vivo (Supabase Realtime); avisa si se retira el testimonio abierto
+const { live, removedNotice } = useMapRealtime()
+let noticeTimer: ReturnType<typeof setTimeout> | undefined
+watch(removedNotice, (message) => {
+  clearTimeout(noticeTimer)
+  if (message) noticeTimer = setTimeout(() => (removedNotice.value = null), 4000)
+})
 
 function viewOnMap(id: string) {
   store.closeStory()
@@ -86,6 +95,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       :selected="selected"
       :detail="selectedDetail"
       :detail-status="selectedId ? detailStatus[selectedId] : undefined"
+      :live="live"
       @select="onSidebarSelect"
       @retry="store.load"
       @retry-detail="selectedId && store.loadDetail(selectedId)"
@@ -114,6 +124,16 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
           </h1>
           <div class="flex items-center gap-3">
             <p class="hidden text-xs text-fg/60 sm:block">Tribunal Popular · FUTURO/001</p>
+            <RouterLink
+              :to="{ name: 'my-folio' }"
+              class="grid size-9 place-items-center rounded-full bg-fg/10 hover:bg-fg/20 focus-visible:outline-2 focus-visible:outline-fg"
+              aria-label="Mi folio"
+            >
+              <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 21a8 8 0 0 1 16 0" />
+              </svg>
+            </RouterLink>
             <ThemeToggle />
           </div>
         </div>
@@ -139,6 +159,15 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
         />
       </Transition>
 
+      <!-- Aviso: el testimonio abierto dejó de ser público -->
+      <p
+        v-if="removedNotice"
+        role="status"
+        class="absolute top-36 left-1/2 z-30 -translate-x-1/2 rounded-full bg-fg px-4 py-2 text-sm font-semibold text-surface shadow-lg"
+      >
+        {{ removedNotice }}
+      </p>
+
       <!-- Sin testimonios o error al cargar (móvil) -->
       <FeedNotice
         v-if="notice"
@@ -162,7 +191,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
     <StoryViewer
       v-if="storyIndex !== null"
-      :stories="popular"
+      :stories="stories"
       :index="storyIndex"
       :detail="storyDetail"
       :detail-failed="!!currentStory && detailStatus[currentStory.id] === 'error'"

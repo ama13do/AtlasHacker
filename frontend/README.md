@@ -71,15 +71,40 @@ Backend en `../backend` (Hono; **no se modifica desde aquí**). Guía: `../docs/
 | --- | --- | --- |
 | 1 · Lectura | Pines (`/api/mapa`), historias, lista y ficha (`/api/testimonios/{id}`), estados de carga, vacío y error | Lista |
 | 2 · Crear | `POST /api/testimonios` con Turnstile (`X-Captcha-Token`) y folio de participante (`X-Folio`) | Lista |
-| 3 · Evidencias | Reservar → `PUT` a R2 → confirmar | Pendiente |
-| 4 · Social | Reacciones, comentarios, tiempo real (Supabase) y «mi folio» | Pendiente |
+| 3 · Evidencias | Reservar → `PUT` a R2 → confirmar, con progreso y reintento por archivo | Lista |
+| 4a · Social | Reacciones, comentarios (con captcha) y pines en tiempo real (Supabase) | Lista |
+| 4b · Mi folio | Mis testimonios, editar, dar de baja, perfil y evidencias | Lista |
+
+### Reacciones, comentarios y tiempo real
+
+- **`X-Device-Id`:** UUID aleatorio por dispositivo (`localStorage` `atlashacker:device-id`, en `src/core/http/deviceId.ts`), que el cliente http manda en todas las peticiones. La API lo usa para «una reacción o like por dispositivo»; no identifica a la persona.
+- **Reacciones** (Me importa, Apoyo, Alerta, Urgente): son optimistas y se revierten si la API falla (`stores/testimonies.toggleReaction`). En el visor de historias van fuera de la zona táctil.
+- **Comentarios:** se cargan al abrir la sección y se paginan con cursor. Publicar pide captcha (el widget aparece al empezar a escribir) y manda el folio recordado si existe. Si el comentario queda en moderación, se avisa.
+- **Interruptores de `/api/config`:** si `comentarios_habilitados`, `reacciones_habilitadas` o `mapa_tiempo_real` están en false, esa parte no se muestra.
+- **Tiempo real:** el canal privado `mapa` de Supabase Realtime (`composables/useMapRealtime.ts`) recibe `testimonio.publicado`, `actualizado` y `retirado`, y actualiza los pines sin recargar. Requiere `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` (la anon key es pública; nunca la `service_role`). Sin ellas, todo funciona igual sin tiempo real. `supabase-js` se carga con `import()` dinámico, en un chunk aparte. La barra lateral muestra «En vivo» cuando el canal está conectado.
+
+### Mi folio (`/mi-folio`)
+
+- **Acceso:** la persona entra con su folio de participante, que se valida contra `GET /api/mi-perfil`. Puede quedar **de sesión** (solo en memoria) o **recordado** en el dispositivo (`composables/useParticipantFolio.ts`). «Salir» olvida ambos.
+- **Mis testimonios:** cada uno muestra su estado (en revisión, publicado, no publicado con su motivo, dado de baja). Desde ahí se puede ver en el mapa, editar, gestionar evidencias y dar de baja (con confirmación en línea).
+- **Editar:** la ruta `/mi-folio/testimonios/:id/editar` reutiliza el wizard (`CreateTestimonyPage` con `edit`). El borrador se precarga con `draftFromMine` y **no** se guarda en localStorage, así no se pisa el borrador de un testimonio nuevo. No pide captcha ni folio y, al guardar, el testimonio vuelve a revisión. «Los datos dicen» se edita como un solo texto, igual que lo guarda la API.
+- **Evidencias:** listar, eliminar y agregar (con `useEvidenceUpload`).
+- **Perfil:** muestra solo **qué** datos dejó la persona. «Ver mis datos» los descifra (`?datos=true`) y la API deja registro de la consulta. Se pueden editar o borrar (envía `null`) y activar el perfil público con un nombre a mostrar.
+- Los permisos `participantes_pueden_editar` y `participantes_pueden_eliminar` de `/api/config` ocultan esas acciones.
 
 ### Subir testimonios
 
 - **Captcha:** `VITE_TURNSTILE_SITE_KEY` (site key pública de Cloudflare Turnstile). El widget solo funciona en los dominios dados de alta en Cloudflare (Turnstile → widget → Hostnames). Si `localhost` no está, el paso de Revisión avisa que no se puede enviar (error `110200`) y el borrador se conserva.
+  - Para probar en local se puede usar la site key de prueba de Cloudflare (`1x00000000000000000000AA`, acepta cualquier dominio y siempre pasa) **solo si** el back usa el secreto de prueba `1x0000000000000000000000000000000AA`; si no, la API responde `CAPTCHA_INVALIDO`. Volver a la site key real antes de desplegar.
 - **Folio de participante:** la API lo devuelve **una sola vez**, en el primer envío. Se muestra con botón de copiar y la persona decide si recordarlo en el dispositivo (`localStorage` `atlashacker:folio`, se manda en `X-Folio`). El folio, el correo y el teléfono no se guardan en el borrador.
 - **Errores:** los de validación de la API (`DATOS_INVALIDOS`) se llevan al paso y campo del wizard (`utils/apiErrors.ts`).
-- Por ahora los archivos de evidencia no se envían (etapa 3).
+- **Evidencias:** se suben después de crear el testimonio, desde la pantalla de éxito (`composables/useEvidenceUpload.ts`):
+  1. reservar (`POST /api/mis-testimonios/{id}/evidencias` con `X-Folio`);
+  2. `PUT` directo a R2 con la URL firmada;
+  3. confirmar (el servidor verifica tamaño y tipo reales).
+  - Los límites (archivos, MB en total y formatos) vienen de `/api/config`.
+  - Fotos, video y audio se clasifican solos; los PDF tienen un selector de tipo.
+  - El bucket de R2 necesita CORS para el origen del front (`npm run r2:cors -- <origen>` en el back); si falta, el `PUT` falla y el archivo queda con «Reintentar».
 
 ## Tema
 

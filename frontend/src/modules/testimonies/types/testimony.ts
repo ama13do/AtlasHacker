@@ -9,6 +9,18 @@ export type CategorySlug = string
 
 export type EvidenceType = ApiTipoEvidencia
 
+export type ReactionType = 'like' | 'apoyo' | 'alerta' | 'fuego'
+export const REACTION_TYPES: ReactionType[] = ['like', 'apoyo', 'alerta', 'fuego']
+
+export interface Comment {
+  id: string
+  author: string | null // null = anónimo
+  text: string
+  likes: number
+  createdAt: string // ISO
+  likedByMe: boolean
+}
+
 export interface Category {
   slug: CategorySlug
   label: string
@@ -51,6 +63,7 @@ export interface TestimonyDetail extends TestimonySummary {
   tribunalQuestion?: string // 6 · La pregunta del tribunal
   evidence: EvidenceType[]
   files: EvidenceFile[]
+  reactionCounts: Record<ReactionType, number>
 }
 
 // --- Creación de testimonio (formulario) ---
@@ -62,6 +75,25 @@ export type Consent = 'publico-nombre' | 'publico-anonimo' | 'interno' | 'no-pub
 export type MediaConsent = 'si' | 'no' | 'na'
 export type SensitiveHandling = 'anonimizar' | 'interno' | 'revision'
 export type LocationSource = 'gps' | 'mapa'
+
+// Archivo elegido en el formulario, con el tipo de evidencia que se declara a la API
+export interface EvidenceAttachment {
+  id: string // Local, para keys
+  file: File
+  type: EvidenceType
+}
+
+// Estado de subida de un archivo (reservar → PUT a R2 → confirmar)
+export interface UploadItem {
+  id: string
+  name: string
+  size: number
+  type: EvidenceType
+  status: 'pendiente' | 'subiendo' | 'confirmando' | 'lista' | 'error'
+  progress: number // 0..1
+  error?: string
+  folio?: string // FUTURO/001-E… al reservar
+}
 
 export interface TestimonyDraft {
   // Datos generales
@@ -84,7 +116,7 @@ export interface TestimonyDraft {
   documentDescription: string
   evidence: EvidenceType[]
   evidenceOther: string
-  files: File[]
+  files: EvidenceAttachment[]
   // 5–6
   dataText: string
   dataSource: string
@@ -101,6 +133,56 @@ export interface TestimonyDraft {
   folio: string
   email: string
   phone: string
+}
+
+// --- Mi folio ---
+
+export type ModerationStatus = 'pendiente' | 'aprobado' | 'rechazado'
+
+export interface MyTestimony {
+  id: string
+  folio: string
+  title: string
+  category: CategorySlug
+  date: string
+  place: string | null
+  status: ModerationStatus
+  active: boolean // false = dado de baja
+  public: boolean // visible en el mapa
+  rejectionReason: string | null
+  reactions: number
+  comments: number
+  updatedAt: string
+}
+
+export interface ParticipantProfile {
+  hint: string // Últimos caracteres del folio
+  publicProfile: boolean
+  publicName: string | null
+  hasName: boolean
+  hasEmail: boolean
+  hasPhone: boolean
+  testimonies: number
+  published: number
+  createdAt: string
+}
+
+export interface PersonalData {
+  name: string | null
+  email: string | null
+  phone: string | null
+}
+
+export interface MyEvidence {
+  id: string
+  folio: string
+  type: EvidenceType
+  name: string
+  mime: string
+  size: number
+  uploaded: boolean
+  public: boolean
+  active: boolean
 }
 
 export interface CreateTestimonyResult {

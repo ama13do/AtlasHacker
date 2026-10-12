@@ -62,9 +62,9 @@ function emptyDraft(): TestimonyDraft {
 const LEGACY_EVIDENCE: Record<string, EvidenceType> = { recibo: 'recibo_factura', documento: 'documento_oficial' }
 
 // Borrador guardado sin archivos (File no es serializable) ni folio o contacto (no se guardan sin pedirlo)
-function loadSaved(): { draft: Partial<TestimonyDraft>; step: number } | null {
+function loadSaved(key: string): { draft: Partial<TestimonyDraft>; step: number } | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(key)
     if (!raw) return null
     const saved = JSON.parse(raw) as { draft: Partial<TestimonyDraft>; step: number }
     if (saved.draft.evidence) saved.draft.evidence = saved.draft.evidence.map((e) => LEGACY_EVIDENCE[e] ?? e)
@@ -76,18 +76,18 @@ function loadSaved(): { draft: Partial<TestimonyDraft>; step: number } | null {
   }
 }
 
-function save(draft: TestimonyDraft, step: number) {
+function save(key: string, draft: TestimonyDraft, step: number) {
   try {
     const { files: _files, folio: _folio, email: _email, phone: _phone, ...rest } = draft
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ draft: rest, step }))
+    localStorage.setItem(key, JSON.stringify({ draft: rest, step }))
   } catch {
     // Sin almacenamiento disponible: el borrador simplemente no se conserva
   }
 }
 
-function clearSaved() {
+function clearSaved(key: string) {
   try {
-    localStorage.removeItem(STORAGE_KEY)
+    localStorage.removeItem(key)
   } catch {
     // Ignorar
   }
@@ -153,9 +153,18 @@ function validate(step: number, d: TestimonyDraft): FormErrors {
   return e
 }
 
-export function useTestimonyForm() {
-  const saved = loadSaved()
-  const draft = reactive<TestimonyDraft>({ ...emptyDraft(), ...saved?.draft, files: [] })
+export interface TestimonyFormOptions {
+  // Borrador inicial (p. ej. al editar un testimonio propio); si se da, no se restaura lo guardado
+  initial?: TestimonyDraft
+  // Dónde se guarda el borrador; null = no se guarda (edición)
+  storageKey?: string | null
+  // Editando un testimonio propio: sin folio, contacto ni captcha (se identifica con el folio activo)
+  editing?: boolean
+}
+
+export function useTestimonyForm({ initial, storageKey = STORAGE_KEY, editing = false }: TestimonyFormOptions = {}) {
+  const saved = !initial && storageKey ? loadSaved(storageKey) : null
+  const draft = reactive<TestimonyDraft>({ ...emptyDraft(), ...(initial ?? saved?.draft), files: [] })
   const step = ref(Math.min(saved?.step ?? 0, STEPS.length - 1))
   // Paso más avanzado alcanzado: hasta ahí se puede saltar desde el stepper
   const maxReached = ref(step.value)
@@ -210,7 +219,7 @@ export function useTestimonyForm() {
     step.value = 0
     maxReached.value = 0
     errors.value = {}
-    clearSaved()
+    if (storageKey) clearSaved(storageKey)
   }
 
   watch(step, (n) => (maxReached.value = Math.max(maxReached.value, n)))
@@ -232,12 +241,12 @@ export function useTestimonyForm() {
         skipNextSave = false
         return
       }
-      saveTimer = setTimeout(() => save(draft, step.value), SAVE_DELAY)
+      if (storageKey) saveTimer = setTimeout(() => save(storageKey, draft, step.value), SAVE_DELAY)
     },
     { deep: true },
   )
 
-  return { draft, step, maxReached, errors, restored, isLast, publishable, validateStep, firstInvalidStep, next, back, goTo, showErrors, reset }
+  return { draft, step, maxReached, errors, restored, editing, isLast, publishable, validateStep, firstInvalidStep, next, back, goTo, showErrors, reset }
 }
 
 export type TestimonyForm = ReturnType<typeof useTestimonyForm>

@@ -13,6 +13,7 @@ const props = defineProps<{
   selected: TestimonySummary | null
   detail: Detail | null
   detailStatus?: LoadStatus
+  live?: boolean
 }>()
 const emit = defineEmits<{ select: [id: string | null]; retry: []; retryDetail: [] }>()
 
@@ -39,9 +40,23 @@ watch(
         <h1 class="text-lg font-semibold tracking-tight">
           AtlasHacker<span class="text-neon-green light:text-fg">_</span>
         </h1>
-        <p class="text-xs text-fg/50">Tribunal Popular · FUTURO/001</p>
+        <p class="flex items-center gap-2 text-xs text-fg/50">
+          Tribunal Popular · FUTURO/001
+          <span v-if="live" class="inline-flex items-center gap-1 text-fg/70" title="Los testimonios nuevos aparecen sin recargar">
+            <span class="size-1.5 animate-pulse rounded-full bg-neon-green" aria-hidden="true" />
+            En vivo
+          </span>
+        </p>
       </div>
-      <ThemeToggle />
+      <div class="flex items-center gap-2">
+        <RouterLink
+          :to="{ name: 'my-folio' }"
+          class="rounded-full px-3 py-1.5 text-sm font-semibold text-fg/70 transition hover:bg-fg/10 hover:text-fg focus-visible:outline-2 focus-visible:outline-fg"
+        >
+          Mi folio
+        </RouterLink>
+        <ThemeToggle />
+      </div>
     </header>
 
     <div

@@ -3,6 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { categoryStyle } from '@testimonies/data/categories'
 import type { TestimonyDetail, TestimonySummary } from '@testimonies/types/testimony'
 import CategoryBadge from '@testimonies/components/CategoryBadge.vue'
+import ReactionBar from '@testimonies/components/ReactionBar.vue'
 
 const STORY_DURATION = 7000
 const HOLD_THRESHOLD = 200
@@ -178,14 +179,13 @@ onBeforeUnmount(() => {
             <p class="mt-1 text-lg font-semibold text-accent-ink">{{ detail.tribunalQuestion }}</p>
           </div>
 
-          <p v-if="story.reactions" class="text-xs text-fg/60">
-            <span class="font-semibold text-fg/80">{{ story.reactions }}</span>
-            {{ story.reactions === 1 ? 'reacción' : 'reacciones' }} a este testimonio
-          </p>
+
         </div>
 
         <!-- Acciones -->
         <footer class="space-y-3 px-6 pb-6">
+          <!-- Fuera de la zona táctil para que tocar una reacción no cambie de historia -->
+          <ReactionBar v-if="detail" :testimony-id="story.id" compact />
           <button
             type="button"
             class="flex w-full items-center justify-center gap-2 rounded-full bg-fg py-3 font-semibold text-surface transition hover:bg-neon-lime hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"

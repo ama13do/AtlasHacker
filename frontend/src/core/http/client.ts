@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios'
+import { getDeviceId } from '@/core/http/deviceId'
 
 // Sobre de la API: éxito { success: true, data, ...meta } · error { success: false, error: { codigo, mensaje, detalles? } }
 export type ApiResponse<T> = { success: true; data: T } & Record<string, unknown>
@@ -26,7 +27,8 @@ const http = axios.create({
 })
 
 http.interceptors.request.use((config) => {
-  // Punto para adjuntar cabeceras de autenticación (X-Folio, Authorization) cuando existan
+  // Dispositivo anónimo: reacciones y likes son uno por dispositivo
+  config.headers.set('X-Device-Id', getDeviceId())
   return config
 })
 

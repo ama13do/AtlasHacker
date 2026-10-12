@@ -7,7 +7,7 @@ import CategoryBadge from '@testimonies/components/CategoryBadge.vue'
 import { useParticipantFolio } from '@testimonies/composables/useParticipantFolio'
 import { maskFolio, normalizeParticipantFolio } from '@testimonies/utils/folio'
 
-const { draft, publishable, goTo } = useTestimonyFormContext()
+const { draft, publishable, goTo, editing } = useTestimonyFormContext()
 const categories = useCategoriesStore()
 const { remembered } = useParticipantFolio()
 
@@ -69,7 +69,7 @@ const sections = computed(() => [
       ['Documento', draft.documentStatus ? LABELS.document[draft.documentStatus] : '—'],
       ['Descripción', draft.documentDescription],
       ['Evidencias', evidence.value.join(', ')],
-      ['Archivos', draft.files.length ? `${draft.files.map((f) => f.name).join(', ')} (aún no se envían)` : ''],
+      ['Archivos', draft.files.map((a) => `${a.file.name} (${EVIDENCE_LABELS[a.type]})`).join('\n')],
     ],
   },
   {
@@ -98,8 +98,8 @@ const sections = computed(() => [
             ? `Sí · ${draft.sensitiveHandling ? LABELS.handling[draft.sensitiveHandling] : '—'}`
             : 'No',
       ],
-      ['Folio', folio.value],
-      ['Contacto', [draft.email.trim(), draft.phone.trim()].filter(Boolean).join(' · ')],
+      ['Folio', editing ? '' : folio.value],
+      ['Contacto', editing ? '' : [draft.email.trim(), draft.phone.trim()].filter(Boolean).join(' · ')],
     ],
   },
 ])

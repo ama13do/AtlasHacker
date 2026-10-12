@@ -155,3 +155,133 @@ export interface ApiCrearTestimonioRespuesta {
   participante: { folio: string; aviso: string } | null
   mensaje: string
 }
+
+// POST /api/mis-testimonios/{id}/evidencias (paso 1: reservar)
+export interface ApiReservaEvidencias {
+  archivos: {
+    evidencia_id: string
+    folio: string
+    subir: { metodo: 'PUT'; url: string; cabeceras: Record<string, string>; expira_en_segundos: number }
+  }[]
+  limites: { max_archivos: number; max_bytes_totales: number }
+}
+
+// POST /api/mis-testimonios/{id}/evidencias/{evidenciaId}/confirmar
+export interface ApiEvidenciaConfirmada {
+  id: string
+  folio: string
+  estado_subida: 'pendiente' | 'subida'
+  bytes: number
+  publica: boolean
+}
+
+export type ApiTipoReaccion = 'like' | 'apoyo' | 'alerta' | 'fuego'
+
+// POST/DELETE …/reacciones
+export interface ApiReaccionRespuesta {
+  agregada?: boolean
+  quitada?: boolean
+  reacciones_conteo: Partial<Record<ApiTipoReaccion, number>> | null
+  reacciones_total: number
+}
+
+// GET /api/testimonios/{id}/comentarios
+export interface ApiComentario {
+  id: string
+  autor_nombre: string | null
+  contenido: string
+  likes_conteo: number
+  created_at: string
+  le_di_like: boolean
+}
+
+// POST /api/testimonios/{id}/comentarios
+export interface ApiComentarioCreado extends Omit<ApiComentario, 'le_di_like'> {
+  estado: 'pendiente' | 'aprobado' | 'rechazado'
+  visible: boolean
+}
+
+// --- Mi folio (todas con X-Folio) ---
+
+// GET /api/mi-perfil (con ?datos=true agrega datos_personales)
+export interface ApiMiPerfil {
+  id: string
+  folio_pista: string
+  perfil_publico: boolean
+  nombre_publico: string | null
+  dejo_nombre: boolean
+  dejo_correo: boolean
+  dejo_telefono: boolean
+  created_at: string
+  testimonios: number
+  aprobados: number
+  datos_personales?: { nombre: string | null; correo: string | null; telefono: string | null }
+}
+
+export type ApiEstadoModeracion = 'pendiente' | 'aprobado' | 'rechazado'
+
+// GET /api/mis-testimonios
+export interface ApiMiTestimonioResumen {
+  id: string
+  folio: string
+  titulo: string | null
+  estado: ApiEstadoModeracion
+  activo: boolean
+  es_publico: boolean
+  motivo_rechazo: string | null
+  lugar_territorio: string | null
+  fecha: string
+  categoria_slug: string
+  reacciones_total: number
+  comentarios_conteo: number
+  created_at: string
+  updated_at: string
+}
+
+// GET /api/mis-testimonios/{id} (columnas de la ficha que usa el front)
+export interface ApiMiTestimonio extends Omit<ApiMiTestimonioResumen, 'categoria_slug'> {
+  fecha: string
+  entidad: string | null
+  municipio: string | null
+  aparecer_como: 'nombre' | 'anonimo'
+  nombre_publico: string | null
+  facilitador_nombre: string | null
+  relato: string
+  territorio_dice: string | null
+  comunidad_dice: string | null
+  tiene_evidencia: 'si' | 'no' | 'pendiente'
+  evidencia_descripcion: string | null
+  evidencia_tipos: ApiTipoEvidencia[] | null
+  evidencia_otro: string | null
+  dato_fuente_anio: string | null
+  fuente_pendiente_verificacion: boolean
+  pregunta_tribunal: string | null
+  autorizacion: ApiCrearTestimonio['autorizacion']
+  autoriza_multimedia: 'si' | 'no' | 'na'
+  info_sensible: boolean
+  sensible_accion: ApiCrearTestimonio['sensible_accion'] | null
+  origen_ubicacion: 'gps' | 'mapa' | 'manual' | 'importada'
+  ubicacion: unknown
+  centroide: Point | null
+  categoria: { slug: string; nombre: string } | null
+}
+
+// PATCH /api/mis-testimonios/{id}
+export type ApiEditarMiTestimonio = Partial<
+  Omit<ApiCrearTestimonio, 'consentimiento_aceptado' | 'contacto' | 'auditoria' | 'expediente' | 'nombre'>
+> & { nombre_publico?: string }
+
+// GET /api/mis-testimonios/{id}/evidencias
+export interface ApiMiEvidencia {
+  id: string
+  folio: string
+  tipo: ApiTipoEvidencia
+  estado_subida: 'pendiente' | 'subida'
+  nombre_original: string
+  mime: string
+  bytes: number
+  descripcion: string | null
+  publica: boolean
+  activo: boolean
+  created_at: string
+}

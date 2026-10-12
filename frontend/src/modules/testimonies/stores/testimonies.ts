@@ -1,9 +1,10 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { ApiError } from '@/core/http/client'
+import { socialService } from '@testimonies/services/social.service'
 import { testimoniesService } from '@testimonies/services/testimonies.service'
 import { useCategoriesStore } from '@testimonies/stores/categories'
-import type { TestimonyDetail, TestimonyDraft, TestimonySummary } from '@testimonies/types/testimony'
+import type { ReactionType, TestimonyDetail, TestimonyDraft, TestimonySummary } from '@testimonies/types/testimony'
 
 const POPULAR_LIMIT = 8
 
@@ -21,9 +22,14 @@ export const useTestimoniesStore = defineStore('testimonies', () => {
   const details = ref<Record<string, TestimonyDetail>>({})
   const detailStatus = ref<Record<string, LoadStatus>>({})
 
+  // Reacciones que este dispositivo ya dio, por testimonio
+  const myReactions = ref<Record<string, ReactionType[]>>({})
+
   const selectedId = ref<string | null>(null)
-  // Índice dentro de `popular`; null = visor de historias cerrado
+  // Índice dentro de `stories`; null = visor de historias cerrado
   const storyIndex = ref<number | null>(null)
+  // Copia de `popular` al abrir el visor: reaccionar no debe reordenar las historias mientras se ven
+  const stories = ref<TestimonySummary[]>([])
 
   const popular = computed(() =>
     [...items.value]
@@ -55,10 +61,66 @@ export const useTestimoniesStore = defineStore('testimonies', () => {
     try {
       details.value[id] = await testimoniesService.getDetail(id)
       detailStatus.value[id] = 'ready'
+      loadMyReactions(id)
     } catch (e) {
       console.error(e)
       detailStatus.value[id] = 'error'
     }
+  }
+
+  async function loadMyReactions(id: string) {
+    if (myReactions.value[id] || !useCategoriesStore().config?.reactionsEnabled) return
+    try {
+      myReactions.value[id] = await socialService.myReactions(id)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  // Conteos en la ficha y en el resumen (el total ordena las populares)
+  function setReactionCounts(id: string, counts: Record<ReactionType, number>, total: number) {
+    const detail = details.value[id]
+    if (detail) Object.assign(detail, { reactionCounts: counts, reactions: total })
+    const summary = items.value.find((t) => t.id === id)
+    if (summary) summary.reactions = total
+  }
+
+  // Optimista: se refleja al instante y se revierte si la API falla
+  async function toggleReaction(id: string, type: ReactionType) {
+    const detail = details.value[id]
+    if (!detail) return
+    const mine = myReactions.value[id] ?? []
+    const active = mine.includes(type)
+    const previous = { counts: { ...detail.reactionCounts }, total: detail.reactions, mine }
+
+    const delta = active ? -1 : 1
+    myReactions.value[id] = active ? mine.filter((t) => t !== type) : [...mine, type]
+    setReactionCounts(id, { ...detail.reactionCounts, [type]: Math.max(0, detail.reactionCounts[type] + delta) }, Math.max(0, detail.reactions + delta))
+
+    try {
+      const result = active ? await socialService.unreact(id, type) : await socialService.react(id, type)
+      setReactionCounts(id, result.counts, result.total)
+    } catch (e) {
+      console.error(e)
+      myReactions.value[id] = previous.mine
+      setReactionCounts(id, previous.counts, previous.total)
+      throw e
+    }
+  }
+
+  // Tiempo real: alta/cambio de un testimonio público
+  function upsertSummary(summary: TestimonySummary, detail?: TestimonyDetail) {
+    const index = items.value.findIndex((t) => t.id === summary.id)
+    if (index === -1) items.value.push(summary)
+    else items.value[index] = summary
+    if (detail && details.value[summary.id]) details.value[summary.id] = detail
+  }
+
+  // Tiempo real: el testimonio dejó de ser público
+  function remove(id: string) {
+    items.value = items.value.filter((t) => t.id !== id)
+    invalidateDetail(id)
+    if (selectedId.value === id) selectedId.value = null
   }
 
   async function create(draft: TestimonyDraft, auth: Parameters<typeof testimoniesService.create>[1]) {
@@ -67,14 +129,21 @@ export const useTestimoniesStore = defineStore('testimonies', () => {
     return result
   }
 
+  // La ficha cambió (p. ej. nuevas evidencias): se vuelve a pedir la próxima vez
+  function invalidateDetail(id: string) {
+    delete details.value[id]
+    delete detailStatus.value[id]
+  }
+
   function select(id: string | null) {
     selectedId.value = id
     if (id) loadDetail(id)
   }
 
   function openStory(index: number) {
+    if (storyIndex.value === null) stories.value = [...popular.value]
     storyIndex.value = index
-    const story = popular.value[index]
+    const story = stories.value[index]
     if (story) loadDetail(story.id)
   }
 
@@ -89,14 +158,21 @@ export const useTestimoniesStore = defineStore('testimonies', () => {
     truncated,
     details,
     detailStatus,
+    myReactions,
     selectedId,
     storyIndex,
+    stories,
     popular,
     recent,
     selected,
     selectedDetail,
     load,
     loadDetail,
+    loadMyReactions,
+    toggleReaction,
+    upsertSummary,
+    remove,
+    invalidateDetail,
     create,
     select,
     openStory,

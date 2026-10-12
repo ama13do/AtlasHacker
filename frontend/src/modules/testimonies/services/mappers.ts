@@ -1,14 +1,27 @@
 import type {
   ApiCategoria,
+  ApiComentario,
   ApiCrearTestimonio,
   ApiCrearTestimonioRespuesta,
+  ApiEditarMiTestimonio,
   ApiMapa,
+  ApiMiEvidencia,
+  ApiMiPerfil,
+  ApiMiTestimonio,
+  ApiMiTestimonioResumen,
   ApiTestimonioDetalle,
 } from '@testimonies/types/api'
+import { REACTION_TYPES } from '@testimonies/types/testimony'
 import type {
   Category,
+  Comment,
   Consent,
   CreateTestimonyResult,
+  MyEvidence,
+  MyTestimony,
+  ParticipantProfile,
+  PersonalData,
+  ReactionType,
   SensitiveHandling,
   TestimonyDetail,
   TestimonyDraft,
@@ -52,6 +65,28 @@ export function fromMapFeature({ geometry, properties: p }: ApiMapa['features'][
   }
 }
 
+// Conteo por tipo, con 0 en los que falten
+export function fromReactionCounts(raw: Partial<Record<string, number>> | null | undefined): Record<ReactionType, number> {
+  return Object.fromEntries(REACTION_TYPES.map((t) => [t, raw?.[t] ?? 0])) as Record<ReactionType, number>
+}
+
+export function fromComment(c: ApiComentario): Comment {
+  return {
+    id: c.id,
+    author: clean(c.autor_nombre) ?? null,
+    text: c.contenido,
+    likes: c.likes_conteo,
+    createdAt: c.created_at,
+    likedByMe: c.le_di_like,
+  }
+}
+
+// Resumen a partir de la ficha completa (p. ej. al llegar un evento de tiempo real)
+export function toSummary(d: TestimonyDetail): TestimonySummary {
+  const { id, folio, date, place, coordinates, approximate, category, title, reactions, comments, cover } = d
+  return { id, folio, date, place, coordinates, approximate, category, title, reactions, comments, cover }
+}
+
 export function fromDetail(d: ApiTestimonioDetalle): TestimonyDetail {
   return {
     id: d.id,
@@ -84,6 +119,7 @@ export function fromDetail(d: ApiTestimonioDetalle): TestimonyDetail {
       url: e.url,
       description: e.descripcion,
     })),
+    reactionCounts: fromReactionCounts(d.reacciones_conteo),
   }
 }
 
@@ -164,4 +200,129 @@ export function fromCreateResponse(r: ApiCrearTestimonioRespuesta): CreateTestim
     message: r.mensaje,
     participantFolio: r.participante?.folio ?? null,
   }
+}
+
+// --- Mi folio ---
+
+export function fromMine(t: ApiMiTestimonioResumen): MyTestimony {
+  return {
+    id: t.id,
+    folio: t.folio,
+    title: clean(t.titulo) ?? 'Testimonio sin título',
+    category: t.categoria_slug,
+    date: t.fecha,
+    place: clean(t.lugar_territorio) ?? null,
+    status: t.estado,
+    active: t.activo,
+    public: t.es_publico,
+    rejectionReason: clean(t.motivo_rechazo) ?? null,
+    reactions: t.reacciones_total,
+    comments: t.comentarios_conteo,
+    updatedAt: t.updated_at,
+  }
+}
+
+export function fromProfile(p: ApiMiPerfil): ParticipantProfile {
+  return {
+    hint: p.folio_pista,
+    publicProfile: p.perfil_publico,
+    publicName: p.nombre_publico,
+    hasName: p.dejo_nombre,
+    hasEmail: p.dejo_correo,
+    hasPhone: p.dejo_telefono,
+    testimonies: p.testimonios,
+    published: p.aprobados,
+    createdAt: p.created_at,
+  }
+}
+
+export function fromPersonalData(p: ApiMiPerfil): PersonalData {
+  const d = p.datos_personales
+  return { name: d?.nombre ?? null, email: d?.correo ?? null, phone: d?.telefono ?? null }
+}
+
+export function fromMyEvidence(e: ApiMiEvidencia): MyEvidence {
+  return {
+    id: e.id,
+    folio: e.folio,
+    type: e.tipo,
+    name: e.nombre_original,
+    mime: e.mime,
+    size: e.bytes,
+    uploaded: e.estado_subida === 'subida',
+    public: e.publica,
+    active: e.activo,
+  }
+}
+
+const CONSENT_FROM_API = Object.fromEntries(Object.entries(CONSENT).map(([k, v]) => [v, k])) as Record<
+  ApiCrearTestimonio['autorizacion'],
+  Consent
+>
+const SENSITIVE_FROM_API = Object.fromEntries(Object.entries(SENSITIVE).map(([k, v]) => [v, k])) as Record<
+  NonNullable<ApiCrearTestimonio['sensible_accion']>,
+  SensitiveHandling
+>
+
+// Ficha propia → borrador del wizard (para editar). Archivos, folio y contacto no se editan aquí
+export function draftFromMine(t: ApiMiTestimonio): TestimonyDraft {
+  const point = t.centroide?.coordinates
+  return {
+    topic: t.categoria?.slug ?? null,
+    title: t.titulo ?? '',
+    place: t.lugar_territorio ?? '',
+    coordinates: point ? [point[0], point[1]] : null,
+    locationSource: t.origen_ubicacion === 'gps' ? 'gps' : 'mapa',
+    gpsAccuracy: null,
+    date: t.fecha,
+    name: t.nombre_publico ?? '',
+    visibility: t.aparecer_como,
+    facilitator: t.facilitador_nombre ?? '',
+    testimony: t.relato,
+    territory: t.territorio_dice ?? '',
+    community: t.comunidad_dice ?? '',
+    documentStatus: t.tiene_evidencia,
+    documentDescription: t.evidencia_descripcion ?? '',
+    evidence: t.evidencia_tipos ?? [],
+    evidenceOther: t.evidencia_otro ?? '',
+    files: [],
+    // La API guarda "dato — fuente, año" en un solo campo: se edita completo
+    dataText: t.dato_fuente_anio ?? '',
+    dataSource: '',
+    dataYear: '',
+    dataPendingVerification: t.fuente_pendiente_verificacion,
+    tribunalQuestion: t.pregunta_tribunal ?? '',
+    voluntary: true,
+    consent: CONSENT_FROM_API[t.autorizacion] ?? null,
+    mediaConsent: t.autoriza_multimedia,
+    sensitive: t.info_sensible,
+    sensitiveHandling: t.sensible_accion ? SENSITIVE_FROM_API[t.sensible_accion] : null,
+    folio: '',
+    email: '',
+    phone: '',
+  }
+}
+
+// Borrador editado → PATCH. Sin consentimiento, contacto ni auditoría (eso no se edita)
+export function toUpdatePayload(d: TestimonyDraft): ApiEditarMiTestimonio {
+  const {
+    consentimiento_aceptado: _c,
+    contacto: _contact,
+    auditoria: _a,
+    expediente: _e,
+    nombre,
+    ...rest
+  } = toCreatePayload(d)
+  return compact({
+    ...rest,
+    nombre_publico: d.visibility === 'nombre' ? nombre : undefined,
+    // Vaciar un campo opcional también debe guardarse
+    titulo: d.title.trim(),
+    territorio_dice: d.territory.trim(),
+    comunidad_dice: d.community.trim(),
+    evidencia_descripcion: d.documentDescription.trim(),
+    evidencia_tipos: [...d.evidence],
+    dato_fuente_anio: dataLine(d) ?? '',
+    pregunta_tribunal: d.tribunalQuestion.trim(),
+  })
 }

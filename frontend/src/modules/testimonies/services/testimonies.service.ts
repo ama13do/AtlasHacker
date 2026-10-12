@@ -11,6 +11,11 @@ export interface PublicConfig {
   categories: Category[]
   limits: { maxFiles: number; maxBytes: number; mimeTypes: string[] }
   captchaRequired: boolean
+  commentsEnabled: boolean
+  reactionsEnabled: boolean
+  realtime: boolean
+  canEdit: boolean // La persona puede editar sus testimonios (Mi folio)
+  canWithdraw: boolean // …y darlos de baja
 }
 
 export const testimoniesService = {
@@ -21,6 +26,11 @@ export const testimoniesService = {
       categories: data.data.categorias.map(fromCategory),
       limits: { maxFiles: c.max_archivos_por_testimonio, maxBytes: c.max_bytes_totales_por_testimonio, mimeTypes: c.tipos_mime_permitidos },
       captchaRequired: c.captcha_requerido,
+      commentsEnabled: c.comentarios_habilitados,
+      reactionsEnabled: c.reacciones_habilitadas,
+      realtime: c.mapa_tiempo_real,
+      canEdit: c.participantes_pueden_editar,
+      canWithdraw: c.participantes_pueden_eliminar,
     }
   },
 

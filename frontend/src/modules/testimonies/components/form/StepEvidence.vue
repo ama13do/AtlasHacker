@@ -74,7 +74,7 @@ const evidenceOptions = (Object.entries(EVIDENCE_LABELS) as [EvidenceType, strin
 
     <section class="space-y-5">
       <h3 class="form-group-title">Archivos</h3>
-      <EvidenceFiles v-model="draft.files" />
+      <EvidenceFiles v-model="draft.files" :evidence="draft.evidence" />
     </section>
   </div>
 </template>

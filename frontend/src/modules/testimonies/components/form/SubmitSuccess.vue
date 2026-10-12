@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import type { EvidenceUpload } from '@testimonies/composables/useEvidenceUpload'
 import { useParticipantFolio } from '@testimonies/composables/useParticipantFolio'
 import type { CreateTestimonyResult } from '@testimonies/types/testimony'
+import UploadProgress from '@testimonies/components/UploadProgress.vue'
 
-const props = defineProps<{ result: CreateTestimonyResult }>()
+const props = defineProps<{ result: CreateTestimonyResult; upload: EvidenceUpload }>()
 defineEmits<{ viewOnMap: []; home: [] }>()
 
 const STATUS = { pendiente: 'En revisión', aprobado: 'Publicado', rechazado: 'No publicado' } as const
@@ -16,6 +18,8 @@ const rememberIt = computed({
   get: () => !!participantFolio.value && remembered.value === participantFolio.value,
   set: (on: boolean) => (on && participantFolio.value ? remember(participantFolio.value) : forget()),
 })
+
+const uploading = props.upload.busy
 
 const copied = ref(false)
 async function copyFolio() {
@@ -56,7 +60,7 @@ async function copyFolio() {
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <code class="flex-1 rounded-xl bg-surface px-3 py-2 text-center font-mono text-base font-semibold tracking-wide select-all">
+        <code class="min-w-0 flex-1 rounded-xl bg-surface px-2 py-2 text-center font-mono text-sm font-semibold whitespace-nowrap select-all sm:px-3 sm:text-base sm:tracking-wide">
           {{ participantFolio }}
         </code>
         <button
@@ -75,6 +79,9 @@ async function copyFolio() {
       <p class="sr-only" aria-live="polite">{{ copied ? 'Folio copiado' : '' }}</p>
     </section>
 
+    <!-- Evidencias (se suben después de crear el testimonio) -->
+    <UploadProgress :upload="upload" class="w-full max-w-sm" />
+
     <dl class="w-full max-w-sm space-y-2 rounded-2xl border border-fg/15 p-4 text-left text-sm">
       <div class="flex justify-between gap-3">
         <dt class="text-fg/50">Folio del testimonio</dt>
@@ -90,18 +97,28 @@ async function copyFolio() {
       <button
         v-if="result.published"
         type="button"
-        class="rounded-full bg-neon-lime py-3 font-semibold text-black transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
+        class="rounded-full bg-neon-lime py-3 font-semibold text-black transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg disabled:opacity-50"
+        :disabled="uploading"
         @click="$emit('viewOnMap')"
       >
         Ver en el mapa
       </button>
       <button
         type="button"
-        class="rounded-full border border-fg/30 py-3 font-semibold transition hover:border-fg focus-visible:outline-2 focus-visible:outline-fg"
+        class="rounded-full border border-fg/30 py-3 font-semibold transition hover:border-fg focus-visible:outline-2 focus-visible:outline-fg disabled:opacity-50"
+        :disabled="uploading"
         @click="$emit('home')"
       >
         Volver al inicio
       </button>
+      <RouterLink
+        v-if="remembered"
+        :to="{ name: 'my-folio' }"
+        class="text-sm font-semibold text-accent-ink hover:underline"
+        :class="{ 'pointer-events-none opacity-50': uploading }"
+      >
+        Ir a Mi folio
+      </RouterLink>
     </div>
 
     <p class="text-xs tracking-widest text-fg/50 uppercase">Escucha · Registra · Verifica · Protege</p>

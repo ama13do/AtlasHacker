@@ -7,7 +7,12 @@ import { maskFolio } from '@testimonies/utils/folio'
 import ChoiceGroup, { type Choice } from '@testimonies/components/form/ChoiceGroup.vue'
 import FormField from '@testimonies/components/form/FormField.vue'
 
-const { draft, errors, publishable } = useTestimonyFormContext()
+const { draft, errors, publishable, editing } = useTestimonyFormContext()
+
+// Fotos, video o audio adjuntos sin autorizar su uso: se guardan, pero no se publican
+const mediaWithoutConsent = computed(
+  () => draft.mediaConsent === 'no' && draft.files.some((a) => ['foto', 'video', 'audio'].includes(a.type)),
+)
 
 const consentOptions = computed<Choice<Consent>[]>(() => [
   {
@@ -96,6 +101,9 @@ function toggleTyping(on: boolean) {
           :error="errors.mediaConsent"
         />
       </div>
+      <p v-if="mediaWithoutConsent" class="rounded-xl bg-fg/5 px-4 py-3 text-sm text-fg/80" role="note">
+        Elegiste no autorizar foto, audio o video: los archivos que adjuntaste se guardarán solo para documentación interna.
+      </p>
     </section>
 
     <section class="space-y-4">
@@ -120,7 +128,8 @@ function toggleTyping(on: boolean) {
       </div>
     </section>
 
-    <section class="space-y-4">
+    <!-- Al editar, el folio y el contacto se manejan en Mi folio -->
+    <section v-if="!editing" class="space-y-4">
       <div class="space-y-1">
         <h3 class="form-group-title">Tu folio <span class="normal-case">(opcional)</span></h3>
         <p class="text-xs text-fg/50">

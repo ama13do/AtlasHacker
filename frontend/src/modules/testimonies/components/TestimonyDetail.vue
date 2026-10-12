@@ -4,6 +4,8 @@ import { EVIDENCE_LABELS } from '@testimonies/data/categories'
 import type { LoadStatus } from '@testimonies/stores/testimonies'
 import type { TestimonyDetail, TestimonySummary } from '@testimonies/types/testimony'
 import CategoryBadge from '@testimonies/components/CategoryBadge.vue'
+import CommentsSection from '@testimonies/components/CommentsSection.vue'
+import ReactionBar from '@testimonies/components/ReactionBar.vue'
 
 // El encabezado sale del resumen (inmediato); el cuerpo, de la ficha completa cuando llega
 const props = defineProps<{ testimony: TestimonySummary; detail: TestimonyDetail | null; status?: LoadStatus }>()
@@ -64,6 +66,8 @@ defineExpose({ focusTitle: () => titleRef.value?.focus() })
     </div>
 
     <div v-else class="space-y-5 text-sm leading-relaxed text-fg/85">
+      <ReactionBar :testimony-id="testimony.id" />
+
       <section>
         <h3 class="section-title">1 · El testimonio</h3>
         <p class="whitespace-pre-line">{{ detail.testimony }}</p>
@@ -131,6 +135,8 @@ defineExpose({ focusTitle: () => titleRef.value?.focus() })
           </li>
         </ul>
       </section>
+
+      <CommentsSection :key="testimony.id" :testimony-id="testimony.id" :count="detail.comments" />
     </div>
   </article>
 </template>
