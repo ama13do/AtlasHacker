@@ -7,7 +7,8 @@
     "paths": {
       "@/*": ["./src/*"],
       "@map/*": ["./src/modules/map/*"],
-      "@testimonies/*": ["./src/modules/testimonies/*"]
+      "@testimonies/*": ["./src/modules/testimonies/*"],
+      "@admin/*": ["./src/modules/admin/*"]
     },
 
     /* Linting */

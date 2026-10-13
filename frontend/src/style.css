@@ -8,6 +8,9 @@
   --fg: #ffffff;
   --accent-ink: #e0fa49;
   --danger-ink: #ff8636;
+  /* Series de gráficas (validadas con el skill dataviz contra cada superficie) */
+  --chart-1: #2e7dfc;
+  --chart-2: #0bb032;
   color-scheme: dark;
 }
 
@@ -17,6 +20,7 @@
   --fg: #000000;
   --accent-ink: #000000;
   --danger-ink: #000000;
+  --chart-2: #08912a;
   color-scheme: light;
 }
 
@@ -40,6 +44,8 @@
   --color-fg: var(--fg);
   --color-accent-ink: var(--accent-ink);
   --color-danger: var(--danger-ink);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
 }
 
 @layer base {

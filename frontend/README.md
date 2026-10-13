@@ -38,6 +38,13 @@ src/
         ├── types/         # api.ts (contratos crudos) y testimony.ts (modelo del front)
         ├── utils/
         └── data/          # estilo de marca por categoría y portadas
+    └── admin/             # dashboard del equipo: rutas /admin/*
+        ├── index.ts       # API pública: adminRoutes, adminGuard
+        ├── routes.ts      # rutas + guard de sesión y roles
+        ├── views/         # LoginPage, AdminLayout, DashboardPage, TestimoniesPage, TestimonyPage, AccountPage
+        ├── components/    # AdminNav, KpiTile, gráficas, ModerationActions, StaffEvidencePanel, AuditPanel…
+        ├── stores/auth.ts # sesión (access token solo en memoria)
+        └── services/      # adminHttp (Bearer + refresh), auth, estadísticas, moderación de testimonios
 ```
 
 ### Reglas de dependencias
@@ -91,6 +98,26 @@ Backend en `../backend` (Hono; **no se modifica desde aquí**). Guía: `../docs/
 - **Evidencias:** listar, eliminar y agregar (con `useEvidenceUpload`).
 - **Perfil:** muestra solo **qué** datos dejó la persona. «Ver mis datos» los descifra (`?datos=true`) y la API deja registro de la consulta. Se pueden editar o borrar (envía `null`) y activar el perfil público con un nombre a mostrar.
 - Los permisos `participantes_pueden_editar` y `participantes_pueden_eliminar` de `/api/config` ocultan esas acciones.
+
+### Dashboard (`/admin`)
+
+- **Sesión:**
+  - `POST /api/auth/login` devuelve un access token de 15 min, que se guarda **solo en memoria**, y deja una cookie `httpOnly` de refresh (`path=/api/auth`);
+  - `stores/auth.ts` lo renueva un minuto antes de que expire y, al recargar, intenta recuperar la sesión con la cookie;
+  - `services/adminHttp.ts` agrega `Authorization: Bearer`; ante un 401 renueva una vez y reintenta. Si no puede, la sesión se cierra y vuelve al login con «Tu sesión expiró».
+- **Roles:** admin, moderador, facilitador y lector. La navegación se filtra por rol y el guard (`adminGuard`) redirige si falta permiso. Con una contraseña temporal (`debe_cambiar_password`) se fuerza `/admin/cuenta`.
+- **Login en local:** el back solo acepta login desde los orígenes de `CORS_ORIGINS` (protege la cookie). Hay que agregar `http://localhost:5173` en el stage de pruebas; si no, el login responde 403 y la pantalla lo explica.
+- **Safari:** en producción, con front y API en dominios distintos, puede bloquear la cookie de refresh. Entonces la sesión dura 15 min y luego pide volver a entrar.
+- **Testimonios (`/admin/testimonios`):** cola de moderación con pestañas (por revisar, aprobados, rechazados, dados de baja, todos), filtros (texto o folio exacto, categoría, origen, sensibles, fechas) que viven en la URL y paginación.
+  - **Por lote** (admin y moderador): seleccionar y aprobar, rechazar (con motivo), regresar a revisión, dar de baja o reactivar. Se informa cuántos fallaron.
+  - **Detalle (`/admin/testimonios/:id`):**
+    - la ficha completa con la ubicación exacta en el mapa, el consentimiento y la información sensible;
+    - **acciones según el estado:** aprobar (eligiendo si se publica la multimedia autorizada), rechazar (con motivo, que la persona ve en «Mi folio»), regresar a revisión, dar de baja o reactivar;
+    - **edición de la ficha** (queda en la bitácora con el antes y el después), notas internas y ubicación aproximada en el mapa público;
+    - **evidencias:** ver con una URL de 5 min (queda registrado), pública o privada, ocultar o eliminar.
+  - **Solo admin:** la auditoría del envío (IP descifrada, a demanda) y la eliminación definitiva, que exige escribir el folio.
+  - **Lector:** solo lectura. **Facilitador:** ve únicamente lo que capturó; capturar fichas en papel llega en una siguiente etapa.
+- **Gráficas:** SVG propias, sin dependencias. Los colores `--chart-1` y `--chart-2` en `style.css` están validados para daltonismo y contraste en ambos temas. Cada gráfica trae tooltip y una tabla oculta para lectores de pantalla.
 
 ### Subir testimonios
 
