@@ -25,3 +25,6 @@ dist-ssr
 
 # Env
 .env
+
+# Base de datos del back en local (npm run api:local)
+.local-db/

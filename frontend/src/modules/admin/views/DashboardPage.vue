@@ -88,6 +88,7 @@ onMounted(load)
           detail="Con información que puede poner a alguien en riesgo"
         />
         <KpiTile
+          :to="{ name: 'admin-comments', query: { tab: data.comentarios.pendientes ? 'pendientes' : 'publicados' } }"
           label="Comentarios"
           :value="fmt(data.comentarios.total)"
           :detail="`${fmt(data.comentarios.ocultos)} ocultos`"

@@ -38,6 +38,26 @@ export const adminRoutes: RouteRecordRaw[] = [
         props: true,
       },
       {
+        path: 'comentarios',
+        name: 'admin-comments',
+        component: () => import('@admin/views/CommentsPage.vue'),
+        meta: { roles: ['admin', 'moderador', 'lector'] },
+      },
+      {
+        // El facilitador solo puede dar de alta personas (emitir folio); la búsqueda es de admin y moderador
+        path: 'personas',
+        name: 'admin-people',
+        component: () => import('@admin/views/PeoplePage.vue'),
+        meta: { roles: ['admin', 'moderador', 'facilitador'] },
+      },
+      {
+        path: 'personas/:id',
+        name: 'admin-person',
+        component: () => import('@admin/views/PersonPage.vue'),
+        props: true,
+        meta: { roles: ['admin', 'moderador'] },
+      },
+      {
         path: 'cuenta',
         name: 'admin-account',
         component: () => import('@admin/views/AccountPage.vue'),

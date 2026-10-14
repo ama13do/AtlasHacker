@@ -117,6 +117,17 @@ Backend en `../backend` (Hono; **no se modifica desde aquí**). Guía: `../docs/
     - **evidencias:** ver con una URL de 5 min (queda registrado), pública o privada, ocultar o eliminar.
   - **Solo admin:** la auditoría del envío (IP descifrada, a demanda) y la eliminación definitiva, que exige escribir el folio.
   - **Lector:** solo lectura. **Facilitador:** ve únicamente lo que capturó; capturar fichas en papel llega en una siguiente etapa.
+- **Comentarios (`/admin/comentarios`):** pestañas por revisar, publicados, ocultos, rechazados y todos; filtro por testimonio (`?testimonio=<id>`, enlazado desde el detalle).
+  - Admin y moderador pueden aprobar, rechazar, ocultar o mostrar y editar el texto (queda en la bitácora). Solo admin elimina para siempre.
+  - El lector solo ve.
+- **Personas (`/admin/personas`, admin y moderador):**
+  - **Búsqueda** por índice ciego (correo o teléfono exactos, o los últimos 4 del folio). No muestra datos personales; correo y teléfono no van en la URL.
+  - **Detalle:**
+    - «Ver y rectificar datos personales» los descifra y queda registrado en la bitácora;
+    - rectificar (un campo vacío lo borra) y perfil público;
+    - emitir un folio nuevo (el anterior deja de funcionar; el nuevo se muestra una sola vez) y desactivar o reactivar el folio;
+    - **solo admin:** cancelar datos personales (ARCO), con confirmación escribiendo «CANCELAR».
+  - **Nueva persona:** también el facilitador puede crearla para emitirle un folio antes de capturar su ficha.
 - **Gráficas:** SVG propias, sin dependencias. Los colores `--chart-1` y `--chart-2` en `style.css` están validados para daltonismo y contraste en ambos temas. Cada gráfica trae tooltip y una tabla oculta para lectores de pantalla.
 
 ### Subir testimonios
@@ -132,6 +143,18 @@ Backend en `../backend` (Hono; **no se modifica desde aquí**). Guía: `../docs/
   - Los límites (archivos, MB en total y formatos) vienen de `/api/config`.
   - Fotos, video y audio se clasifican solos; los PDF tienen un selector de tipo.
   - El bucket de R2 necesita CORS para el origen del front (`npm run r2:cors -- <origen>` en el back); si falta, el `PUT` falla y el archivo queda con «Reintentar».
+
+## Back en local
+
+Para probar de punta a punta sin AWS ni tocar el back:
+
+1. `npm run api:local` levanta la API en http://localhost:3000 con una base Postgres + PostGIS embebida (PGlite) guardada en `.local-db/`. Aplica las migraciones de `../backend/drizzle` y no lee `backend/.env`. Con `-- --reset` se empieza de cero.
+2. Crear un admin (con la API detenida): `npm run api:local:admin -- --email tu@correo.org --nombre "Tu nombre"`. La contraseña temporal aparece en tu terminal.
+3. `npm run dev:local` abre el front contra la API local (`.env.localapi`).
+
+En local se omite el captcha. No funcionan la subida real de evidencias a R2 ni el tiempo real.
+
+Ya existe una cuenta admin de prueba en la base local: sus credenciales están en `.local-db/dev-admin.json` (ignorado por git y bloqueado en el dev server).
 
 ## Tema
 

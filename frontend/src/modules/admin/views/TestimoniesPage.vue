@@ -8,6 +8,7 @@ import { useAuthStore } from '@admin/stores/auth'
 import type { AccionModeracion, ApiTestimonioStaffFila, PaginaMeta } from '@admin/types/api'
 import { ORIGEN_LABELS, fmtDate } from '@admin/data/labels'
 import ModerationStatus from '@admin/components/ModerationStatus.vue'
+import Pagination from '@admin/components/Pagination.vue'
 
 const PAGE_SIZE = 25
 
@@ -297,26 +298,7 @@ const rangeText = computed(() => {
         </li>
       </ul>
 
-      <!-- Paginación -->
-      <nav v-if="meta && meta.paginas > 1" class="flex items-center justify-center gap-3 text-sm" aria-label="Paginación">
-        <button
-          type="button"
-          class="rounded-full border border-fg/25 px-4 py-1.5 font-semibold disabled:opacity-40"
-          :disabled="page <= 1"
-          @click="go({ pagina: String(page - 1) })"
-        >
-          Anterior
-        </button>
-        <span class="tabular-nums text-fg/70">Página {{ page }} de {{ meta.paginas }}</span>
-        <button
-          type="button"
-          class="rounded-full border border-fg/25 px-4 py-1.5 font-semibold disabled:opacity-40"
-          :disabled="page >= meta.paginas"
-          @click="go({ pagina: String(page + 1) })"
-        >
-          Siguiente
-        </button>
-      </nav>
+      <Pagination v-if="meta" :page="page" :pages="meta.paginas" @go="go({ pagina: String($event) })" />
     </template>
   </div>
 </template>

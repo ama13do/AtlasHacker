@@ -255,6 +255,17 @@ const SECTIONS = computed(() =>
 
           <AuditPanel v-if="auth.can('admin') && t.tiene_auditoria" :testimony-id="t.id" />
 
+          <div v-if="canModerate || auth.can('lector')" class="flex flex-wrap gap-4 text-sm">
+            <RouterLink
+              :to="{ name: 'admin-comments', query: { tab: 'todos', testimonio: t.id } }"
+              class="font-semibold text-accent-ink hover:underline"
+            >
+              Ver comentarios ({{ t.comentarios_conteo }})
+            </RouterLink>
+            <RouterLink v-if="canModerate" :to="{ name: 'admin-person', params: { id: t.participante_id } }" class="font-semibold text-accent-ink hover:underline">
+              Persona que lo aportó
+            </RouterLink>
+          </div>
           <p class="text-xs text-fg/50">
             {{ t.reacciones_total }} reacciones · {{ t.comentarios_conteo }} comentarios
             <template v-if="t.publicado_at"> · publicado {{ fmtDate(t.publicado_at, true) }}</template>

@@ -167,3 +167,51 @@ export interface ApiAuditoria {
   retener_hasta: string | null
   created_at: string
 }
+
+// --- Comentarios (moderación) ---
+
+// GET /api/admin/comentarios (una fila)
+export interface ApiComentarioStaff {
+  id: string
+  testimonio_id: string
+  testimonio_folio: string
+  autor_nombre: string | null
+  contenido: string
+  estado: EstadoModeracion
+  activo: boolean
+  likes_conteo: number
+  created_at: string
+  updated_at: string
+}
+
+// --- Personas (participantes) ---
+
+// Resumen sin datos personales (lista y respuesta de PATCH)
+export interface ApiParticipanteResumen {
+  id: string
+  folio_pista: string
+  perfil_publico: boolean
+  nombre_publico: string | null
+  dejo_nombre: boolean
+  dejo_correo: boolean
+  dejo_telefono: boolean
+  activo: boolean
+  datos_cancelados_at: string | null
+  created_at: string
+  testimonios: number
+  aprobados: number
+}
+
+// GET /api/admin/participantes/{id}: descifra los datos (queda en la bitácora)
+export interface ApiParticipanteDetalle extends ApiParticipanteResumen {
+  datos_personales: { nombre: string | null; correo: string | null; telefono: string | null }
+}
+
+export interface ApiEditarParticipante {
+  nombre?: string | null
+  correo?: string | null
+  telefono?: string | null
+  perfil_publico?: boolean
+  nombre_publico?: string | null
+  activo?: boolean
+}

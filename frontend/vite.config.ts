@@ -18,6 +18,8 @@ export default defineConfig(({ mode }) => {
       },
     },
     server: {
+      // La base y los secretos de `npm run api:local` nunca se sirven (con --host serían visibles en la red)
+      fs: { deny: ['.env', '.env.*', '*.{crt,pem}', '**/.local-db/**'] },
       // En dev la API se llama por el mismo origen (/api) y Vite la reenvía: evita el CORS de la API,
       // que solo permite el dominio de producción
       proxy: env.VITE_API_URL ? { '/api': { target: env.VITE_API_URL, changeOrigin: true } } : undefined,
