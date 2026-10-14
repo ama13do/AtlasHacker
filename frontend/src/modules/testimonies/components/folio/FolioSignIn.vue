@@ -43,7 +43,7 @@ async function submit() {
 </script>
 
 <template>
-  <form class="mx-auto w-full max-w-md space-y-5 rounded-3xl border border-fg/15 p-6" @submit.prevent="submit">
+  <form class="border-2 border-ink bg-card shadow-brut mx-auto w-full max-w-md space-y-5 rounded-[22px] p-6" @submit.prevent="submit">
     <div class="space-y-1">
       <h2 class="text-xl font-semibold">Entra con tu folio</h2>
       <p class="text-sm text-fg/60">
@@ -75,7 +75,7 @@ async function submit() {
 
     <button
       type="submit"
-      class="w-full rounded-full bg-neon-lime py-3 font-semibold text-black transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg disabled:opacity-60"
+      class="btn-hxnf btn-lime w-full"
       :disabled="checking || !value.trim()"
     >
       {{ checking ? 'Comprobando…' : 'Entrar' }}

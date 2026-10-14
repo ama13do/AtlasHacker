@@ -33,7 +33,7 @@ const json = (v: unknown) => JSON.stringify(v, null, 2)
 </script>
 
 <template>
-  <article class="space-y-2 rounded-2xl border border-fg/15 p-3 text-sm">
+  <article class="border-2 border-ink bg-card shadow-brut space-y-2 rounded-[22px] p-3 text-sm">
     <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
       <time :datetime="e.created_at" class="text-xs text-fg/50 tabular-nums">{{ fmtDate(e.created_at, true) }}</time>
       <span class="font-semibold">{{ who }}</span>

@@ -65,7 +65,7 @@ async function copyFolio() {
         </code>
         <button
           type="button"
-          class="shrink-0 rounded-full bg-fg px-4 py-2 text-sm font-semibold text-surface transition hover:bg-neon-lime hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
+          class="btn-hxnf btn-ink btn-sm shrink-0"
           @click="copyFolio"
         >
           {{ copied ? 'Copiado' : 'Copiar' }}
@@ -82,7 +82,7 @@ async function copyFolio() {
     <!-- Evidencias (se suben después de crear el testimonio) -->
     <UploadProgress :upload="upload" class="w-full max-w-sm" />
 
-    <dl class="w-full max-w-sm space-y-2 rounded-2xl border border-fg/15 p-4 text-left text-sm">
+    <dl class="border-2 border-ink bg-card shadow-brut w-full max-w-sm space-y-2 rounded-[22px] p-4 text-left text-sm">
       <div class="flex justify-between gap-3">
         <dt class="text-fg/50">Folio del testimonio</dt>
         <dd class="font-semibold tabular-nums">{{ result.folio }}</dd>
@@ -97,7 +97,7 @@ async function copyFolio() {
       <button
         v-if="result.published"
         type="button"
-        class="rounded-full bg-neon-lime py-3 font-semibold text-black transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg disabled:opacity-50"
+        class="btn-hxnf btn-lime"
         :disabled="uploading"
         @click="$emit('viewOnMap')"
       >
@@ -105,7 +105,7 @@ async function copyFolio() {
       </button>
       <button
         type="button"
-        class="rounded-full border border-fg/30 py-3 font-semibold transition hover:border-fg focus-visible:outline-2 focus-visible:outline-fg disabled:opacity-50"
+        class="btn-hxnf btn-paper"
         :disabled="uploading"
         @click="$emit('home')"
       >

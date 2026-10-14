@@ -1,25 +1,44 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { LoadStatus } from '@testimonies/stores/testimonies'
 import type { TestimonyDetail as Detail, TestimonySummary } from '@testimonies/types/testimony'
 import TestimonyDetail from '@testimonies/components/TestimonyDetail.vue'
 
-defineProps<{ testimony: TestimonySummary; detail: Detail | null; status?: LoadStatus }>()
-defineEmits<{ close: []; retry: [] }>()
+defineProps<{
+  testimony: TestimonySummary
+  detail: Detail | null
+  status?: LoadStatus
+  openComments?: boolean
+}>()
+const emit = defineEmits<{ close: []; retry: []; 'comments-focused': [] }>()
+
+const detailRef = ref<InstanceType<typeof TestimonyDetail> | null>(null)
+defineExpose({
+  focusComments: () => detailRef.value?.focusComments(),
+})
 </script>
 
 <!-- Bottom sheet del testimonio seleccionado (móvil) -->
 <template>
-  <aside class="flex max-h-[60dvh] flex-col overflow-hidden rounded-t-3xl border-t border-fg/15 bg-surface shadow-2xl">
+  <aside class="flex max-h-[62dvh] flex-col overflow-hidden rounded-t-[28px] border-t-2 border-ink bg-surface shadow-[0_-5px_0_0_var(--shadow-c)]">
     <div class="flex justify-center pt-2" aria-hidden="true">
-      <span class="h-1 w-10 rounded-full bg-fg/30" />
+      <span class="h-1.5 w-12 rounded-full bg-fg/40" />
     </div>
 
-    <div class="overflow-y-auto px-5 pt-3 pb-6 [scrollbar-color:color-mix(in_oklab,var(--fg)_25%,transparent)_transparent] [scrollbar-width:thin]">
-      <TestimonyDetail :testimony="testimony" :detail="detail" :status="status" @retry="$emit('retry')">
+    <div class="thin-scroll overflow-y-auto px-5 pt-3 pb-6">
+      <TestimonyDetail
+        ref="detailRef"
+        :testimony="testimony"
+        :detail="detail"
+        :status="status"
+        :open-comments="openComments"
+        @retry="$emit('retry')"
+        @comments-focused="emit('comments-focused')"
+      >
         <template #actions>
           <button
             type="button"
-            class="grid size-9 shrink-0 place-items-center rounded-full bg-fg/10 hover:bg-fg/20 focus-visible:outline-2 focus-visible:outline-fg"
+            class="icon-btn size-9"
             aria-label="Cerrar testimonio"
             @click="$emit('close')"
           >

@@ -17,20 +17,20 @@ async function copy(text: string) {
 </script>
 
 <template>
-  <section class="space-y-3 rounded-2xl border border-neon-lime/50 bg-neon-lime/10 p-4 light:border-fg/20 light:bg-neon-lime/35" role="status">
+  <section class="space-y-3 rounded-[20px] border-2 border-black bg-neon-lime p-4 text-black shadow-[4px_4px_0_0_#000]" role="status">
     <div>
-      <h3 class="text-sm font-semibold">{{ title }}</h3>
-      <p class="text-xs text-fg/70">
+      <h3 class="text-sm font-black uppercase">{{ title }}</h3>
+      <p class="text-xs opacity-75">
         {{ hint ?? 'Cópialo ahora y entrégalo por un canal seguro: no se mostrará otra vez.' }}
       </p>
     </div>
     <div class="flex items-center gap-2">
-      <code class="min-w-0 flex-1 rounded-xl bg-surface px-3 py-2 text-center font-mono text-sm font-semibold whitespace-nowrap select-all sm:text-base">
+      <code class="min-w-0 flex-1 rounded-xl border-2 border-black bg-white px-3 py-2 text-center font-mono text-sm font-semibold whitespace-nowrap select-all sm:text-base">
         {{ value }}
       </code>
       <button
         type="button"
-        class="shrink-0 rounded-full bg-fg px-4 py-2 text-sm font-semibold text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
+        class="btn-hxnf btn-ink btn-sm shrink-0"
         @click="copy(value)"
       >
         {{ copied ? 'Copiado' : 'Copiar' }}

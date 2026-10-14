@@ -26,6 +26,8 @@ export function useMapRealtime() {
   async function upsert({ id }: MapEvent) {
     try {
       const detail = await testimoniesService.getDetail(id)
+      // Solo los del mapa (expediente) que se está viendo
+      if (store.dossier && detail.dossier && detail.dossier !== store.dossier) return
       store.upsertSummary(toSummary(detail), detail)
     } catch (e) {
       console.error('Tiempo real: no se pudo cargar', id, e)

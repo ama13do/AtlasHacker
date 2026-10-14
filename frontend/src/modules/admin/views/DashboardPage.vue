@@ -5,7 +5,9 @@ import { settingsService } from '@admin/services/settings.service'
 import { statsService } from '@admin/services/stats.service'
 import { useAuthStore } from '@admin/stores/auth'
 import type { ApiResumen } from '@admin/types/api'
-import BarChart30d from '@admin/components/BarChart30d.vue'
+import SeriesCard from '@admin/components/SeriesCard.vue'
+import { testimoniesService } from '@testimonies/services/testimonies.service'
+import type { PublicStats } from '@testimonies/types/testimony'
 import CategoryBars from '@admin/components/CategoryBars.vue'
 import EntityBars from '@admin/components/EntityBars.vue'
 import { systemService } from '@admin/services/system.service'
@@ -38,6 +40,24 @@ async function load() {
 
 const t = computed(() => data.value?.testimonios)
 
+// Estado de la API (GET /health) y lo que ve el público (GET /api/estadisticas)
+const health = ref<{ online: boolean; ms: number } | null>(null)
+const publicStats = ref<PublicStats | null>(null)
+async function loadExtras() {
+  health.value = await statsService.health()
+  try {
+    publicStats.value = await testimoniesService.getStats()
+  } catch {
+    publicStats.value = null
+  }
+}
+onMounted(loadExtras)
+
+function refresh() {
+  load()
+  loadExtras()
+}
+
 // Distribución por entidad (ubicación exacta: solo personal)
 const geo = ref<ApiGeografia | null>(null)
 onMounted(async () => {
@@ -68,14 +88,24 @@ onMounted(load)
   <div class="space-y-8">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 class="text-2xl font-semibold">Resumen</h1>
-        <p class="text-sm text-fg/60">Expediente FUTURO/001 · Sistema Energético Nacional</p>
+        <h1 class="text-3xl font-black uppercase"><span class="hl-box hl-green" style="--hl-rot: -1deg">Resumen</span></h1>
+        <p class="mt-2 text-sm font-semibold opacity-65">Juicios por Nuestro Futuro · Tribunal Popular</p>
       </div>
+      <p
+        v-if="health"
+        class="chip ml-auto px-3 py-1"
+        :class="health.online ? 'bg-neon-green text-black' : 'bg-brand-orange text-black'"
+        role="status"
+        :title="`Respuesta de /health en ${health.ms} ms`"
+      >
+        <span class="size-2 rounded-full border border-black" :class="health.online ? 'animate-pulse bg-black' : 'bg-white'" aria-hidden="true" />
+        API {{ health.online ? 'en línea' : 'sin respuesta' }} · {{ health.ms }} ms
+      </p>
       <button
         v-if="status !== 'loading'"
         type="button"
-        class="rounded-full border border-fg/25 px-4 py-1.5 text-sm font-semibold hover:border-fg focus-visible:outline-2 focus-visible:outline-fg"
-        @click="load"
+        class="btn-hxnf btn-paper btn-sm"
+        @click="refresh"
       >
         Actualizar
       </button>
@@ -87,17 +117,17 @@ onMounted(load)
     </div>
 
     <!-- Error -->
-    <div v-else-if="status === 'error'" class="space-y-3 rounded-2xl border border-fg/15 p-6" role="alert">
+    <div v-else-if="status === 'error'" class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-6" role="alert">
       <p class="font-semibold">{{ error }}</p>
       <button type="button" class="text-sm font-semibold text-accent-ink hover:underline" @click="load">Reintentar</button>
     </div>
 
     <template v-else-if="data && t">
-      <p v-if="empty" class="rounded-2xl border border-dashed border-fg/20 px-4 py-3 text-sm text-fg/70" role="status">
+      <p v-if="empty" class="rounded-[20px] border-2 border-dashed border-ink/40 px-4 py-3 text-sm text-fg/70" role="status">
         Aún no hay testimonios en la base. Los conteos aparecerán en cuanto lleguen los primeros.
       </p>
 
-      <p v-if="reviewAll && t.pendientes" class="flex flex-wrap items-center gap-2 rounded-2xl bg-fg/5 px-4 py-3 text-sm">
+      <p v-if="reviewAll && t.pendientes" class="flex flex-wrap items-center gap-2 rounded-[20px] border-2 border-ink bg-neon-lime/25 px-4 py-3 text-sm">
         Publicación: <span class="font-semibold">revisar todo</span>. Los testimonios nuevos no aparecen en el mapa hasta aprobarlos.
         <RouterLink :to="{ name: 'admin-settings' }" class="font-semibold text-accent-ink hover:underline">Cambiar</RouterLink>
         <RouterLink :to="{ name: 'admin-testimonies', query: { tab: 'pendientes' } }" class="font-semibold text-accent-ink hover:underline">
@@ -140,20 +170,20 @@ onMounted(load)
 
       <!-- Gráficas -->
       <div class="grid gap-4 lg:grid-cols-[2fr_1fr]">
-        <section class="min-w-0 rounded-2xl border border-fg/15 p-4 md:p-5">
-          <BarChart30d :days="data.ultimos_30_dias" />
+        <section class="border-2 border-ink bg-card shadow-brut min-w-0 rounded-[22px] p-4 md:p-5">
+          <SeriesCard :last30="data.ultimos_30_dias" :categories="data.por_categoria" />
         </section>
-        <section class="min-w-0 rounded-2xl border border-fg/15 p-4 md:p-5">
+        <section class="border-2 border-ink bg-card shadow-brut min-w-0 rounded-[22px] p-4 md:p-5">
           <CategoryBars :rows="data.por_categoria" />
         </section>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-3">
-        <section v-if="geo" class="min-w-0 rounded-2xl border border-fg/15 p-4 md:p-5">
+      <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <section v-if="geo" class="border-2 border-ink bg-card shadow-brut min-w-0 rounded-[22px] p-4 md:p-5">
           <EntityBars :rows="geo.por_entidad" />
         </section>
-        <section class="min-w-0 rounded-2xl border border-fg/15 p-4 md:p-5">
-          <h2 class="mb-3 text-sm font-semibold">Por origen</h2>
+        <section class="border-2 border-ink bg-card shadow-brut min-w-0 rounded-[22px] p-4 md:p-5">
+          <h2 class="mb-3 text-sm font-black uppercase">Por origen</h2>
           <p v-if="!data.por_origen.length" class="text-sm text-fg/50">Sin datos.</p>
           <dl v-else class="divide-y divide-fg/10 text-sm">
             <div v-for="o in data.por_origen" :key="o.origen" class="flex justify-between gap-3 py-2">
@@ -162,8 +192,23 @@ onMounted(load)
             </div>
           </dl>
         </section>
-        <section class="min-w-0 rounded-2xl border border-fg/15 p-4 md:p-5">
-          <h2 class="mb-3 text-sm font-semibold">Por expediente</h2>
+        <section v-if="publicStats" class="border-2 border-ink bg-card shadow-brut min-w-0 rounded-[22px] p-4 md:p-5">
+          <h2 class="mb-3 text-sm font-black uppercase">En el mapa público</h2>
+          <p class="font-wide text-3xl font-black tabular-nums">{{ fmt(publicStats.testimonies) }}</p>
+          <p class="text-xs opacity-65">
+            testimonios visibles<template v-if="publicStats.lastPublishedAt">
+              · último {{ new Date(publicStats.lastPublishedAt).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' }) }}</template
+            >
+          </p>
+          <dl class="mt-3 divide-y divide-fg/10 text-sm">
+            <div v-for="c in publicStats.byCategory" :key="c.slug" class="flex justify-between gap-3 py-1.5">
+              <dt class="min-w-0 truncate text-fg/70">{{ c.label }}</dt>
+              <dd class="font-semibold tabular-nums">{{ fmt(c.total) }}</dd>
+            </div>
+          </dl>
+        </section>
+        <section class="border-2 border-ink bg-card shadow-brut min-w-0 rounded-[22px] p-4 md:p-5">
+          <h2 class="mb-3 text-sm font-black uppercase">Por expediente</h2>
           <dl class="divide-y divide-fg/10 text-sm">
             <div v-for="e in data.por_expediente" :key="e.id" class="flex justify-between gap-3 py-2">
               <dt class="min-w-0 truncate text-fg/70">{{ e.codigo }}<template v-if="e.materia"> · {{ e.materia }}</template></dt>

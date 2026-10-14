@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { DEFAULT_MAP_SLUG } from '@testimonies/data/maps'
 import { computed, ref, watch } from 'vue'
 import type { ApiError } from '@/core/http/client'
-import ThemeToggle from '@/shared/components/ThemeToggle.vue'
+import SiteHeader from '@/shared/components/SiteHeader.vue'
 import { useParticipantFolio } from '@testimonies/composables/useParticipantFolio'
 import { participantService } from '@testimonies/services/participant.service'
 import { useCategoriesStore } from '@testimonies/stores/categories'
@@ -60,29 +61,16 @@ function onWithdrawn(id: string) {
 </script>
 
 <template>
-  <main class="min-h-dvh bg-surface">
-    <header class="sticky top-0 z-10 border-b border-fg/10 bg-surface/95 backdrop-blur">
-      <div class="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 md:py-4">
-        <RouterLink
-          :to="{ name: 'home' }"
-          class="inline-flex items-center gap-1.5 rounded-full py-1 pr-3 text-sm text-fg/70 hover:text-fg focus-visible:outline-2 focus-visible:outline-fg"
-        >
-          <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="m15 18-6-6 6-6" />
-          </svg>
-          Mapa
-        </RouterLink>
-        <h1 class="text-lg font-semibold">Mi folio</h1>
-        <ThemeToggle />
-      </div>
-    </header>
+  <main class="min-h-dvh">
+    <SiteHeader />
 
     <div class="mx-auto max-w-3xl space-y-8 px-4 py-6 md:py-10">
+      <h1 class="text-3xl font-black uppercase md:text-4xl"><span class="hl-box hl-pink" style="--hl-rot: -1deg">Mi folio</span></h1>
       <FolioSignIn v-if="!folio" />
 
       <template v-else>
         <!-- Resumen -->
-        <section class="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-fg/5 px-4 py-3">
+        <section class="flex flex-wrap items-center justify-between gap-3 rounded-[20px] border-2 border-ink bg-neon-lime/25 px-4 py-3">
           <div>
             <p class="font-mono text-sm font-semibold">{{ maskFolio(folio) }}</p>
             <p v-if="profile" class="text-xs text-fg/60">
@@ -97,7 +85,7 @@ function onWithdrawn(id: string) {
 
         <p v-if="status === 'loading'" class="text-sm text-fg/60" role="status">Cargando…</p>
 
-        <div v-else-if="status === 'error'" class="space-y-3 rounded-2xl border border-fg/15 p-4 text-sm" role="alert">
+        <div v-else-if="status === 'error'" class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-4 text-sm" role="alert">
           <p class="font-semibold">{{ errorMessage }}</p>
           <div class="flex gap-3">
             <button type="button" class="font-semibold text-accent-ink hover:underline" @click="load">Reintentar</button>
@@ -109,11 +97,11 @@ function onWithdrawn(id: string) {
           <section class="space-y-4" aria-labelledby="mine-title">
             <div class="flex items-baseline justify-between gap-3">
               <h2 id="mine-title" class="text-lg font-semibold">Mis testimonios</h2>
-              <RouterLink :to="{ name: 'testimony-new' }" class="text-sm font-semibold text-accent-ink hover:underline">
+              <RouterLink :to="{ name: 'testimony-new', params: { mapa: DEFAULT_MAP_SLUG } }" class="text-sm font-semibold text-accent-ink hover:underline">
                 + Subir otro
               </RouterLink>
             </div>
-            <p v-if="!testimonies.length" class="rounded-2xl border border-dashed border-fg/20 p-6 text-center text-sm text-fg/60">
+            <p v-if="!testimonies.length" class="rounded-[20px] border-2 border-dashed border-ink/40 p-6 text-center text-sm text-fg/60">
               Aún no has subido testimonios con este folio.
             </p>
             <MyTestimonyCard
@@ -127,7 +115,7 @@ function onWithdrawn(id: string) {
             />
           </section>
 
-          <section v-if="profile" class="rounded-2xl border border-fg/15 p-4 md:p-6">
+          <section v-if="profile" class="border-2 border-ink bg-card shadow-brut rounded-[22px] p-4 md:p-6">
             <ProfileForm :folio="folio" :profile="profile" @updated="profile = $event" />
           </section>
         </template>

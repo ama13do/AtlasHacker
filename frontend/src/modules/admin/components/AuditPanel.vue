@@ -39,8 +39,8 @@ const rows = (a: ApiAuditoria) =>
 </script>
 
 <template>
-  <section class="space-y-3 rounded-2xl border border-fg/15 p-4" aria-labelledby="audit-title">
-    <h2 id="audit-title" class="text-sm font-semibold">Auditoría del envío</h2>
+  <section class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-4" aria-labelledby="audit-title">
+    <h2 id="audit-title" class="text-sm font-black uppercase">Auditoría del envío</h2>
     <template v-if="!data">
       <p class="text-xs text-fg/60">Incluye la IP y el navegador. La consulta queda registrada en la bitácora.</p>
       <button type="button" class="text-sm font-semibold text-accent-ink hover:underline disabled:opacity-50" :disabled="loading" @click="load">

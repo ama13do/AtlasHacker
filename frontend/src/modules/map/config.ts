@@ -13,8 +13,15 @@ export const MEXICO_BOUNDS = [
   [-85.0, 35.5], // norte con holgura para el header superpuesto
 ] satisfies LngLatBoundsLike as [[number, number], [number, number]]
 
+// Límite de paneo: más holgado que el encuadre, para que en pantallas altas o estrechas
+// se pueda ver México completo (un maxBounds justo obliga a acercar)
+export const PAN_BOUNDS = [
+  [-140, -15],
+  [-60, 60],
+] satisfies LngLatBoundsLike as [[number, number], [number, number]]
+
 export const MEXICO_CENTER: LngLatLike = [-102.5, 23.6]
-export const MIN_ZOOM = 4
+export const MIN_ZOOM = 2.5
 export const MAX_ZOOM = 18
 
 // --- Mapa base simplificado ---
@@ -28,6 +35,9 @@ interface BaseLayers {
   stateBoundaries: string[] // límites estatales (admin_level 4)
   stateLabels: string[] // nombres de estado
   cityLabels: string[] // ciudades y pueblos (solo en `states+cities`)
+  // Calles, ríos y localidades: solo en `states+cities` y al acercarse (para marcar un punto exacto)
+  streets: string[]
+  localLabels: string[]
 }
 
 export const BASE_LAYERS: Record<Theme, BaseLayers> = {
@@ -36,6 +46,8 @@ export const BASE_LAYERS: Record<Theme, BaseLayers> = {
     stateBoundaries: ['boundary_state'],
     stateLabels: ['place_state'],
     cityLabels: ['place_city_large', 'place_city', 'place_town'],
+    streets: ['landuse_residential', 'waterway', 'highway_minor', 'highway_major_casing', 'highway_major_inner', 'highway_major_subtle', 'highway_motorway_casing', 'highway_motorway_inner', 'highway_motorway_subtle', 'highway_name_other', 'highway_name_motorway'],
+    localLabels: ['place_village', 'place_suburb', 'place_other'],
   },
   light: {
     base: ['background', 'water'],
@@ -43,8 +55,11 @@ export const BASE_LAYERS: Record<Theme, BaseLayers> = {
     stateBoundaries: ['boundary_3'],
     stateLabels: ['label_state'],
     cityLabels: ['label_city_capital', 'label_city', 'label_town'],
+    streets: ['landuse_residential', 'waterway', 'highway_minor', 'highway_major_casing', 'highway_major_inner', 'highway_major_subtle', 'highway_motorway_casing', 'highway_motorway_inner', 'highway_motorway_subtle', 'highway-name-minor', 'highway-name-major'],
+    localLabels: ['label_village', 'label_other'],
   },
 }
 
 // Las ciudades aparecen al acercarse, para ubicarse sin saturar la vista general
 export const CITY_LABELS_MIN_ZOOM = 7
+export const STREETS_MIN_ZOOM = 9

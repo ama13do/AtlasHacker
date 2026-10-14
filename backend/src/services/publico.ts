@@ -84,7 +84,7 @@ export async function detallePublico(id: string) {
       id: v.id, folio: v.folio, expediente_codigo: v.expediente_codigo, categoria_slug: v.categoria_slug, categoria_nombre: v.categoria_nombre, categoria_color: v.categoria_color,
       titulo: v.titulo, fecha: v.fecha, lugar_territorio: v.lugar_territorio, entidad: v.entidad, municipio: v.municipio, nombre_publico: v.nombre_publico,
       relato: v.relato, territorio_dice: v.territorio_dice, comunidad_dice: v.comunidad_dice, tiene_evidencia: v.tiene_evidencia, evidencia_tipos: v.evidencia_tipos,
-      dato_fuente_anio: v.dato_fuente_anio, fuente_pendiente_verificacion: v.fuente_pendiente_verificacion, pregunta_tribunal: v.pregunta_tribunal,
+      dato_fuente_anio: v.dato_fuente_anio, fuentes: v.fuentes, fuente_pendiente_verificacion: v.fuente_pendiente_verificacion, pregunta_tribunal: v.pregunta_tribunal, algo_mas: v.algo_mas,
       tipo_geometria: v.tipo_geometria, aproximada: v.ubicacion_aproximada, ubicacion: geoJson(v.ubicacion_publica), centroide: geoJson(v.centroide_publico),
       reacciones_conteo: v.reacciones_conteo, reacciones_total: v.reacciones_total, comentarios_conteo: v.comentarios_conteo, publicado_at: v.publicado_at, created_at: v.created_at,
     })

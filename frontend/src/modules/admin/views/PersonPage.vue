@@ -150,6 +150,9 @@ const btn = 'rounded-full px-4 py-2 text-sm font-semibold transition disabled:op
         <RouterLink v-if="auth.can('admin')" :to="{ name: 'admin-log', query: { entidad_id: id } }" class="text-sm font-semibold text-accent-ink hover:underline">
           Historial
         </RouterLink>
+        <RouterLink :to="{ name: 'admin-capture', query: { participante: id } }" class="btn-hxnf btn-lime btn-sm ml-auto">
+          Capturar ficha para esta persona
+        </RouterLink>
       </div>
       <p v-if="summary" class="text-sm text-fg/60">
         {{ summary.testimonios }} testimonios · {{ summary.aprobados }} publicados · alta {{ fmtDate(summary.created_at) }}
@@ -166,7 +169,7 @@ const btn = 'rounded-full px-4 py-2 text-sm font-semibold transition disabled:op
 
     <div class="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
       <!-- Datos personales -->
-      <section class="min-w-0 space-y-4 rounded-2xl border border-fg/15 p-5" aria-labelledby="pii-title">
+      <section class="border-2 border-ink bg-card shadow-brut min-w-0 space-y-4 rounded-[22px] p-5" aria-labelledby="pii-title">
         <h2 id="pii-title" class="font-semibold">Datos personales</h2>
         <template v-if="!personal">
           <p class="text-sm text-fg/60">
@@ -208,7 +211,7 @@ const btn = 'rounded-full px-4 py-2 text-sm font-semibold transition disabled:op
 
       <!-- Acceso y derechos -->
       <aside class="min-w-0 space-y-4">
-        <section class="space-y-3 rounded-2xl border border-fg/15 p-4 text-sm" aria-labelledby="access-title">
+        <section class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-4 text-sm" aria-labelledby="access-title">
           <h2 id="access-title" class="font-semibold">Acceso con folio</h2>
           <p class="text-fg/60">Si la persona perdió su folio, emite uno nuevo y entrégaselo por un canal seguro.</p>
           <div v-if="confirmingRotate" class="space-y-2 rounded-xl bg-fg/5 p-3">
@@ -228,7 +231,7 @@ const btn = 'rounded-full px-4 py-2 text-sm font-semibold transition disabled:op
           </div>
         </section>
 
-        <section v-if="auth.can('admin')" class="space-y-3 rounded-2xl border border-fg/15 p-4 text-sm" aria-labelledby="arco-title">
+        <section v-if="auth.can('admin')" class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-4 text-sm" aria-labelledby="arco-title">
           <h2 id="arco-title" class="font-semibold">Cancelar datos personales</h2>
           <p class="text-fg/60">Derecho de cancelación: borra nombre, correo y teléfono. Los testimonios no se eliminan.</p>
           <button v-if="!cancel.open" type="button" :class="[btn, 'text-danger hover:underline']" @click="cancel.open = true">
@@ -265,7 +268,7 @@ const btn = 'rounded-full px-4 py-2 text-sm font-semibold transition disabled:op
         <li v-for="t in testimonies" :key="t.id">
           <RouterLink
             :to="{ name: 'admin-testimony', params: { id: t.id } }"
-            class="flex flex-wrap items-center gap-2 rounded-2xl border border-fg/15 p-3 text-sm transition hover:border-fg/40"
+            class="flex flex-wrap items-center gap-2 rounded-[20px] border-2 border-ink bg-card shadow-brut-sm p-3 text-sm transition hover:border-fg/40"
           >
             <ModerationStatus :estado="t.estado" :activo="t.activo" :publico="t.es_publico" />
             <span class="size-2 rounded-full" :class="categoryStyle(t.categoria_slug).bg" aria-hidden="true" />

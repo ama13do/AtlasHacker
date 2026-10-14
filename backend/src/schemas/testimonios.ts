@@ -8,10 +8,18 @@ import {
   SENSIBLE_ACCIONES,
   TIENE_EVIDENCIA,
   TIPOS_EVIDENCIA,
+  VOZ_IMAGEN,
 } from '../db/schema.js';
 import { GeometriaSchema, Uuid } from './comunes.js';
 
 const texto = (max: number) => z.string().trim().max(max);
+
+/** 04 · Los datos dicen: cada fuente con su año y enlace o referencia (Manual C.6) */
+export const FuenteSchema = z.object({
+  fuente: texto(300).min(1),
+  anio: z.number().int().min(1900).max(2100).optional(),
+  enlace: texto(500).optional().openapi({ description: 'URL o referencia (libro, oficio, etc.)' }),
+});
 
 export const ContactoSchema = z
   .object({
@@ -59,11 +67,16 @@ const campos = {
   evidencia_descripcion: texto(5000).optional(),
   evidencia_tipos: z.array(z.enum(TIPOS_EVIDENCIA)).max(TIPOS_EVIDENCIA.length).optional().openapi({ description: 'EVIDENCIAS QUE ACOMPAÑAN' }),
   evidencia_otro: texto(200).optional(),
-  dato_fuente_anio: texto(1000).optional().openapi({ description: '5 · LOS DATOS DICEN: dato / fuente / año' }),
+  dato_fuente_anio: texto(5000).optional().openapi({ description: '04 · LOS DATOS DICEN: datos (texto libre)' }),
+  fuentes: z.array(FuenteSchema).max(20).optional().openapi({ description: '04 · Fuentes de los datos (dato, fuente, año y enlace)' }),
   fuente_pendiente_verificacion: z.boolean().optional(),
-  pregunta_tribunal: texto(5000).optional().openapi({ description: '6 · LA PREGUNTA DEL TRIBUNAL' }),
+  pregunta_tribunal: texto(5000).optional().openapi({ description: '05 · LA PREGUNTA DEL TRIBUNAL' }),
+  algo_mas: texto(5000).optional().openapi({ description: 'C.11 · ¿Hay algo que no te preguntamos y que consideras importante?' }),
+  registro_voz: texto(2000).optional().openapi({ description: 'C.11 · ¿Cómo te gustaría que quedara registrada tu voz? (interno)' }),
   autorizacion: z.enum(AUTORIZACIONES).openapi({ description: 'CONSENTIMIENTO: autorización de uso' }),
-  autoriza_multimedia: z.enum(MULTIMEDIA).optional().openapi({ description: 'Foto/audio/video: sí | no | na' }),
+  autoriza_multimedia: z.enum(MULTIMEDIA).optional().openapi({ description: 'C.10 · ¿Las personas fotografiadas autorizaron el uso de su imagen? sí | no | na' }),
+  autoriza_voz_imagen: z.enum(VOZ_IMAGEN).optional().openapi({ description: 'C.4 · Transmisión en vivo o grabación: voz_imagen | solo_voz | ninguna' }),
+  info_menores: z.boolean().optional().openapi({ description: 'C.10 · ¿Hay información de niñas, niños o adolescentes? Si es true nunca se publica sin revisión' }),
   info_sensible: z.boolean().optional().openapi({ description: 'INFORMACIÓN SENSIBLE: ¿hay información que pueda poner a alguien en riesgo?' }),
   sensible_accion: z.enum(SENSIBLE_ACCIONES).optional().openapi({ description: 'Obligatorio si info_sensible = true' }),
 };

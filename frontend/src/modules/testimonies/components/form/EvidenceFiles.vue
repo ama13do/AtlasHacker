@@ -12,7 +12,7 @@ const DEFAULT_LIMITS = {
 }
 
 // Tipos que se pueden declarar para documentos (las fotos, videos y audios se deducen del archivo)
-const DOCUMENT_TYPES: EvidenceType[] = ['recibo_factura', 'documento_oficial', 'estudio', 'datos', 'mapa', 'otro']
+const DOCUMENT_TYPES: EvidenceType[] = ['recibo', 'factura', 'oficio', 'contrato', 'registro_oficial', 'estudio', 'datos', 'mapa', 'testimonio_escrito', 'nota_prensa', 'otro']
 
 // `hint`: cuándo se suben (en el formulario, al enviar; en Mi folio, al pulsar Subir)
 const props = withDefaults(defineProps<{ evidence: EvidenceType[]; hint?: string }>(), {
@@ -59,8 +59,8 @@ function formatSize(bytes: number) {
 function typeFor(file: File): EvidenceType {
   if (file.type.startsWith('image/')) return 'foto'
   if (file.type.startsWith('video/')) return 'video'
-  if (file.type.startsWith('audio/')) return 'audio'
-  return DOCUMENT_TYPES.find((t) => props.evidence.includes(t)) ?? 'documento_oficial'
+  if (file.type.startsWith('audio/')) return props.evidence.includes('testimonio_oral') ? 'testimonio_oral' : 'audio'
+  return DOCUMENT_TYPES.find((t) => props.evidence.includes(t)) ?? 'oficio'
 }
 
 const newId = () => crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`

@@ -29,7 +29,7 @@ src/
     └── testimonies/       # testimonios (ficha FUTURO/001): rutas '/' y '/testimonios/nuevo'
         ├── index.ts       # API pública: testimoniesRoutes
         ├── routes.ts
-        ├── views/         # HomePage, CreateTestimonyPage (wizard)
+        ├── views/         # MapsPage (portada), MapPage (mapa), CreateTestimonyPage (wizard)
         ├── components/    # StoriesBar, StoryViewer, TestimonySidebar, CategoryBadge…
         │   └── form/      # pasos del wizard y campos (FormField, ChoiceGroup, LocationPicker…)
         ├── composables/   # useTestimonyForm: estado, validación por paso y borrador
@@ -116,7 +116,9 @@ Backend en `../backend` (Hono; **no se modifica desde aquí**). Guía: `../docs/
     - **edición de la ficha** (queda en la bitácora con el antes y el después), notas internas y ubicación aproximada en el mapa público;
     - **evidencias:** ver con una URL de 5 min (queda registrado), pública o privada, ocultar o eliminar.
   - **Solo admin:** la auditoría del envío (IP descifrada, a demanda) y la eliminación definitiva, que exige escribir el folio.
-  - **Lector:** solo lectura. **Facilitador:** ve únicamente lo que capturó; capturar fichas en papel llega en una siguiente etapa.
+  - **Lector:** solo lectura. **Facilitador:** ve únicamente lo que capturó.
+  - **Subir evidencias** desde el detalle (admin, moderación y facilitación): reservar → subir directo a R2 → confirmar (`staffEvidenceService`, mismo `useEvidenceUpload` que la zona pública).
+- **Capturar ficha (`/admin/capturar`, admin, moderador y facilitador):** fichas en papel con los mismos pasos que el formulario público (mini-mapa, buscador y chincheta), sin captcha (`POST /api/admin/testimonios`). La persona puede ser **nueva** (la API emite su folio y se muestra una sola vez para entregárselo) o **existente** (por su id; desde la ficha de una persona, «Capturar ficha para esta persona» lo llena solo). Si hay varios expedientes se elige el mapa.
 - **Comentarios (`/admin/comentarios`):** pestañas por revisar, publicados, ocultos, rechazados y todos; filtro por testimonio (`?testimonio=<id>`, enlazado desde el detalle).
   - Admin y moderador pueden aprobar, rechazar, ocultar o mostrar y editar el texto (queda en la bitácora). Solo admin elimina para siempre.
   - El lector solo ve.
@@ -140,14 +142,14 @@ Backend en `../backend` (Hono; **no se modifica desde aquí**). Guía: `../docs/
 - **Bitácora (`/admin/bitacora`, solo admin):** quién hizo qué, con filtros por tipo de acción, usuario y fechas. «Ver cambios» muestra antes y después, IP y navegador. Desde un testimonio o una persona, «Historial» filtra sus eventos.
 - **Exportar:** en Testimonios, «Exportar GeoJSON» (admin y moderador) descarga los testimonios de los filtros actuales con ubicación exacta y sin datos personales. El máximo es 10 000 y la exportación queda en la bitácora.
 - **Mantenimiento:** en Configuración, «Purgar datos vencidos» borra la auditoría vencida y las sesiones y límites expirados.
-- **Resumen:** incluye «Por entidad», con la ubicación exacta, solo para el equipo.
+- **Resumen:** KPIs, «Por entidad» (ubicación exacta, solo para el equipo), lo que ve el público (`GET /api/estadisticas`), estado de la API (`GET /health`, con su latencia) y la **evolución** de testimonios: 30 días (del resumen) o, al elegir 12 semanas, 12 meses o una categoría, `GET /api/admin/estadisticas/serie` (los periodos sin datos se rellenan con cero).
 - **Gráficas:** SVG propias, sin dependencias. Los colores `--chart-1` y `--chart-2` en `style.css` están validados para daltonismo y contraste en ambos temas. Cada gráfica trae tooltip y una tabla oculta para lectores de pantalla.
 
 ### Subir testimonios
 
-- **Dónde se abre:** `/testimonios/nuevo` es ruta hija del inicio (`HomePage` la pinta con `<RouterView>`).
-  - **Escritorio:** el formulario ocupa la barra lateral, en el lugar de la lista, y el mapa sigue a la vista. La ubicación se marca **en el mapa grande**: mientras el paso está a la vista, el mapa entra en modo «marcar», con cursor en cruz y solo el pin elegido. El puente es `composables/useMainMapPicker.ts`.
-  - **Móvil:** pantalla completa, con el mini-mapa dentro del formulario.
+- **Dónde se abre:** `/mapas/:mapa/testimonios/nuevo` es ruta hija del mapa (`MapPage` la pinta con `<RouterView>`).
+  - **Escritorio:** panel a la derecha del mapa (la lista se oculta salvo en pantallas muy anchas). La ubicación se marca **en el mapa grande**: mientras el paso está a la vista, el mapa entra en modo «marcar» (cursor en cruz, pines atenuados, chincheta arrastrable). El puente es `composables/useMainMapPicker.ts`.
+  - **Móvil:** hoja inferior; mientras se marca el lugar baja a media pantalla para dejar el mapa a la vista (el asa la sube o la baja).
   - **Editar desde Mi folio:** sigue siendo página completa (`variant="page"`).
   - Los pasos usan *container queries* (`@xl:`, `@3xl:`) y no breakpoints de viewport, para quedar en una columna dentro de la barra.
 - **Captcha:** `VITE_TURNSTILE_SITE_KEY` (site key pública de Cloudflare Turnstile). El widget solo funciona en los dominios dados de alta en Cloudflare (Turnstile → widget → Hostnames). Si `localhost` no está, el paso de Revisión avisa que no se puede enviar (error `110200`) y el borrador se conserva.
@@ -183,35 +185,92 @@ Ya existe una cuenta admin de prueba en la base local: sus credenciales están e
 
 Los tokens viven en `src/style.css` (`@theme`) y se usan como utilidades de Tailwind. Para código que no lee CSS (capas de MapLibre) usar `BRAND` de `src/core/config/theme.ts`; mantener ambos alineados.
 
+### Identidad visual (Hackers x Nuestro Futuro)
+
+El diseño sigue a [hxnf.vercel.app](https://hxnf.vercel.app/es) (sección Identidad y `/capitulos`): **papel texturizado**, tinta negra, **bordes gruesos y sombras duras desplazadas** (neo-brutalismo), acentos neón y titulares en **Archivo** ancho. Las piezas están en `src/style.css`:
+
+| Clase | Qué es |
+| --- | --- |
+| `card-brut` / `card-brut-lg` | Tarjeta: borde de tinta 2px, radio 22/28px, sombra dura 4/6px |
+| `card-lift` | La tarjeta se levanta al pasar el cursor |
+| `btn-hxnf` + `btn-lime` / `btn-ink` / `btn-paper` / `btn-green`… (`btn-sm`) | Botón píldora que se levanta y se hunde al presionar |
+| `icon-btn` | Botón redondo de ícono (cerrar, tema, menú) |
+| `hl-box hl-green` (`hl-pink`, `hl-lime`, `hl-orange`, `hl-blue`; `hl-wrap` para varias líneas) | Resaltado en caja detrás del titular, con sombra; se «dibuja» al cargar. `--hl-rot` lo gira |
+| `chip`, `chip-toggle` (con `aria-pressed`) | Etiquetas y filtros en píldora |
+| `font-wide` | Archivo ancho para cifras y titulares |
+| `shadow-brut-sm` … `shadow-brut-xl`, `border-ink`, `bg-card`, `text-shade` | Tokens que cambian con el tema |
+
 ### Claro / oscuro
 
-La app arranca en **oscuro** (identidad de marca). El botón sol/luna (`src/shared/components/ThemeToggle.vue`) cambia a claro y la elección se guarda (`useTheme` en `src/core/theme/`). Un script inline en `index.html` aplica el tema antes de pintar.
+La app arranca en **claro (papel)**, como hxnf.vercel.app. El botón sol/luna (`src/shared/components/ThemeToggle.vue`) cambia a oscuro y la elección se guarda (`useTheme` en `src/core/theme/`). Un script inline en `index.html` pone `data-theme` antes de pintar (siempre hay `light` o `dark`; existen las variantes `light:` y `dark:`).
 
-Para que los componentes respondan al tema, no usar `white`/`black` para fondo y texto, sino los tokens semánticos:
-
-| Token | Oscuro | Claro | Uso |
+| Token | Claro | Oscuro | Uso |
 | --- | --- | --- | --- |
-| `surface` | negro | blanco | fondos (`bg-surface`) |
-| `fg` | blanco | negro | texto y bordes, con opacidad (`text-fg/60`, `border-fg/15`) |
-| `accent-ink` | lima | negro | texto de acento (asterisco de requerido, "Editar"…) |
-| `danger` | naranja | negro | texto de error; el borde del campo sigue en naranja |
+| `surface` | blanco + grano de papel en `body` | negro | fondos |
+| `fg` | negro | blanco | texto, con opacidad (`text-fg/60`) |
+| `card` | blanco | `#111` | tarjetas |
+| `ink` | negro | blanco | bordes de tarjetas, campos y botones |
+| `shade` (sombras `shadow-brut*`) | negro | lima | sombra dura |
+| `accent-ink` | negro | lima | texto de acento |
+| `danger` | naranja oscuro | naranja | texto de error |
 
-- En claro, los acentos (lima, verde, naranja, azul) se usan como **fondo o resalte**, no como texto sobre blanco.
-- La variante `light:` permite ajustes puntuales, p. ej. `bg-neon-lime/10 light:bg-neon-lime/35`.
-- `text-black` sobre fondos de acento (botones lima, badges) se mantiene en ambos temas.
-- El mapa usa el estilo `dark` u OpenFreeMap `positron` según el tema (`MAP_STYLES` en `src/modules/map/config.ts`).
-- El mapa base está **simplificado**: del estilo solo quedan el fondo, el agua, el contorno de cada estado y los nombres de los estados (en español si existe `name:es`). Todo lo demás (calles, edificios, ciudades, etc.) se oculta en `MapView` (`simplifyBaseStyle`). Las capas que se conservan, por tema, están en `BASE_LAYERS` (`src/modules/map/config.ts`).
-- Con `detail="states+cities"` (lo usa el selector de ubicación del formulario), las ciudades y pueblos aparecen a partir de zoom 7 (`CITY_LABELS_MIN_ZOOM`).
-- **Clic en un estado** (mapa principal, `selectable-states`): el mapa se acerca al estado, oscurece el resto y la lista muestra solo sus testimonios, con el chip «Estado ×» y `?estado=MX-JAL` en la URL. Se vuelve a todo México con el chip, con `Esc` o con un clic fuera del estado. Un clic sobre un pin sigue abriendo el testimonio.
-  - Las líneas municipales salen de las teselas de OpenFreeMap (`boundary`, `admin_level = 6`), que **solo las traen desde zoom 9**. En estados grandes se ven al acercarse; en los pequeños (CDMX, Tlaxcala, Morelos…) se ven desde el encuadre.
-  - Los polígonos de los 32 estados (para el clic, el resalte, el encuadre y el filtro) están en `src/modules/map/assets/mexico-states.json`. Vienen de Natural Earth 10m admin-1 (dominio público), simplificados. Se regeneran con `npm run map:states`.
+- Los acentos (lima, verde, naranja, azul, rosa) se usan como **fondo o resalte** con texto negro, no como texto sobre blanco.
+- No poner `bg-surface` en contenedores de página: taparía la textura de papel del `body`.
+
+### Mapas (portada → mapa → formulario)
+
+- **`/`**: cuadrícula de mapas. Cada mapa es un **expediente** activo de la API (`GET /api/config` → `expedientes`); la presentación (título de portada, color, sticker) está en `src/modules/testimonies/data/maps.ts`. Un expediente nuevo aparece solo como otra tarjeta. Muestra contadores de `GET /api/estadisticas` y colaboradores de `GET /api/colaboradores`.
+- **`/mapas/:mapa`** (p. ej. `/mapas/futuro-001`): pines de ese expediente (`GET /api/mapa?expediente=FUTURO/001`). Lista a la izquierda (búsqueda + filtro por categoría, que también filtra el mapa), mapa al centro.
+- **`/mapas/:mapa/testimonios/nuevo`**: el formulario se abre **a un lado del mapa** (panel derecho en escritorio; hoja inferior en móvil que baja al marcar el lugar para dejar el mapa a la vista). El envío lleva `expediente`.
+- `/testimonios/nuevo` (enlace anterior) redirige al mapa principal.
+
+### Pines y mapa base
+
+- Los pines son **HTML** (`MapView`): píldora del color de la categoría con su ícono y punta, como los marcadores de `/capitulos`. Al pasar el cursor o al seleccionar muestran el título; el seleccionado flota (`pin-bob`). Los cercanos se **agrupan** (píldora negra con número; clic = acercar). El seleccionado nunca queda dentro de un grupo.
+- Silueta de México como en hxnf: contorno de tinta sobre trazo verde y sombra dura desplazada. Fondo blanco papel (claro) o grafito (oscuro).
+- `PAN_BOUNDS` (paneo) es más holgado que `MEXICO_BOUNDS` (encuadre): con un `maxBounds` justo, en pantallas altas no se podía ver México completo.
+- El mapa base está **simplificado** (`simplifyBaseStyle`, capas en `BASE_LAYERS`): fondo, agua, estados y sus nombres. Con `detail="states+cities"` aparecen ciudades desde zoom 7 y **calles, ríos y localidades desde zoom 9** (para marcar un punto exacto).
+- **Clic en un estado** (`selectable-states`): se acerca al estado, oscurece el resto y filtra la lista (`?estado=MX-JAL`). Se vuelve a todo México con el chip, `Esc` o un clic fuera.
+  - Las líneas municipales vienen de las teselas de OpenFreeMap (`admin_level = 6`), **solo desde zoom 9**.
+  - Los polígonos de los 32 estados están en `src/modules/map/assets/mexico-states.json` (Natural Earth 10m, dominio público). Se regeneran con `npm run map:states`.
+- `MexicoPreview.vue` dibuja la silueta en SVG (sin MapLibre) para las portadas.
+
+### Marcar el lugar (formulario)
+
+- **Buscador con autocompletado** (`PlaceSearch.vue`, combobox accesible) con [Photon](https://photon.komoot.io) sobre OpenStreetMap: sin clave, limitado a México, con retardo y cancelación al seguir escribiendo. Solo se envía el texto buscado o el punto marcado.
+- **Chincheta arrastrable**: en el mapa grande (dentro de la vista del mapa) o en un mini-mapa (editar desde Mi folio, capturar en el panel). Clic en el mapa también la mueve.
+- Al buscar, arrastrar, hacer clic o usar el GPS se hace **geocodificación inversa** y se completan *Lugar / territorio*, **Municipio** y **Estado** (`entidad`/`municipio` en la API). El estado sale de los polígonos locales. Solo se sobrescriben mientras sigan siendo lo que se puso automáticamente: si la persona los edita, se respetan.
+
+### Formulario según el Manual (Anexo)
+
+El formulario sigue el *Manual para llenar el formato de testimonios y evidencias*:
+
+- **Orden:** Datos generales → El testimonio → **01 El recibo dice** → **02 El territorio / 03 La comunidad** → **04 Los datos / 05 La pregunta** (+ «Para cerrar», C.11) → Consentimiento y cuidados → Revisión.
+- **Ninguna de las cinco secciones es obligatoria** (C.6: «no inventes información para llenar los espacios»). Solo se exigen el relato, el estado del documento (puede ser «Pendiente») y el consentimiento.
+- Cada pregunta tiene **«¿Qué poner aquí?»** (`FieldHelp.vue`) con para qué sirve y un ejemplo tomado del Manual.
+- **04 · Los datos:** «Datos» (texto libre) y **varias fuentes** (fuente, año, enlace o referencia) → `fuentes` en la API.
+- **Consentimiento:** transmisión o grabación de voz/imagen (C.4: voz e imagen / solo voz / ninguna → `autoriza_voz_imagen`), personas fotografiadas que autorizaron su imagen (C.10 → `autoriza_multimedia`), información de riesgo y de **niñas, niños o adolescentes** (C.10 → `info_menores`; nunca se publica sin revisión). Aviso clave: no es una declaración jurídica ni sustituye una denuncia.
+- **Evidencias (C.7):** recibo, factura, oficio, contrato, fotografía, video, audio, mapa, estudio, registro oficial, testimonio escrito u oral, datos estadísticos, nota de prensa, otro. `recibo_factura` y `documento_oficial` quedan solo para testimonios anteriores.
+- **Proteger mi huella digital** (activado por defecto): antes de subir, las fotos JPG/PNG/WebP se vuelven a codificar en un canvas y pierden sus metadatos (GPS, fecha, modelo del teléfono). Videos, audios y PDF se suben tal cual. Ver `utils/stripMetadata.ts`.
+- **Revisión:** miniaturas de los archivos adjuntos.
+
+Requiere la migración `backend/drizzle/0002_manual_anexo.sql` (nuevos tipos de evidencia, `fuentes`, `algo_mas`, `registro_voz`, `autoriza_voz_imagen`, `info_menores` y la vista pública). **Despliega el back antes que el front**: un back sin la migración rechaza los tipos de evidencia nuevos.
+
+### Vista del mapa
+
+- **Entrada animada:** el título del mapa aparece en caja de color, la cámara vuela hacia México, la silueta se dibuja y los pines caen escalonados (sin animaciones con `prefers-reduced-motion`).
+- **Abrir un testimonio** deja claro que está abierto: encabezado del color de la categoría («Testimonio abierto»), aviso arriba del mapa, el pin flota con pulso y los demás se atenúan; anterior/siguiente en la barra lateral.
+- **Carrete de evidencias** abajo del mapa (y en la ficha y las historias): miniaturas de fotos, videos, audios y documentos; se abren en un visor a pantalla completa (`components/media/`).
+- **Lista:** tarjetas con sticker y color de la categoría, orden por recientes o por más reacciones, y al pasar el cursor se resalta su pin.
+- **Reacciones:** botones con nombre y significado, marca de «ya reaccionaste», bloqueo mientras se guarda (dos clics rápidos ya no desincronizan el contador) y «mis reacciones» se piden aunque la configuración aún no haya llegado.
+- **Comentarios:** abiertos por defecto, con explicación.
+- **Historias:** foto de la evidencia de fondo, carrete, pausa, flechas, contador y botón para comentar.
+- **Ayuda «¿Cómo funciona?»** (`MapHelp.vue`), con una invitación la primera vez.
 
 ### Tipografía
 
-Parkinsans (`@fontsource-variable/parkinsans`, self-hosted), aplicada por defecto con `font-sans`.
-
-- Cuerpo: Regular (400)
-- Títulos (`h1`–`h6`): Semibold (600)
+- **Parkinsans** (`@fontsource-variable/parkinsans`) para texto (`font-sans`): cuerpo 400, títulos 600.
+- **Archivo** ancho (`@fontsource-variable/archivo`, eje `wdth`) para titulares en caja, cifras y marca (`font-wide`, `hl-box`).
 
 ### Colores
 

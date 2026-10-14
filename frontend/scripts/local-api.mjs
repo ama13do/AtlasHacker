@@ -138,12 +138,13 @@ async function main() {
   if (command === 'serve' && (await portInUse(API_PORT))) fail(`El puerto ${API_PORT} ya está en uso.`)
 
   const { db, server } = await openDatabase()
-  const tsx = path.join(BACKEND, 'node_modules/.bin/tsx')
+  // CLI de tsx con el mismo Node (node_modules/.bin/tsx es un script de shell que spawn no ejecuta en Windows)
+  const tsx = path.join(BACKEND, 'node_modules/tsx/dist/cli.mjs')
 
   const child =
     command === 'admin'
-      ? run(tsx, ['scripts/crear-admin.ts', ...args.slice(1).filter((a) => a !== '--reset')])
-      : run(tsx, ['src/local.ts'])
+      ? run(process.execPath, [tsx, 'scripts/crear-admin.ts', ...args.slice(1).filter((a) => a !== '--reset')])
+      : run(process.execPath, [tsx, 'src/local.ts'])
 
   if (command === 'serve') console.log(`\nAPI local: http://localhost:${API_PORT}  ·  front: npm run dev:local\n`)
 

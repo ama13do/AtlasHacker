@@ -1,17 +1,19 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useCategoriesStore } from '@testimonies/stores/categories'
 import { useTestimoniesStore } from '@testimonies/stores/testimonies'
 import { REACTION_TYPES, type ReactionType } from '@testimonies/types/testimony'
+import ReactionIcon from '@testimonies/components/ReactionIcon.vue'
 
-// Reacciones del testimonio (una de cada tipo por dispositivo). Requiere la ficha cargada
+// Reacciones del testimonio: una de cada tipo por dispositivo, se pueden dar varias.
+// `compact`: versión para historias (solo íconos, feedback inmediato de qué reacción es)
 const props = defineProps<{ testimonyId: string; compact?: boolean }>()
 
-const REACTIONS: Record<ReactionType, { label: string; active: string }> = {
-  like: { label: 'Me importa', active: 'bg-neon-lime text-black border-neon-lime' },
-  apoyo: { label: 'Apoyo', active: 'bg-neon-green text-black border-neon-green' },
-  alerta: { label: 'Alerta', active: 'bg-brand-orange text-black border-brand-orange' },
-  fuego: { label: 'Urgente', active: 'bg-brand-pink text-black border-brand-pink' },
+const REACTIONS: Record<ReactionType, { label: string; meaning: string; bg: string }> = {
+  like: { label: 'Me importa', meaning: 'Este testimonio me importa', bg: 'bg-neon-lime' },
+  apoyo: { label: 'Apoyo', meaning: 'Respaldo a quien lo cuenta y a su comunidad', bg: 'bg-neon-green' },
+  alerta: { label: 'Alerta', meaning: 'También pasa donde vivo o conozco', bg: 'bg-brand-orange' },
+  fuego: { label: 'Urgente', meaning: 'Necesita atención urgente', bg: 'bg-brand-pink' },
 }
 
 const store = useTestimoniesStore()
@@ -21,54 +23,134 @@ const enabled = computed(() => categories.config?.reactionsEnabled ?? true)
 const detail = computed(() => store.details[props.testimonyId])
 const mine = computed(() => store.myReactions[props.testimonyId] ?? [])
 const failed = ref(false)
+const showHelp = ref(false)
+
+// En historias: solo íconos; al tocar, muestra qué reacción es
+const activeTooltip = ref<{ type: ReactionType; added: boolean } | null>(null)
+let tooltipTimer: ReturnType<typeof setTimeout> | undefined
+
+// Cargar reacciones del testimonio actual y reaccionar a cambios de testimonioId
+watch(
+  () => props.testimonyId,
+  (id) => {
+    activeTooltip.value = null
+    if (id) store.loadMyReactions(id)
+  },
+  { immediate: true },
+)
 
 async function toggle(type: ReactionType) {
   failed.value = false
+  const isAdding = !mine.value.includes(type)
+  clearTimeout(tooltipTimer)
+  activeTooltip.value = { type, added: isAdding }
+  tooltipTimer = setTimeout(() => {
+    activeTooltip.value = null
+  }, 2500)
+
   try {
     await store.toggleReaction(props.testimonyId, type)
   } catch {
     failed.value = true
   }
 }
+
+const busy = (type: ReactionType) => store.pendingReactions.has(`${props.testimonyId}:${type}`)
 </script>
 
 <template>
-  <div v-if="enabled && detail" class="space-y-1.5">
-    <ul class="flex flex-wrap gap-2" aria-label="Reacciones">
+  <!-- Historias: fila limpia de íconos; al tocar, un aviso dice qué reacción es -->
+  <div v-if="enabled && detail && compact" class="relative">
+    <Transition enter-from-class="opacity-0 -translate-y-1 scale-95" enter-active-class="transition duration-150 ease-out" leave-to-class="opacity-0 scale-95" leave-active-class="transition duration-200 ease-in">
+      <div
+        v-if="activeTooltip"
+        class="pointer-events-none absolute -top-9 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full border-2 border-black px-3 py-0.5 text-xs font-black text-black shadow-[2px_2px_0_0_#000]"
+        :class="REACTIONS[activeTooltip.type].bg"
+        role="status"
+      >
+        <span>{{ activeTooltip.added ? '✓ ' : '✕ ' }}</span>
+        <span>{{ REACTIONS[activeTooltip.type].label }}</span>
+        <span class="font-normal opacity-75">({{ REACTIONS[activeTooltip.type].meaning }})</span>
+      </div>
+    </Transition>
+
+    <ul class="flex items-center justify-around gap-2 px-1" aria-label="Reacciones">
       <li v-for="type in REACTION_TYPES" :key="type">
         <button
           type="button"
-          class="inline-flex items-center gap-1.5 rounded-full border font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
-          :class="[
-            compact ? 'px-2.5 py-1 text-xs' : 'px-3 py-1.5 text-sm',
-            mine.includes(type) ? REACTIONS[type].active : 'border-fg/20 text-fg/80 hover:border-fg/50',
-          ]"
+          class="group relative grid size-11 place-items-center rounded-full border-2 border-black text-black transition-[transform,box-shadow] active:scale-90 disabled:cursor-wait"
+          :class="mine.includes(type) ? [REACTIONS[type].bg, '-translate-y-0.5 shadow-[2px_2px_0_0_#000] ring-2 ring-black/20'] : 'bg-white hover:-translate-y-0.5 hover:shadow-[2px_2px_0_0_#000]'"
           :aria-pressed="mine.includes(type)"
           :aria-label="`${REACTIONS[type].label}: ${detail.reactionCounts[type]}`"
+          :title="`${REACTIONS[type].label}: ${REACTIONS[type].meaning}`"
+          :disabled="busy(type)"
           @click="toggle(type)"
         >
-          <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <!-- Corazón -->
-            <path v-if="type === 'like'" d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8Z" />
-            <!-- Puño en alto -->
-            <template v-else-if="type === 'apoyo'">
-              <path d="M7 11V7a2 2 0 0 1 4 0v4" />
-              <path d="M11 10V5a2 2 0 0 1 4 0v5" />
-              <path d="M15 10V7a2 2 0 0 1 4 0v6a7 7 0 0 1-7 7h-1a6 6 0 0 1-6-6v-2a2 2 0 0 1 4 0" />
-            </template>
-            <!-- Alerta -->
-            <template v-else-if="type === 'alerta'">
-              <path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0Z" />
-              <path d="M12 9v4M12 17h.01" />
-            </template>
-            <!-- Fuego -->
-            <path v-else d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5Z" />
-          </svg>
-          <span v-if="!compact">{{ REACTIONS[type].label }}</span>
-          <span class="tabular-nums">{{ detail.reactionCounts[type] }}</span>
+          <ReactionIcon :type="type" :filled="mine.includes(type)" class="size-5 transition-transform group-hover:scale-110" :class="{ 'animate-pulse': busy(type) }" />
+          <span
+            v-if="detail.reactionCounts[type] > 0"
+            class="absolute -right-1 -bottom-1 min-w-4 rounded-full border-1.5 border-black bg-black px-1 text-center text-[9px] leading-3.5 font-black text-white tabular-nums shadow-sm"
+          >
+            {{ detail.reactionCounts[type] }}
+          </span>
         </button>
       </li>
     </ul>
-    <p v-if="failed" role="status" class="text-xs text-danger">No se pudo guardar tu reacción. Intenta de nuevo.</p>
+    <p v-if="failed" role="status" class="mt-1 text-center text-xs font-semibold text-danger">No se pudo guardar tu reacción.</p>
+  </div>
+
+  <div v-else-if="enabled && detail" class="space-y-2">
+    <div class="flex items-center justify-between gap-2">
+      <p class="text-xs font-black tracking-wide uppercase">
+        Reacciona
+        <span class="font-semibold normal-case opacity-60">· {{ detail.reactions }} en total</span>
+      </p>
+      <button
+        v-if="!compact"
+        type="button"
+        class="text-[11px] font-bold underline decoration-2 underline-offset-2 opacity-70 hover:opacity-100"
+        :aria-expanded="showHelp"
+        @click="showHelp = !showHelp"
+      >
+        ¿Qué significa?
+      </button>
+    </div>
+
+    <ul class="grid grid-cols-2 gap-2" aria-label="Reacciones">
+      <li v-for="type in REACTION_TYPES" :key="type">
+        <button
+          type="button"
+          class="relative flex w-full items-center gap-2 rounded-2xl border-2 border-black px-2.5 py-2 text-left text-black transition-[translate,box-shadow] disabled:cursor-wait"
+          :class="[
+            mine.includes(type) ? [REACTIONS[type].bg, '-translate-y-0.5 shadow-[3px_3px_0_0_#000]'] : 'bg-white hover:-translate-y-0.5 hover:shadow-[2px_2px_0_0_#000]',
+          ]"
+          :aria-pressed="mine.includes(type)"
+          :aria-label="`${REACTIONS[type].label} (${REACTIONS[type].meaning}): ${detail.reactionCounts[type]}${mine.includes(type) ? '. Ya reaccionaste; toca para quitarla' : ''}`"
+          :title="REACTIONS[type].meaning"
+          :disabled="busy(type)"
+          @click="toggle(type)"
+        >
+          <ReactionIcon :type="type" :filled="mine.includes(type)" class="size-5 shrink-0" :class="{ 'animate-pulse': busy(type) }" />
+          <span class="min-w-0 flex-1 truncate text-xs font-bold">{{ REACTIONS[type].label }}</span>
+          <span class="font-wide text-sm font-black tabular-nums">{{ detail.reactionCounts[type] }}</span>
+          <span
+            v-if="mine.includes(type)"
+            class="absolute -top-2 -right-2 grid size-5 place-items-center rounded-full border-2 border-black bg-black text-neon-lime"
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10" /></svg>
+          </span>
+        </button>
+      </li>
+    </ul>
+
+    <div v-if="showHelp" class="rounded-2xl border-2 border-ink bg-neon-lime/20 p-3 text-xs leading-relaxed">
+      <p class="mb-1.5">Las reacciones muestran qué testimonios mueven a más gente. Puedes dar varias; vuelve a tocar una para quitarla. Se cuenta una de cada tipo por dispositivo.</p>
+      <ul class="space-y-0.5">
+        <li v-for="type in REACTION_TYPES" :key="type"><span class="font-bold">{{ REACTIONS[type].label }}:</span> {{ REACTIONS[type].meaning }}.</li>
+      </ul>
+    </div>
+    <p v-else-if="mine.length && !compact" class="text-[11px] opacity-60">Ya reaccionaste ({{ mine.length }}). Toca de nuevo para quitarla.</p>
+    <p v-if="failed" role="status" class="text-xs font-semibold text-danger">No se pudo guardar tu reacción. Intenta de nuevo.</p>
   </div>
 </template>

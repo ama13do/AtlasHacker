@@ -67,7 +67,7 @@ onMounted(async () => {
 <template>
   <div class="space-y-6">
     <div>
-      <h1 class="text-2xl font-semibold">Bitácora</h1>
+      <h1 class="text-3xl font-black uppercase"><span class="hl-box hl-orange" style="--hl-rot: -1deg">Bitácora</span></h1>
       <p class="text-sm text-fg/60">Registro de solo agregar: quién hizo qué y cuándo, con el antes y el después.</p>
     </div>
 
@@ -81,7 +81,7 @@ onMounted(async () => {
       </select>
       <input v-model="form.desde" type="date" class="field-input text-sm md:py-2" aria-label="Desde" />
       <input v-model="form.hasta" type="date" class="field-input text-sm md:py-2" aria-label="Hasta" />
-      <button type="submit" class="rounded-full bg-fg px-4 py-2 text-sm font-semibold text-surface">Filtrar</button>
+      <button type="submit" class="btn-hxnf btn-ink btn-sm">Filtrar</button>
     </form>
     <p v-if="q('entidad_id')" class="flex flex-wrap items-center gap-3 rounded-xl bg-fg/5 px-4 py-2 text-sm">
       Historial de un solo elemento.
@@ -91,11 +91,11 @@ onMounted(async () => {
     <div v-if="status === 'loading'" class="space-y-2" aria-hidden="true">
       <div v-for="n in 6" :key="n" class="h-12 animate-pulse rounded-2xl bg-fg/10" />
     </div>
-    <div v-else-if="status === 'error'" class="space-y-2 rounded-2xl border border-fg/15 p-6" role="alert">
+    <div v-else-if="status === 'error'" class="border-2 border-ink bg-card shadow-brut space-y-2 rounded-[22px] p-6" role="alert">
       <p class="font-semibold">No pudimos cargar la bitácora.</p>
       <button type="button" class="text-sm font-semibold text-accent-ink hover:underline" @click="load">Reintentar</button>
     </div>
-    <p v-else-if="!rows.length" class="rounded-2xl border border-dashed border-fg/20 p-8 text-center text-sm text-fg/60">Sin eventos.</p>
+    <p v-else-if="!rows.length" class="rounded-[20px] border-2 border-dashed border-ink/40 p-8 text-center text-sm text-fg/60">Sin eventos.</p>
     <template v-else>
       <p class="text-right text-sm text-fg/60 tabular-nums">{{ meta?.total }} eventos</p>
       <ul class="space-y-2">

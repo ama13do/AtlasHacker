@@ -1,4 +1,6 @@
+import { asText } from '@testimonies/utils/text'
 import type {
+  ApiFuente,
   ApiCategoria,
   ApiComentario,
   ApiCrearTestimonio,
@@ -89,6 +91,7 @@ export function toSummary(d: TestimonyDetail): TestimonySummary {
 
 export function fromDetail(d: ApiTestimonioDetalle): TestimonyDetail {
   return {
+    dossier: d.expediente_codigo,
     id: d.id,
     folio: d.folio,
     date: d.fecha,
@@ -105,10 +108,16 @@ export function fromDetail(d: ApiTestimonioDetalle): TestimonyDetail {
     territory: clean(d.territorio_dice),
     community: clean(d.comunidad_dice),
     document: { status: d.tiene_evidencia },
-    data: d.dato_fuente_anio?.trim()
-      ? { text: d.dato_fuente_anio.trim(), pendingVerification: d.fuente_pendiente_verificacion }
-      : undefined,
+    data:
+      d.dato_fuente_anio?.trim() || d.fuentes?.length
+        ? {
+            text: d.dato_fuente_anio?.trim() ?? '',
+            sources: (d.fuentes ?? []).map((f) => ({ source: f.fuente, year: f.anio, link: f.enlace })),
+            pendingVerification: d.fuente_pendiente_verificacion,
+          }
+        : undefined,
     tribunalQuestion: clean(d.pregunta_tribunal),
+    anythingElse: clean(d.algo_mas),
     evidence: d.evidencia_tipos ?? [],
     files: d.evidencias.map((e) => ({
       id: e.id,
@@ -143,17 +152,17 @@ function compact<T extends object>(value: T): T {
   return Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined)) as T
 }
 
-// "dato — fuente, año" (la API lo guarda en un solo campo)
-function dataLine(d: TestimonyDraft) {
-  const text = clean(d.dataText)
-  if (!text) return undefined
-  const source = [clean(d.dataSource), clean(d.dataYear)].filter(Boolean).join(', ')
-  return source ? `${text} — ${source}` : text
+// 04 · Fuentes con algo escrito (las filas vacías del formulario no se envían)
+function sourcesOf(d: TestimonyDraft): ApiFuente[] {
+  return d.sources
+    .filter((s) => asText(s.source).trim())
+    .map((s) => compact({ fuente: asText(s.source).trim(), anio: asText(s.year).trim() ? Number(s.year) : undefined, enlace: clean(asText(s.link)) }))
 }
 
 // El borrador ya pasó la validación del wizard: los campos obligatorios existen
 export function toCreatePayload(d: TestimonyDraft): ApiCrearTestimonio {
-  const hasData = !!clean(d.dataText)
+  const fuentes = sourcesOf(d)
+  const hasData = !!clean(d.dataText) || fuentes.length > 0
   const contact = compact({ correo: clean(d.email), telefono: clean(d.phone) })
 
   return compact({
@@ -161,6 +170,8 @@ export function toCreatePayload(d: TestimonyDraft): ApiCrearTestimonio {
     fecha: d.date || undefined,
     titulo: clean(d.title),
     lugar_territorio: clean(d.place),
+    entidad: clean(d.state),
+    municipio: clean(d.municipality),
     ubicacion: { type: 'Point', coordinates: [d.coordinates![0], d.coordinates![1]] },
     origen_ubicacion: d.locationSource ?? 'mapa',
     aparecer_como: d.visibility,
@@ -173,12 +184,17 @@ export function toCreatePayload(d: TestimonyDraft): ApiCrearTestimonio {
     evidencia_descripcion: clean(d.documentDescription),
     evidencia_tipos: d.evidence.length ? [...d.evidence] : undefined,
     evidencia_otro: d.evidence.includes('otro') ? clean(d.evidenceOther) : undefined,
-    dato_fuente_anio: dataLine(d),
+    dato_fuente_anio: clean(d.dataText),
+    fuentes: fuentes.length ? fuentes : undefined,
     fuente_pendiente_verificacion: hasData ? d.dataPendingVerification : undefined,
     pregunta_tribunal: clean(d.tribunalQuestion),
+    algo_mas: clean(d.anythingElse),
+    registro_voz: clean(d.voiceRecord),
     autorizacion: CONSENT[d.consent!],
     autoriza_multimedia: d.mediaConsent ?? undefined,
+    autoriza_voz_imagen: d.voiceImage ?? undefined,
     info_sensible: d.sensitive ?? false,
+    info_menores: d.minors ?? false,
     sensible_accion: d.sensitive && d.sensitiveHandling ? SENSITIVE[d.sensitiveHandling] : undefined,
     consentimiento_aceptado: true,
     contacto: Object.keys(contact).length ? contact : undefined,
@@ -272,6 +288,8 @@ export function draftFromMine(t: ApiMiTestimonio): TestimonyDraft {
     title: t.titulo ?? '',
     place: t.lugar_territorio ?? '',
     coordinates: point ? [point[0], point[1]] : null,
+    state: t.entidad ?? '',
+    municipality: t.municipio ?? '',
     locationSource: t.origen_ubicacion === 'gps' ? 'gps' : 'mapa',
     gpsAccuracy: null,
     date: t.fecha,
@@ -286,16 +304,19 @@ export function draftFromMine(t: ApiMiTestimonio): TestimonyDraft {
     evidence: t.evidencia_tipos ?? [],
     evidenceOther: t.evidencia_otro ?? '',
     files: [],
-    // La API guarda "dato — fuente, año" en un solo campo: se edita completo
     dataText: t.dato_fuente_anio ?? '',
-    dataSource: '',
-    dataYear: '',
+    sources: (t.fuentes ?? []).map((f) => ({ id: crypto.randomUUID(), source: f.fuente, year: f.anio ? String(f.anio) : '', link: f.enlace ?? '' })),
+    anythingElse: t.algo_mas ?? '',
+    voiceRecord: t.registro_voz ?? '',
     dataPendingVerification: t.fuente_pendiente_verificacion,
     tribunalQuestion: t.pregunta_tribunal ?? '',
     voluntary: true,
     consent: CONSENT_FROM_API[t.autorizacion] ?? null,
     mediaConsent: t.autoriza_multimedia,
+    voiceImage: t.autoriza_voz_imagen,
     sensitive: t.info_sensible,
+    minors: t.info_menores ?? false,
+    stripMetadata: true,
     sensitiveHandling: t.sensible_accion ? SENSITIVE_FROM_API[t.sensible_accion] : null,
     folio: '',
     email: '',
@@ -322,7 +343,10 @@ export function toUpdatePayload(d: TestimonyDraft): ApiEditarMiTestimonio {
     comunidad_dice: d.community.trim(),
     evidencia_descripcion: d.documentDescription.trim(),
     evidencia_tipos: [...d.evidence],
-    dato_fuente_anio: dataLine(d) ?? '',
+    dato_fuente_anio: d.dataText.trim(),
+    fuentes: sourcesOf(d),
     pregunta_tribunal: d.tribunalQuestion.trim(),
+    algo_mas: d.anythingElse.trim(),
+    registro_voz: d.voiceRecord.trim(),
   })
 }

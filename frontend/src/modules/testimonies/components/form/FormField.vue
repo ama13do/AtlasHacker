@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import FieldHelp from '@testimonies/components/form/FieldHelp.vue'
 
 const COUNTER_THRESHOLD = 0.8
 
@@ -7,6 +8,9 @@ const props = defineProps<{
   id: string
   label: string
   hint?: string
+  // «¿Qué poner aquí?»: para qué sirve la pregunta y un ejemplo (del Manual para llenar testimonios)
+  help?: string
+  example?: string
   error?: string
   required?: boolean
   optional?: boolean
@@ -30,10 +34,10 @@ const showCounter = computed(
 <template>
   <div class="space-y-1.5" @focusin="focused = true" @focusout="focused = false">
     <div class="flex items-baseline justify-between gap-3">
-      <label :for="id" class="text-sm font-semibold text-fg">
+      <label :for="id" class="text-sm font-bold text-fg">
         {{ label }}
         <span v-if="required" class="text-accent-ink" aria-hidden="true">*</span>
-        <span v-else-if="optional" class="text-xs font-normal text-fg/40">(opcional)</span>
+        <span v-else-if="optional" class="text-xs font-normal text-fg/45">(opcional)</span>
       </label>
       <span
         v-if="showCounter"
@@ -44,8 +48,9 @@ const showCounter = computed(
         {{ length ?? 0 }}/{{ max }}
       </span>
     </div>
-    <p v-if="hint" :id="hintId" class="text-xs text-fg/50">{{ hint }}</p>
+    <p v-if="hint" :id="hintId" class="text-xs text-fg/60">{{ hint }}</p>
+    <FieldHelp v-if="help || example" :help="help" :example="example" />
     <slot :id="id" :describedby="describedby" :invalid="!!error" />
-    <p v-if="error" :id="errorId" class="text-sm text-danger">{{ error }}</p>
+    <p v-if="error" :id="errorId" class="text-sm font-semibold text-danger">{{ error }}</p>
   </div>
 </template>

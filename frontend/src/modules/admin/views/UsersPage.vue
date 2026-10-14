@@ -122,10 +122,10 @@ onMounted(load)
   <div class="space-y-6">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 class="text-2xl font-semibold">Usuarios</h1>
+        <h1 class="text-3xl font-black uppercase"><span class="hl-box hl-lime" style="--hl-rot: -1deg">Usuarios</span></h1>
         <p class="text-sm text-fg/60">Cuentas del equipo y sus roles.</p>
       </div>
-      <button type="button" class="rounded-full bg-fg px-4 py-2 text-sm font-semibold text-surface" @click="creating = !creating">
+      <button type="button" class="btn-hxnf btn-ink btn-sm" @click="creating = !creating">
         {{ creating ? 'Cerrar' : 'Nuevo usuario' }}
       </button>
     </div>
@@ -141,7 +141,7 @@ onMounted(load)
     </p>
 
     <!-- Alta -->
-    <form v-if="creating" class="space-y-3 rounded-2xl border border-fg/15 p-4" @submit.prevent="create">
+    <form v-if="creating" class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-4" @submit.prevent="create">
       <div class="grid gap-3 sm:grid-cols-2">
         <input v-model="form.nombre" type="text" required minlength="2" maxlength="120" class="field-input text-sm md:py-2" placeholder="Nombre" aria-label="Nombre" />
         <input v-model="form.email" type="email" required class="field-input text-sm md:py-2" placeholder="Correo" aria-label="Correo" />
@@ -159,7 +159,7 @@ onMounted(load)
         </label>
       </fieldset>
       <p class="text-xs text-fg/50">Se genera una contraseña temporal que verás una sola vez.</p>
-      <button type="submit" class="rounded-full bg-neon-lime px-5 py-2 text-sm font-semibold text-black disabled:opacity-50" :disabled="saving">
+      <button type="submit" class="btn-hxnf btn-lime btn-sm" :disabled="saving">
         {{ saving ? 'Creando…' : 'Crear usuario' }}
       </button>
     </form>
@@ -167,13 +167,13 @@ onMounted(load)
     <div v-if="status === 'loading'" class="space-y-2" aria-hidden="true">
       <div v-for="n in 4" :key="n" class="h-16 animate-pulse rounded-2xl bg-fg/10" />
     </div>
-    <div v-else-if="status === 'error'" class="space-y-2 rounded-2xl border border-fg/15 p-6" role="alert">
+    <div v-else-if="status === 'error'" class="border-2 border-ink bg-card shadow-brut space-y-2 rounded-[22px] p-6" role="alert">
       <p class="font-semibold">No pudimos cargar los usuarios.</p>
       <button type="button" class="text-sm font-semibold text-accent-ink hover:underline" @click="load">Reintentar</button>
     </div>
 
     <ul v-else class="space-y-2">
-      <li v-for="u in users" :key="u.id" class="space-y-2 rounded-2xl border border-fg/15 p-4 text-sm" :class="{ 'opacity-60': !u.activo }">
+      <li v-for="u in users" :key="u.id" class="space-y-2 rounded-[20px] border-2 border-ink bg-card shadow-brut-sm p-4 text-sm" :class="{ 'opacity-60': !u.activo }">
         <!-- Edición en línea -->
         <form v-if="editing === u.id" class="space-y-2" @submit.prevent="saveEdit(u)">
           <div class="grid gap-2 sm:grid-cols-3">
@@ -193,9 +193,9 @@ onMounted(load)
           <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span class="font-semibold">{{ u.nombre || u.email }}</span>
             <span class="text-fg/60">{{ u.email }}</span>
-            <span class="rounded-full border border-fg/25 px-2 py-0.5 text-xs font-semibold">{{ ROLE_LABEL[u.rol] }}</span>
+            <span class="chip bg-card">{{ ROLE_LABEL[u.rol] }}</span>
             <span v-if="u.id === auth.user?.id" class="text-xs text-fg/50">(tú)</span>
-            <span v-if="!u.activo" class="rounded-full border border-fg/25 px-2 py-0.5 text-xs">Desactivado</span>
+            <span v-if="!u.activo" class="chip bg-card">Desactivado</span>
             <span v-if="blocked(u)" class="rounded-full bg-brand-orange px-2 py-0.5 text-xs font-semibold text-black">
               Bloqueado hasta {{ fmtDate(u.bloqueado_hasta, true) }}
             </span>

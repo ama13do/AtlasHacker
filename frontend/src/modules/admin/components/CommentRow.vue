@@ -64,10 +64,10 @@ const link = 'text-xs font-semibold hover:underline disabled:opacity-50'
 </script>
 
 <template>
-  <article class="space-y-2 rounded-2xl border border-fg/15 p-4" :class="{ 'opacity-60': !c.activo }">
+  <article class="border-2 border-ink bg-card shadow-brut space-y-2 rounded-[22px] p-4" :class="{ 'opacity-60': !c.activo }">
     <header class="flex flex-wrap items-center gap-2 text-xs">
       <span class="rounded-full px-2 py-0.5 font-semibold" :class="STATUS[c.estado].class">{{ STATUS[c.estado].label }}</span>
-      <span v-if="!c.activo" class="rounded-full border border-fg/25 px-2 py-0.5">Oculto</span>
+      <span v-if="!c.activo" class="chip bg-card">Oculto</span>
       <span class="font-semibold">{{ c.autor_nombre || 'Anónimo' }}</span>
       <span class="text-fg/50">{{ fmtDate(c.created_at, true) }}</span>
       <span class="text-fg/50">· {{ c.likes_conteo }} me gusta</span>

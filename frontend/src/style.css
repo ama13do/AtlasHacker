@@ -1,31 +1,46 @@
 @import "tailwindcss";
 
-/* Tema: oscuro por defecto; claro con data-theme="light" en <html> */
+/*
+ * Identidad visual de Hackers x Nuestro Futuro (hxnf.vercel.app):
+ * papel texturizado, tinta negra, bordes gruesos, sombras duras desplazadas (neo-brutalismo),
+ * acentos neón y titulares en Archivo ancho. Tema claro (papel) por defecto; oscuro con sombras lima.
+ */
 @custom-variant light (&:where([data-theme='light'], [data-theme='light'] *));
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
 :root {
-  --surface: #000000;
-  --fg: #ffffff;
-  --accent-ink: #e0fa49;
-  --danger-ink: #ff8636;
+  --surface: #ffffff;
+  --fg: #000000;
+  /* Tarjetas, bordes y sombras duras */
+  --card: #ffffff;
+  --ink: #000000;
+  --shadow-c: #000000;
+  --accent-ink: #000000;
+  --danger-ink: #c2410c;
   /* Series de gráficas (validadas con el skill dataviz contra cada superficie) */
   --chart-1: #2e7dfc;
+  --chart-2: #08912a;
+  --paper-relief: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='r'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.035' numOctaves='5' seed='4' stitchTiles='stitch'/%3E%3CfeDiffuseLighting lighting-color='%23fff' surfaceScale='2.2'%3E%3CfeDistantLight azimuth='45' elevation='58'/%3E%3C/feDiffuseLighting%3E%3CfeColorMatrix values='0 0 0 0 0.28 0 0 0 0 0.28 0 0 0 0 0.3 -0.62 0 0 0 0.56'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23r)'/%3E%3C/svg%3E");
+  --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.2 0 0 0 0 0.2 0 0 0 0 0.22 0 0 0 0.85 -0.47'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  color-scheme: light;
+}
+
+/* Oscuro: fondo negro, tarjetas grafito, tinta blanca y sombras lima */
+:root[data-theme='dark'] {
+  --surface: #000000;
+  --fg: #ffffff;
+  --card: #111111;
+  --ink: #ffffff;
+  --shadow-c: #e0fa49;
+  --accent-ink: #e0fa49;
+  --danger-ink: #ff8636;
   --chart-2: #0bb032;
   color-scheme: dark;
 }
 
-/* En claro los acentos se usan como fondo; el texto de acento y de error va en negro */
-:root[data-theme='light'] {
-  --surface: #ffffff;
-  --fg: #000000;
-  --accent-ink: #000000;
-  --danger-ink: #000000;
-  --chart-2: #08912a;
-  color-scheme: light;
-}
-
 @theme {
   --font-sans: "Parkinsans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-wide: "Archivo Variable", "Parkinsans Variable", ui-sans-serif, system-ui, sans-serif;
 
   --color-white: #ffffff;
   --color-black: #000000;
@@ -36,25 +51,93 @@
   --color-brand-orange: #ff8636;
   --color-brand-blue: #2e7dfc;
   --color-brand-pink: #fd8cbb;
+
+  --animate-pin-bob: pin-bob 2.4s ease-in-out infinite;
+  --animate-hover-bob: hover-bob 3.2s ease-in-out infinite;
+  --animate-sticker-float: sticker-float 6s ease-in-out infinite;
+  --animate-cta-pulse: cta-pulse 2.4s ease-in-out infinite;
+
+  @keyframes cta-pulse {
+    0%,
+    100% {
+      transform: translate(-50%, 0) scale(1);
+    }
+    50% {
+      transform: translate(-50%, -4px) scale(1.025);
+    }
+  }
+
+  @keyframes pin-bob {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    50% {
+      translate: 0 -4px;
+    }
+  }
+  @keyframes hover-bob {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    50% {
+      translate: 0 -7px;
+    }
+  }
+  @keyframes sticker-float {
+    0%,
+    100% {
+      translate: 0 0;
+      rotate: -3deg;
+    }
+    50% {
+      translate: 0 -10px;
+      rotate: 4deg;
+    }
+  }
 }
 
 /* Colores semánticos que cambian con el tema (admiten /opacidad) */
 @theme inline {
   --color-surface: var(--surface);
   --color-fg: var(--fg);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-shade: var(--shadow-c);
   --color-accent-ink: var(--accent-ink);
   --color-danger: var(--danger-ink);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
+
+  /* Sombras duras desplazadas (sin difuminar) */
+  --shadow-brut-sm: 2px 2px 0 0 var(--shadow-c);
+  --shadow-brut: 4px 4px 0 0 var(--shadow-c);
+  --shadow-brut-lg: 6px 6px 0 0 var(--shadow-c);
+  --shadow-brut-xl: 8px 8px 0 0 var(--shadow-c);
 }
 
 @layer base {
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
   html {
     @apply bg-surface font-sans text-fg antialiased;
   }
 
+  /* Papel con grano y relieve (solo en claro, como hxnf.vercel.app) */
   body {
     font-weight: 400;
+    background-color: var(--surface);
+    background-image: var(--paper-grain), var(--paper-relief);
+  }
+
+  :root[data-theme='dark'] body {
+    background-image: none;
   }
 
   h1,
@@ -65,55 +148,484 @@
   h6 {
     font-weight: 600;
   }
+
+  ::selection {
+    background: var(--color-neon-lime);
+    color: #000;
+  }
 }
 
-/* Controles de MapLibre con los colores del tema */
+/* ─────────────────────────────── Controles de MapLibre ─────────────────────────────── */
+
 .maplibregl-map {
   font-family: var(--font-sans);
 }
 
 .maplibregl-ctrl-group:not(:empty) {
-  background-color: var(--surface);
-  box-shadow: 0 0 0 1px var(--fg);
+  background-color: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 3px 3px 0 0 var(--shadow-c);
+}
+
+.maplibregl-ctrl-group button {
+  width: 34px;
+  height: 34px;
 }
 
 .maplibregl-ctrl-group button + button {
-  border-top-color: var(--fg);
+  border-top: 2px solid var(--ink);
 }
 
 .maplibregl-ctrl-group button:not(:disabled):hover {
-  background-color: color-mix(in oklab, var(--fg) 12%, transparent);
+  background-color: var(--color-neon-lime);
 }
 
 .maplibregl-ctrl.maplibregl-ctrl-attrib,
 .maplibregl-ctrl-attrib.maplibregl-compact {
-  background-color: var(--surface);
+  background-color: var(--card);
   color: var(--fg);
+  border-radius: 999px;
+}
+
+.maplibregl-ctrl-attrib.maplibregl-compact {
+  border: 2px solid var(--ink);
 }
 
 .maplibregl-ctrl-attrib a {
-  color: var(--color-neon-green);
-}
-
-/* Íconos de MapLibre son oscuros: invertirlos solo en tema oscuro */
-:root:not([data-theme='light']) .maplibregl-ctrl-group button .maplibregl-ctrl-icon,
-:root:not([data-theme='light']) .maplibregl-ctrl-attrib-button {
-  filter: invert(1);
-}
-
-:root[data-theme='light'] .maplibregl-ctrl-attrib a {
   color: var(--fg);
   text-decoration: underline;
 }
 
+/* Íconos de MapLibre son oscuros: invertirlos solo en tema oscuro (salvo al pasar el cursor, fondo lima) */
+:root[data-theme='dark'] .maplibregl-ctrl-group button:not(:hover) .maplibregl-ctrl-icon,
+:root[data-theme='dark'] .maplibregl-ctrl-attrib-button {
+  filter: invert(1);
+}
+
+/* ─────────────────────────────── Pines del mapa (HTML) ─────────────────────────────── */
+
+/* Testimonio: píldora del color de la categoría con su ícono, borde de tinta y punta */
+.tm-pin {
+  --mk: var(--color-neon-green);
+  --mk-text: #000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transition: opacity 0.25s;
+}
+
+.tm-pin-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 15rem;
+  padding: 5px;
+  border: 2px solid #000;
+  border-radius: 999px;
+  background: var(--mk);
+  color: var(--mk-text);
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+  box-shadow: 3px 3px 0 0 #000;
+  transition:
+    transform 0.2s,
+    padding 0.2s;
+}
+
+.tm-pin-pill svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+}
+
+.tm-pin-label {
+  display: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tm-pin-tip {
+  width: 10px;
+  height: 10px;
+  margin-top: -6px;
+  background: var(--mk);
+  border-right: 2px solid #000;
+  border-bottom: 2px solid #000;
+  transform: rotate(45deg);
+}
+
+.tm-pin:hover,
+.tm-pin:focus-visible,
+.tm-pin.is-hover,
+.tm-pin.is-active {
+  z-index: 5;
+}
+
+.tm-pin:focus-visible {
+  outline: none;
+}
+
+.tm-pin:hover .tm-pin-pill,
+.tm-pin:focus-visible .tm-pin-pill,
+.tm-pin.is-hover .tm-pin-pill,
+.tm-pin.is-active .tm-pin-pill {
+  padding: 5px 11px 5px 7px;
+  transform: translateY(-2px) scale(1.06);
+}
+
+.tm-pin:hover .tm-pin-label,
+.tm-pin:focus-visible .tm-pin-label,
+.tm-pin.is-hover .tm-pin-label,
+.tm-pin.is-active .tm-pin-label {
+  display: inline;
+}
+
+.tm-pin:focus-visible .tm-pin-pill {
+  outline: 3px solid var(--color-brand-blue);
+  outline-offset: 2px;
+}
+
+.tm-pin.is-active .tm-pin-pill {
+  box-shadow: 4px 4px 0 0 #000;
+  outline: 3px solid #000;
+  outline-offset: 3px;
+}
+
+/* El abierto lleva un pulso para ubicarlo de inmediato */
+.tm-pin.is-active .tm-pin-motion::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 18px;
+  height: 8px;
+  margin-left: -9px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.35);
+  animation: tm-pin-pulse 1.6s ease-out infinite;
+}
+
+.tm-pin-motion {
+  position: relative;
+}
+
+@keyframes tm-pin-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--mk) 80%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 22px transparent;
+  }
+}
+
+.tm-pin.is-active .tm-pin-motion {
+  animation: var(--animate-pin-bob);
+}
+
+.tm-pin.is-dim {
+  opacity: 0.3;
+}
+
+.tm-pin.is-dim:hover {
+  opacity: 1;
+}
+
+/* Grupo de testimonios cercanos: tinta con número lima (al revés en oscuro) */
+.tm-cluster {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  place-items: center;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 10px;
+  border: 2.5px solid #000;
+  border-radius: 999px;
+  background: #000;
+  color: var(--color-neon-lime);
+  font-family: var(--font-wide);
+  font-size: 15px;
+  font-weight: 900;
+  font-stretch: 112%;
+  box-shadow: 3px 3px 0 0 var(--color-neon-lime);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.tm-cluster.is-lg {
+  height: 46px;
+  min-width: 46px;
+  font-size: 17px;
+}
+
+.tm-cluster:hover,
+.tm-cluster:focus-visible {
+  z-index: 4;
+  transform: scale(1.1);
+}
+
+.tm-cluster:focus-visible {
+  outline: 3px solid var(--color-brand-blue);
+  outline-offset: 2px;
+}
+
+:root[data-theme='dark'] .tm-cluster {
+  background: var(--color-neon-lime);
+  color: #000;
+  box-shadow: 3px 3px 0 0 #fff;
+}
+
+/* Lugar que se está marcando en el formulario: chincheta lima arrastrable */
+.tm-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: grab;
+}
+
+.tm-pick:active {
+  cursor: grabbing;
+}
+
+.tm-pick-head {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 2.5px solid #000;
+  border-radius: 999px 999px 999px 4px;
+  background: var(--color-neon-lime);
+  color: #000;
+  box-shadow: 4px 4px 0 0 #000;
+  transform: rotate(-45deg);
+  transition: transform 0.2s;
+}
+
+.tm-pick-head svg {
+  width: 20px;
+  height: 20px;
+  transform: rotate(45deg);
+}
+
+.tm-pick-shadow {
+  width: 14px;
+  height: 6px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.35);
+}
+
+.maplibregl-marker.is-dragging .tm-pick-head {
+  transform: rotate(-45deg) translate(4px, -4px) scale(1.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tm-pin.is-active .tm-pin-motion {
+    animation: none;
+  }
+}
+
+/* ─────────────────────────────── Componentes de marca ─────────────────────────────── */
+
 @layer components {
-  /* Campos de formulario */
+  /* Tarjeta: papel, borde de tinta y sombra dura */
+  .card-brut {
+    @apply rounded-[22px] border-2 border-ink bg-card shadow-brut;
+  }
+
+  .card-brut-lg {
+    @apply rounded-[28px] border-2 border-ink bg-card shadow-brut-lg;
+  }
+
+  /* Tarjeta que se levanta al pasar el cursor */
+  .card-lift {
+    @apply transition-[translate,box-shadow] duration-200 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-brut-lg focus-visible:-translate-x-0.5 focus-visible:-translate-y-0.5 focus-visible:shadow-brut-lg focus-visible:outline-none;
+  }
+
+  /* Botón HXNF: píldora con borde grueso; se levanta al pasar y se hunde al presionar */
+  .btn-hxnf {
+    --btn-shadow: #000;
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-[2.5px] border-black px-6 text-center leading-tight font-bold transition-[translate,box-shadow,background-color] duration-200 select-none;
+    box-shadow: 4px 4px 0 0 var(--btn-shadow);
+  }
+
+  .btn-hxnf:hover {
+    translate: -2px -2px;
+    box-shadow: 6px 6px 0 0 var(--btn-shadow);
+  }
+
+  .btn-hxnf:active {
+    translate: 2px 2px;
+    box-shadow: 1px 1px 0 0 var(--btn-shadow);
+  }
+
+  .btn-hxnf:focus-visible {
+    outline: 3px solid var(--color-brand-blue);
+    outline-offset: 3px;
+  }
+
+  .btn-hxnf:disabled {
+    @apply pointer-events-none opacity-55;
+  }
+
+  :root[data-theme='dark'] .btn-hxnf {
+    --btn-shadow: #fff;
+    border-color: #fff;
+  }
+
+  .btn-sm {
+    @apply min-h-9 gap-1.5 px-4 text-sm;
+    box-shadow: 3px 3px 0 0 var(--btn-shadow);
+  }
+
+  .btn-lime {
+    @apply bg-neon-lime text-black;
+  }
+
+  .btn-green {
+    @apply bg-neon-green text-black;
+  }
+
+  .btn-pink {
+    @apply bg-brand-pink text-black;
+  }
+
+  .btn-orange {
+    @apply bg-brand-orange text-black;
+  }
+
+  .btn-blue {
+    @apply bg-brand-blue text-white;
+  }
+
+  /* Tinta: negro con sombra verde (blanco en oscuro) */
+  .btn-ink {
+    --btn-shadow: var(--color-neon-green);
+    @apply bg-black text-white;
+  }
+
+  :root[data-theme='dark'] .btn-ink {
+    --btn-shadow: var(--color-neon-green);
+    @apply bg-white text-black;
+  }
+
+  .btn-paper {
+    @apply bg-card text-fg;
+  }
+
+  /* Botón redondo de ícono (cerrar, tema, menú) */
+  .icon-btn {
+    @apply grid size-10 shrink-0 place-items-center rounded-full border-2 border-ink bg-card text-fg shadow-brut-sm transition-[translate,box-shadow,background-color] hover:-translate-y-px hover:bg-neon-lime hover:text-black focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-blue active:translate-y-px active:shadow-none disabled:pointer-events-none disabled:opacity-35;
+  }
+
+  /* Etiqueta en píldora con borde de tinta */
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border-2 border-ink px-3 py-0.5 text-xs font-bold;
+  }
+
+  /* Filtro seleccionable (aria-pressed) */
+  .chip-toggle {
+    @apply inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-card px-3 py-1 text-[11px] font-bold tracking-wide text-fg uppercase transition-[translate,box-shadow] hover:-translate-y-px focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-brand-blue aria-pressed:-translate-y-px aria-pressed:bg-fg aria-pressed:text-surface aria-pressed:shadow-brut-sm;
+  }
+
+  /* Titular ancho (Archivo) */
+  .font-wide {
+    font-family: var(--font-wide);
+    font-stretch: 112%;
+  }
+
+  /* Resaltado en caja: bloque de color detrás del texto con sombra dura (se dibuja al cargar) */
+  .hl-box {
+    --hl-c: var(--color-neon-green);
+    font-family: var(--font-wide);
+    font-stretch: 112%;
+    position: relative;
+    z-index: 0;
+    display: inline-block;
+    margin: 0.06em 0;
+    padding: 0 0.18em;
+    color: #000;
+    white-space: nowrap;
+    rotate: var(--hl-rot, -1deg);
+  }
+
+  .hl-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background-color: var(--hl-c);
+    box-shadow: 0.12em 0.12em 0 0 var(--shadow-c);
+    transform-origin: left;
+    animation: hl-draw 0.85s cubic-bezier(0.7, 0, 0.2, 1) var(--hl-delay, 0.1s) both;
+  }
+
+  .hl-wrap {
+    white-space: normal;
+  }
+
+  .hl-green {
+    --hl-c: var(--color-neon-green);
+  }
+  .hl-lime {
+    --hl-c: var(--color-neon-lime);
+  }
+  .hl-pink {
+    --hl-c: var(--color-brand-pink);
+  }
+  .hl-orange {
+    --hl-c: var(--color-brand-orange);
+  }
+  .hl-blue {
+    --hl-c: var(--color-brand-blue);
+  }
+
+  /* Barra de desplazamiento fina */
+  .thin-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--fg) 30%, transparent) transparent;
+  }
+
+  /* Campos de formulario: papel, borde de tinta; al enfocar, sombra verde */
   .field-input {
-    @apply w-full rounded-xl border border-fg/20 bg-fg/5 px-4 py-3 text-base text-fg transition placeholder:text-fg/40 focus:border-neon-lime focus:outline-none aria-invalid:border-brand-orange md:py-2.5 light:focus:border-fg;
+    @apply w-full rounded-xl border-2 border-ink/80 bg-card px-4 py-3 text-base text-fg transition-[border-color,box-shadow] placeholder:text-fg/40 focus:border-ink focus:shadow-[3px_3px_0_0_var(--color-neon-green)] focus:outline-none aria-invalid:border-brand-orange aria-invalid:shadow-[3px_3px_0_0_var(--color-brand-orange)] md:py-2.5;
   }
 
   /* Subtítulo de grupo dentro de un paso del formulario */
   .form-group-title {
-    @apply text-xs font-semibold tracking-wider text-fg/50 uppercase;
+    @apply text-xs font-bold tracking-wider text-fg/60 uppercase;
+  }
+
+  /* Sticker recortado con borde blanco (portadas de testimonios) */
+  .cutout {
+    filter: drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff)
+      drop-shadow(2px 3px 0 rgb(0 0 0 / 0.35));
+  }
+}
+
+@keyframes hl-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hl-box::before {
+    animation: none;
   }
 }

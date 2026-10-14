@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { stripAttachments } from '@testimonies/utils/stripMetadata'
 import { computed, nextTick, onMounted, ref, watch, type Component } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { DEFAULT_MAP_SLUG } from '@testimonies/data/maps'
 import { provideTestimonyForm, STEPS, useTestimonyForm } from '@testimonies/composables/useTestimonyForm'
 import { useCategoriesStore } from '@testimonies/stores/categories'
 import { useTestimoniesStore } from '@testimonies/stores/testimonies'
@@ -36,14 +38,18 @@ const panel = props.variant === 'panel'
 const STEP_COMPONENTS: Component[] = [
   StepGeneral,
   StepTestimony,
-  StepTerritory,
   StepEvidence,
+  StepTerritory,
   StepData,
   StepConsent,
   StepReview,
 ]
 
 const router = useRouter()
+const route = useRoute()
+// Mapa al que pertenece el envío (en Mi folio no hay: se vuelve al principal)
+const mapSlug = computed(() => (typeof route.params.mapa === 'string' ? route.params.mapa : DEFAULT_MAP_SLUG))
+const closeTo = computed(() => (editing ? { name: 'my-folio' } : { name: 'map', params: { mapa: mapSlug.value } }))
 const store = useTestimoniesStore()
 const form = useTestimonyForm(
   props.edit ? { initial: props.edit.draft, storageKey: null, editing: true } : {},
@@ -140,7 +146,8 @@ async function onSubmit() {
   submitting.value = true
   submitError.value = null
   // Se copian antes de limpiar el borrador
-  const files = [...draft.files]
+  // «Proteger mi huella digital»: fotos sin metadatos (GPS, fecha, teléfono)
+  const files = draft.stripMetadata ? await stripAttachments(draft.files) : [...draft.files]
   const folio = normalizeParticipantFolio(draft.folio) ?? rememberedFolio.value
   try {
     result.value = await store.create({ ...draft, files }, { captchaToken: captchaToken.value, folio })
@@ -160,7 +167,8 @@ async function onSubmit() {
 async function saveEdit(edit: NonNullable<typeof props.edit>) {
   submitting.value = true
   submitError.value = null
-  const files = [...draft.files]
+  // «Proteger mi huella digital»: fotos sin metadatos (GPS, fecha, teléfono)
+  const files = draft.stripMetadata ? await stripAttachments(draft.files) : [...draft.files]
   try {
     await participantService.updateMine(edit.participantFolio, edit.id, draft)
     saved.value = true
@@ -212,24 +220,24 @@ function startOver() {
 }
 
 function viewOnMap() {
-  if (result.value) router.push({ name: 'home', query: { t: result.value.id } })
+  if (result.value) router.push({ name: 'map', params: { mapa: mapSlug.value }, query: { t: result.value.id } })
 }
 </script>
 
 <template>
-  <main :class="panel ? 'flex h-full flex-col bg-surface' : 'min-h-dvh bg-surface md:h-dvh md:p-6'">
+  <main :class="panel ? 'flex h-full flex-col bg-surface' : 'min-h-dvh md:h-dvh md:p-6'">
     <div
       :class="
         panel
           ? 'flex min-h-0 flex-1 flex-col'
-          : 'mx-auto flex min-h-dvh flex-col md:grid md:h-full md:min-h-0 md:max-w-6xl md:grid-cols-[17rem_1fr] md:overflow-hidden md:rounded-3xl md:border md:border-fg/15'
+          : 'mx-auto flex min-h-dvh flex-col bg-card md:grid md:h-full md:min-h-0 md:max-w-6xl md:grid-cols-[17rem_1fr] md:overflow-hidden md:rounded-[28px] md:border-2 md:border-ink md:shadow-brut-lg'
       "
     >
       <!-- Lateral (escritorio): marca, pasos y salida -->
-      <aside v-if="!panel" class="hidden flex-col gap-8 border-r border-fg/10 bg-fg/[0.03] p-6 md:flex">
+      <aside v-if="!panel" class="hidden flex-col gap-8 border-r-2 border-ink bg-surface p-6 md:flex">
         <div>
-          <p class="text-xs text-fg/50">{{ edit ? edit.testimonyFolio : 'Tribunal Popular · FUTURO/001' }}</p>
-          <p class="text-lg font-semibold">{{ title }}</p>
+          <p class="text-xs text-fg/50">{{ edit ? edit.testimonyFolio : `Tribunal Popular · ${store.dossier ?? 'FUTURO/001'}` }}</p>
+          <p class="mt-2 text-xl font-black uppercase"><span class="hl-box hl-lime" style="--hl-rot: -1deg">{{ title }}</span></p>
         </div>
 
         <FormStepper :step="step" :max-reached="editing ? STEPS.length - 1 : maxReached" :done="!!result || saved" @go="form.goTo" />
@@ -240,7 +248,7 @@ function viewOnMap() {
           </p>
           <div class="flex items-center justify-between gap-3">
             <RouterLink
-              :to="{ name: editing ? 'my-folio' : 'home' }"
+              :to="closeTo"
               class="inline-flex items-center gap-2 text-sm text-fg/70 hover:text-fg focus-visible:outline-2 focus-visible:outline-fg"
             >
               <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
@@ -256,18 +264,18 @@ function viewOnMap() {
       <section class="flex flex-1 flex-col" :class="panel ? 'min-h-0' : 'md:min-h-0'">
         <!-- Header (móvil; en panel, siempre) -->
         <header
-          class="z-10 border-b border-fg/10 bg-surface/95 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur"
-          :class="panel ? 'md:pt-4' : 'sticky top-0 md:hidden'"
+          class="z-10 border-b-2 border-ink bg-surface px-4 pb-3"
+          :class="panel ? 'pt-1 md:px-5 md:pt-4' : 'sticky top-0 pt-[max(env(safe-area-inset-top),0.75rem)] md:hidden'"
         >
           <div class="flex items-center justify-between gap-3">
             <div class="min-w-0">
-              <p class="text-xs text-fg/50">{{ edit ? edit.testimonyFolio : 'Tribunal Popular · FUTURO/001' }}</p>
-              <p class="font-semibold">{{ title }}</p>
+              <p class="text-xs text-fg/50">{{ edit ? edit.testimonyFolio : `Tribunal Popular · ${store.dossier ?? 'FUTURO/001'}` }}</p>
+              <p class="mt-1 text-lg leading-tight font-black uppercase"><span class="hl-box hl-lime" style="--hl-rot: -1deg">{{ title }}</span></p>
             </div>
             <ThemeToggle class="ml-auto" />
             <RouterLink
-              :to="{ name: editing ? 'my-folio' : 'home' }"
-              class="grid size-10 shrink-0 place-items-center rounded-full bg-fg/10 hover:bg-fg/20 focus-visible:outline-2 focus-visible:outline-fg"
+              :to="closeTo"
+              class="icon-btn"
               :aria-label="editing ? 'Cerrar sin guardar' : 'Cerrar (tu borrador se guarda)'"
             >
               <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
@@ -276,12 +284,12 @@ function viewOnMap() {
             </RouterLink>
           </div>
 
-          <div v-if="!result && !saved" class="mt-3 flex gap-1" aria-hidden="true">
+          <div v-if="!result && !saved" class="mt-3 flex gap-1.5" aria-hidden="true">
             <span
               v-for="(_, i) in STEPS"
               :key="i"
-              class="h-1 flex-1 rounded-full transition-colors"
-              :class="i <= step ? 'bg-neon-lime' : 'bg-fg/15'"
+              class="h-2.5 flex-1 rounded-full border-2 border-ink transition-colors"
+              :class="i < step ? 'bg-neon-green' : i === step ? 'bg-neon-lime' : 'bg-card'"
             />
           </div>
         </header>
@@ -297,24 +305,24 @@ function viewOnMap() {
             :result="result"
             :upload="upload"
             @view-on-map="viewOnMap"
-            @home="router.push({ name: 'home' })"
+            @home="router.push(closeTo)"
           />
 
           <!-- Edición guardada -->
           <div v-else-if="saved" class="flex flex-col items-center gap-6 py-10 text-center">
-            <span class="grid size-16 place-items-center rounded-full bg-neon-lime text-black">
+            <span class="grid size-16 place-items-center rounded-full border-2 border-black bg-neon-lime text-black shadow-[4px_4px_0_0_#000]">
               <svg viewBox="0 0 24 24" class="size-8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="m5 12 5 5 9-10" />
               </svg>
             </span>
             <div class="space-y-2">
-              <h2 class="text-2xl font-semibold">Cambios guardados</h2>
+              <h2 class="text-2xl font-black uppercase">Cambios guardados</h2>
               <p class="text-fg/70">Tu testimonio vuelve a revisión antes de mostrarse otra vez en el mapa.</p>
             </div>
             <UploadProgress :upload="upload" class="w-full max-w-sm" />
             <RouterLink
               :to="{ name: 'my-folio' }"
-              class="w-full max-w-sm rounded-full bg-neon-lime py-3 font-semibold text-black transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
+              class="btn-hxnf btn-lime w-full max-w-sm"
               :class="{ 'pointer-events-none opacity-50': upload.busy.value }"
             >
               Volver a Mi folio
@@ -324,27 +332,27 @@ function viewOnMap() {
           <template v-else>
             <p
               v-if="editing"
-              class="mb-6 rounded-xl bg-fg/5 px-4 py-3 text-sm text-fg/80"
+              class="mb-6 rounded-2xl border-2 border-ink bg-neon-lime/30 px-4 py-3 text-sm font-semibold"
               role="note"
             >
               Al guardar, tu testimonio vuelve a revisión antes de mostrarse otra vez en el mapa.
             </p>
             <div
               v-if="showRestored"
-              class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-fg/5 px-4 py-3 text-sm"
+              class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 border-dashed border-ink px-4 py-3 text-sm"
               role="status"
             >
               <span>Recuperamos tu borrador. Los archivos adjuntos hay que volver a elegirlos.</span>
-              <button type="button" class="font-semibold text-accent-ink hover:underline" @click="startOver">
+              <button type="button" class="font-bold underline decoration-2 underline-offset-2 hover:bg-neon-lime hover:text-black" @click="startOver">
                 Empezar de nuevo
               </button>
             </div>
 
             <div class="mb-8 space-y-1">
-              <p class="text-xs font-semibold tracking-wider text-accent-ink uppercase">
+              <p class="chip mb-2 bg-black text-[11px] tracking-wider text-white uppercase dark:bg-white dark:text-black">
                 Paso {{ step + 1 }} de {{ STEPS.length }}
               </p>
-              <h2 ref="heading" tabindex="-1" class="text-2xl font-semibold focus:outline-none @3xl:text-3xl">
+              <h2 ref="heading" tabindex="-1" class="font-wide text-2xl leading-tight font-black uppercase focus:outline-none @3xl:text-3xl">
                 {{ STEPS[step].title }}
               </h2>
               <p class="text-sm text-fg/60">{{ STEPS[step].description }}</p>
@@ -356,7 +364,7 @@ function viewOnMap() {
             <section v-if="isLast && captchaRequired" class="mt-6 space-y-2" aria-label="Verificación">
               <p
                 v-if="captchaUnavailable"
-                class="rounded-xl bg-fg/5 px-4 py-3 text-sm text-fg/80"
+                class="rounded-2xl border-2 border-brand-orange px-4 py-3 text-sm"
                 role="alert"
               >
                 La verificación anti-spam no está disponible en este sitio, así que por ahora no se puede enviar.
@@ -379,15 +387,15 @@ function viewOnMap() {
         <!-- Acciones (fijas abajo) -->
         <footer
           v-if="!result && !saved"
-          class="border-t border-fg/10 bg-surface/95 px-4 pt-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] backdrop-blur"
+          class="border-t-2 border-ink bg-surface px-4 pt-3 pb-[max(env(safe-area-inset-bottom),0.75rem)]"
           :class="panel ? 'md:px-5' : 'sticky bottom-0 md:static md:px-10 md:py-4'"
         >
-          <p v-if="submitError" role="alert" class="mb-3 text-sm text-danger">{{ submitError }}</p>
+          <p v-if="submitError" role="alert" class="mb-3 text-sm font-semibold text-danger">{{ submitError }}</p>
           <div class="flex gap-3 md:justify-end">
             <button
               v-if="step > 0"
               type="button"
-              class="rounded-full border border-fg/30 px-6 py-3 font-semibold transition hover:border-fg focus-visible:outline-2 focus-visible:outline-fg md:py-2.5"
+              class="btn-hxnf btn-paper"
               @click="form.back"
             >
               Atrás
@@ -395,7 +403,7 @@ function viewOnMap() {
             <button
               v-if="!isLast"
               type="button"
-              class="flex-1 rounded-full bg-fg py-3 font-semibold text-surface transition hover:bg-neon-lime hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg md:flex-none md:px-8 md:py-2.5"
+              class="btn-hxnf btn-ink flex-1 md:flex-none"
               @click="onNext"
             >
               Siguiente
@@ -403,7 +411,7 @@ function viewOnMap() {
             <button
               v-else
               type="button"
-              class="flex-1 rounded-full bg-neon-lime py-3 font-semibold text-black transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg disabled:opacity-60 md:flex-none md:px-8 md:py-2.5"
+              class="btn-hxnf btn-lime flex-1 md:flex-none"
               :disabled="submitting || !canSubmit"
               @click="onSubmit"
             >

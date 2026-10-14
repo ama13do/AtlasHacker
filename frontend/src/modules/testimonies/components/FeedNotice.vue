@@ -7,21 +7,21 @@ defineEmits<{ retry: [] }>()
 <template>
   <div class="flex flex-col items-center gap-3 px-6 py-8 text-center" :role="kind === 'error' ? 'alert' : 'status'">
     <template v-if="kind === 'empty'">
-      <p class="font-semibold">Aún no hay testimonios publicados</p>
+      <p class="font-wide text-lg font-black uppercase">Aún no hay testimonios publicados</p>
       <p class="text-sm text-fg/60">Lo que pasa en tu territorio también cuenta. Comparte el primero.</p>
       <RouterLink
         :to="{ name: 'testimony-new' }"
-        class="mt-1 rounded-full bg-neon-lime px-5 py-2.5 text-sm font-semibold text-black transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
+        class="btn-hxnf btn-lime btn-sm mt-1"
       >
         Comparte el primero
       </RouterLink>
     </template>
     <template v-else>
-      <p class="font-semibold">No pudimos cargar los testimonios</p>
+      <p class="font-wide text-lg font-black uppercase">No pudimos cargar los testimonios</p>
       <p class="text-sm text-fg/60">Revisa tu conexión e intenta de nuevo.</p>
       <button
         type="button"
-        class="mt-1 rounded-full border border-fg/30 px-5 py-2.5 text-sm font-semibold transition hover:border-fg focus-visible:outline-2 focus-visible:outline-fg"
+        class="btn-hxnf btn-paper btn-sm mt-1"
         @click="$emit('retry')"
       >
         Reintentar

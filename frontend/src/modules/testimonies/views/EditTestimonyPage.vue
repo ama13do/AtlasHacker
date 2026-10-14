@@ -46,14 +46,14 @@ onMounted(load)
       <div class="flex justify-center gap-3">
         <button
           type="button"
-          class="rounded-full border border-fg/30 px-5 py-2.5 text-sm font-semibold hover:border-fg focus-visible:outline-2 focus-visible:outline-fg"
+          class="btn-hxnf btn-paper btn-sm"
           @click="load"
         >
           Reintentar
         </button>
         <RouterLink
           :to="{ name: 'my-folio' }"
-          class="rounded-full bg-fg px-5 py-2.5 text-sm font-semibold text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
+          class="btn-hxnf btn-ink btn-sm"
         >
           Ir a Mi folio
         </RouterLink>

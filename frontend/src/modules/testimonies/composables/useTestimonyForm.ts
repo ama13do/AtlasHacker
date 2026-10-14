@@ -1,15 +1,20 @@
 import { computed, inject, provide, reactive, ref, watch, type InjectionKey } from 'vue'
-import type { EvidenceType, TestimonyDraft } from '@testimonies/types/testimony'
+import type { DraftSource, EvidenceType, TestimonyDraft } from '@testimonies/types/testimony'
 import { normalizeParticipantFolio } from '@testimonies/utils/folio'
 import { isPublishable } from '@testimonies/utils/publication'
+import { asText } from '@testimonies/utils/text'
 
+export { asText }
+
+// Orden del Manual para llenar testimonios y evidencias (Anexo): primero la voz de la persona y después
+// las cinco secciones del formato (01 recibo, 02 territorio, 03 comunidad, 04 datos, 05 pregunta)
 export const STEPS = [
   { title: 'Datos generales', description: 'De qué trata, dónde ocurre y cómo quieres aparecer.' },
-  { title: 'El testimonio', description: 'Cuéntanos qué sucede y qué es importante que el Tribunal conozca.' },
-  { title: 'El territorio y la comunidad', description: 'Qué ha cambiado en el lugar y cómo lo ha vivido la gente.' },
-  { title: 'El recibo / documento dice', description: 'Documentos, fotos u otra evidencia que ayude a documentarlo.' },
-  { title: 'Los datos y la pregunta', description: 'Un dato que lo respalde y la pregunta para quien tomó la decisión.' },
-  { title: 'Consentimiento', description: 'Cómo autorizas el uso de tu testimonio y cómo protegerte.' },
+  { title: 'El testimonio', description: 'Con tus propias palabras: ¿qué está ocurriendo y qué es importante que el Tribunal conozca?' },
+  { title: '01 · El recibo dice', description: 'Documentos, recibos, fotos u otra evidencia. Primero registra lo que el documento dice, sin interpretarlo.' },
+  { title: '02 · El territorio · 03 · La comunidad', description: 'Lo que puede observarse en el lugar y la voz de quienes lo viven.' },
+  { title: '04 · Los datos · 05 · La pregunta', description: 'Datos con su fuente y la pregunta pública para quien tomó la decisión.' },
+  { title: 'Consentimiento y cuidados', description: 'Cómo autorizas el uso de tu testimonio y cómo protegemos a las personas.' },
   { title: 'Revisión', description: 'Revisa todo antes de enviarlo.' },
 ] as const
 
@@ -22,12 +27,18 @@ export type FormErrors = Partial<Record<keyof TestimonyDraft, string>>
 
 const today = () => new Date().toLocaleDateString('en-CA') // YYYY-MM-DD local
 
+export function emptySource(): DraftSource {
+  return { id: crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`, source: '', year: '', link: '' }
+}
+
 function emptyDraft(): TestimonyDraft {
   return {
     topic: null,
     title: '',
     place: '',
     coordinates: null,
+    state: '',
+    municipality: '',
     locationSource: null,
     gpsAccuracy: null,
     date: today(),
@@ -43,14 +54,18 @@ function emptyDraft(): TestimonyDraft {
     evidenceOther: '',
     files: [],
     dataText: '',
-    dataSource: '',
-    dataYear: '',
+    sources: [emptySource()],
     dataPendingVerification: true,
     tribunalQuestion: '',
+    anythingElse: '',
+    voiceRecord: '',
     voluntary: false,
     consent: null,
     mediaConsent: null,
+    voiceImage: null,
     sensitive: null,
+    minors: null,
+    stripMetadata: true,
     sensitiveHandling: null,
     folio: '',
     email: '',
@@ -59,17 +74,61 @@ function emptyDraft(): TestimonyDraft {
 }
 
 // Tipos de evidencia de borradores anteriores a la conexión con la API
-const LEGACY_EVIDENCE: Record<string, EvidenceType> = { recibo: 'recibo_factura', documento: 'documento_oficial' }
+// …y de la primera versión con API (antes del Manual), donde recibo/factura y documento oficial iban juntos
+const LEGACY_EVIDENCE: Record<string, EvidenceType> = {
+  recibo_factura: 'recibo',
+  documento_oficial: 'oficio',
+  documento: 'oficio',
+}
 
 // Borrador guardado sin archivos (File no es serializable) ni folio o contacto (no se guardan sin pedirlo)
+
+// Deja el borrador guardado con la forma actual: cada campo con el tipo que espera el formulario.
+// Un borrador de una versión anterior (p. ej. el año guardado como número) rompía el formulario en cada carga
+// y dejaba la pantalla en blanco aunque se recargara la página
+function sanitize(saved: Partial<TestimonyDraft>): Partial<TestimonyDraft> {
+  const base = emptyDraft() as unknown as Record<string, unknown>
+  const out: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(saved)) {
+    if (!(key in base) || key === 'files') continue
+    const expected = base[key]
+    if (key === 'sources') {
+      out.sources = Array.isArray(value)
+        ? (value as unknown as Record<string, unknown>[]).map((s) => ({ ...emptySource(), source: asText(s?.source), year: asText(s?.year), link: asText(s?.link) }))
+        : [emptySource()]
+    } else if (key === 'coordinates') {
+      out.coordinates = Array.isArray(value) && value.length === 2 && value.every((n) => typeof n === 'number') ? value : null
+    } else if (typeof expected === 'string') {
+      out[key] = asText(value)
+    } else if (Array.isArray(expected)) {
+      if (Array.isArray(value)) out[key] = value
+    } else if (typeof expected === 'boolean') {
+      if (typeof value === 'boolean') out[key] = value
+    } else {
+      out[key] = value // null por defecto: se valida al usarse
+    }
+  }
+  return out as Partial<TestimonyDraft>
+}
+
 function loadSaved(key: string): { draft: Partial<TestimonyDraft>; step: number } | null {
   try {
     const raw = localStorage.getItem(key)
     if (!raw) return null
     const saved = JSON.parse(raw) as { draft: Partial<TestimonyDraft>; step: number }
+    if (!saved || typeof saved !== 'object' || !saved.draft || typeof saved.draft !== 'object') return null
     if (saved.draft.evidence) saved.draft.evidence = saved.draft.evidence.map((e) => LEGACY_EVIDENCE[e] ?? e)
     // Antes se podían elegir varias medidas de protección; la API acepta una
     if (Array.isArray(saved.draft.sensitiveHandling)) saved.draft.sensitiveHandling = saved.draft.sensitiveHandling[0] ?? null
+    // Antes había un solo «Fuente» y «Año»: pasan a la lista de fuentes
+    const old = saved.draft as Partial<TestimonyDraft> & { dataSource?: string; dataYear?: string }
+    if (!old.sources?.length) {
+      old.sources = [{ ...emptySource(), source: old.dataSource ?? '', year: old.dataYear ?? '' }]
+      delete old.dataSource
+      delete old.dataYear
+    }
+    saved.draft = sanitize(saved.draft)
+    saved.step = Number.isInteger(saved.step) ? saved.step : 0
     return saved
   } catch {
     return null
@@ -121,19 +180,19 @@ function validate(step: number, d: TestimonyDraft): FormErrors {
       if (!required(d.testimony)) e.testimony = 'Cuéntanos qué está ocurriendo.'
       else if (d.testimony.trim().length < MIN_TESTIMONY) e.testimony = `Escribe al menos ${MIN_TESTIMONY} caracteres.`
       break
+    // Manual C.6: ninguna de las cinco secciones es obligatoria («no inventes información para llenar los espacios»)
     case 2:
-      if (!required(d.territory)) e.territory = 'Describe qué ha cambiado o qué puede observarse.'
-      break
-    case 3:
-      if (!d.documentStatus) e.documentStatus = 'Indica si hay algún documento o evidencia.'
+      if (!d.documentStatus) e.documentStatus = 'Indica si hay algún documento o evidencia (puede ser «Pendiente»).'
       if (d.evidence.includes('otro') && !required(d.evidenceOther)) e.evidenceOther = 'Describe el otro tipo de evidencia.'
       break
     case 4: {
-      if (d.dataYear) {
-        const year = Number(d.dataYear)
-        if (!Number.isInteger(year) || year < 1900 || year > new Date().getFullYear()) e.dataYear = 'Año no válido.'
-      }
-      if (!required(d.tribunalQuestion)) e.tribunalQuestion = 'Escribe la pregunta para el Tribunal.'
+      const badYear = d.sources.some((s) => {
+        if (!asText(s.year).trim()) return false
+        const year = Number(s.year)
+        return !Number.isInteger(year) || year < 1900 || year > new Date().getFullYear()
+      })
+      if (badYear) e.sources = 'Revisa el año de las fuentes.'
+      else if (d.sources.some((s) => !asText(s.source).trim() && (asText(s.year).trim() || asText(s.link).trim()))) e.sources = 'Escribe el nombre de cada fuente.'
       break
     }
     case 5:
@@ -141,7 +200,9 @@ function validate(step: number, d: TestimonyDraft): FormErrors {
       if (!d.consent) e.consent = 'Elige cómo autorizas el uso de tu testimonio.'
       else if (d.consent === 'publico-nombre' && d.visibility === 'anonimo')
         e.consent = 'Elegiste aparecer como anónimo; elige "Público anónimo".'
-      if (!d.mediaConsent) e.mediaConsent = 'Indica si autorizas el uso de foto, audio o video.'
+      if (!d.voiceImage) e.voiceImage = 'Indica si autorizas la transmisión o grabación de tu voz o imagen.'
+      if (!d.mediaConsent) e.mediaConsent = 'Indica si las personas fotografiadas autorizaron el uso de su imagen.'
+      if (d.minors === null) e.minors = 'Indica si hay información de niñas, niños o adolescentes.'
       if (d.sensitive === null) e.sensitive = 'Indica si hay información que pueda poner a alguien en riesgo.'
       else if (d.sensitive && !d.sensitiveHandling) e.sensitiveHandling = 'Elige qué hacer con esa información.'
       if (d.folio.trim() && !normalizeParticipantFolio(d.folio)) e.folio = 'El folio tiene el formato P-XXXX-XXXX-XXXX-XXXX.'
@@ -160,9 +221,11 @@ export interface TestimonyFormOptions {
   storageKey?: string | null
   // Editando un testimonio propio: sin folio, contacto ni captcha (se identifica con el folio activo)
   editing?: boolean
+  // Captura desde el panel (ficha en papel): sin folio de participante en el formulario
+  staff?: boolean
 }
 
-export function useTestimonyForm({ initial, storageKey = STORAGE_KEY, editing = false }: TestimonyFormOptions = {}) {
+export function useTestimonyForm({ initial, storageKey = STORAGE_KEY, editing = false, staff = false }: TestimonyFormOptions = {}) {
   const saved = !initial && storageKey ? loadSaved(storageKey) : null
   const draft = reactive<TestimonyDraft>({ ...emptyDraft(), ...(initial ?? saved?.draft), files: [] })
   const step = ref(Math.min(saved?.step ?? 0, STEPS.length - 1))
@@ -246,7 +309,7 @@ export function useTestimonyForm({ initial, storageKey = STORAGE_KEY, editing = 
     { deep: true },
   )
 
-  return { draft, step, maxReached, errors, restored, editing, isLast, publishable, validateStep, firstInvalidStep, next, back, goTo, showErrors, reset }
+  return { draft, step, maxReached, errors, restored, editing, staff, isLast, publishable, validateStep, firstInvalidStep, next, back, goTo, showErrors, reset }
 }
 
 export type TestimonyForm = ReturnType<typeof useTestimonyForm>

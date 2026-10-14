@@ -8,13 +8,13 @@ const THEME_COLOR: Record<Theme, string> = { dark: '#000000', light: '#ffffff' }
 
 function readSaved(): Theme {
   try {
-    return localStorage.getItem(STORAGE_KEY) === 'light' ? 'light' : 'dark'
+    return localStorage.getItem(STORAGE_KEY) === 'dark' ? 'dark' : 'light'
   } catch {
-    return 'dark'
+    return 'light'
   }
 }
 
-// Estado compartido por toda la app; oscuro por defecto (identidad de marca)
+// Estado compartido por toda la app; claro (papel) por defecto, como hxnf.vercel.app
 const theme = ref<Theme>(readSaved())
 
 watch(

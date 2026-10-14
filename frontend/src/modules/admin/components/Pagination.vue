@@ -8,7 +8,7 @@ defineEmits<{ go: [page: number] }>()
   <nav v-if="pages > 1" class="flex items-center justify-center gap-3 text-sm" aria-label="Paginación">
     <button
       type="button"
-      class="rounded-full border border-fg/25 px-4 py-1.5 font-semibold disabled:opacity-40"
+      class="btn-hxnf btn-paper btn-sm"
       :disabled="page <= 1"
       @click="$emit('go', page - 1)"
     >
@@ -17,7 +17,7 @@ defineEmits<{ go: [page: number] }>()
     <span class="tabular-nums text-fg/70">Página {{ page }} de {{ pages }}</span>
     <button
       type="button"
-      class="rounded-full border border-fg/25 px-4 py-1.5 font-semibold disabled:opacity-40"
+      class="btn-hxnf btn-paper btn-sm"
       :disabled="page >= pages"
       @click="$emit('go', page + 1)"
     >

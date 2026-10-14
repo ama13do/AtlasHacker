@@ -1,3 +1,4 @@
+import { EVIDENCE_LABELS } from '@testimonies/data/categories'
 import type { Autorizacion, OrigenTestimonio } from '@admin/types/api'
 
 export const AUTORIZACION_LABELS: Record<Autorizacion, string> = {
@@ -19,19 +20,11 @@ export const SENSIBLE_LABELS: Record<string, string> = {
   revision_antes_publicar: 'Revisión antes de publicar',
 }
 
-export const MULTIMEDIA_LABELS: Record<string, string> = { si: 'Sí', no: 'No', na: 'N/A' }
+export const MULTIMEDIA_LABELS: Record<string, string> = { si: 'Sí', no: 'No', na: 'No aplica' }
+export const VOZ_IMAGEN_LABELS: Record<string, string> = { voz_imagen: 'Voz e imagen', solo_voz: 'Solo voz', ninguna: 'Ninguna' }
 
-export const EVIDENCIA_LABELS: Record<string, string> = {
-  recibo_factura: 'Recibo/factura',
-  documento_oficial: 'Documento oficial',
-  foto: 'Foto',
-  video: 'Video',
-  audio: 'Audio',
-  mapa: 'Mapa',
-  estudio: 'Estudio',
-  datos: 'Datos',
-  otro: 'Otro',
-}
+// Mismas etiquetas que la zona pública (Manual C.7 + las de la primera versión)
+export const EVIDENCIA_LABELS: Record<string, string> = EVIDENCE_LABELS
 
 export const fmtDate = (iso: string | null | undefined, withTime = false) =>
   iso

@@ -7,7 +7,8 @@ const router = createRouter({
   routes: [
     ...testimoniesRoutes,
     ...adminRoutes,
-    { path: '/:pathMatch(.*)*', redirect: { name: 'home' } },
+    // A la portada (con ruta y no por nombre: el nombre arrastraba el parámetro pathMatch)
+    { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })
 

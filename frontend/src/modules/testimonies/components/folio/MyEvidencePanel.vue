@@ -119,7 +119,7 @@ onMounted(load)
       <button
         v-if="attachments.length"
         type="button"
-        class="rounded-full bg-fg px-5 py-2.5 text-sm font-semibold text-surface transition hover:bg-neon-lime hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg disabled:opacity-50"
+        class="btn-hxnf btn-ink btn-sm"
         :disabled="upload.busy.value"
         @click="uploadNew"
       >

@@ -62,7 +62,7 @@ async function submit() {
 <template>
   <div class="max-w-md space-y-6" :class="{ 'mx-auto md:pt-6': mandatory }">
     <div>
-      <h1 class="text-2xl font-semibold">{{ mandatory ? 'Crea tu contraseña' : 'Mi cuenta' }}</h1>
+      <h1 class="text-3xl font-black uppercase"><span class="hl-box hl-green" style="--hl-rot: -1deg">{{ mandatory ? 'Crea tu contraseña' : 'Mi cuenta' }}</span></h1>
       <p v-if="auth.user" class="text-sm text-fg/60">{{ auth.user.email }}</p>
     </div>
 
@@ -73,7 +73,7 @@ async function submit() {
       Contraseña actualizada. Se cerraron tus otras sesiones.
     </p>
 
-    <form class="space-y-4 rounded-2xl border border-fg/15 p-5" @submit.prevent="submit">
+    <form class="border-2 border-ink bg-card shadow-brut space-y-4 rounded-[22px] p-5" @submit.prevent="submit">
       <h2 v-if="!mandatory" class="font-semibold">Cambiar contraseña</h2>
       <div class="space-y-1.5">
         <label :for="ids.current" class="text-sm font-semibold">{{ mandatory ? 'Contraseña temporal' : 'Contraseña actual' }}</label>
@@ -108,7 +108,7 @@ async function submit() {
 
       <button
         type="submit"
-        class="w-full rounded-full bg-fg py-2.5 font-semibold text-surface transition hover:bg-neon-lime hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg disabled:opacity-50 disabled:hover:bg-fg disabled:hover:text-surface"
+        class="btn-hxnf btn-ink w-full"
         :disabled="!valid || sending"
       >
         {{ sending ? 'Guardando…' : mandatory ? 'Guardar y entrar al panel' : 'Cambiar contraseña' }}

@@ -69,7 +69,15 @@ export const APARECER_COMO = ['nombre', 'anonimo'] as const;
 export const TIENE_EVIDENCIA = ['si', 'no', 'pendiente'] as const;
 export const MULTIMEDIA = ['si', 'no', 'na'] as const;
 export const SENSIBLE_ACCIONES = ['anonimizar', 'uso_interno', 'revision_antes_publicar'] as const;
-export const TIPOS_EVIDENCIA = ['recibo_factura', 'documento_oficial', 'foto', 'video', 'audio', 'mapa', 'estudio', 'datos', 'otro'] as const;
+// Lista del Manual (C.7). 'recibo_factura' y 'documento_oficial' son de la primera versión: se conservan para
+// los testimonios que ya los usan, pero ya no se ofrecen (ver TIPOS_EVIDENCIA_VIGENTES).
+export const TIPOS_EVIDENCIA = [
+  'recibo_factura', 'documento_oficial', 'foto', 'video', 'audio', 'mapa', 'estudio', 'datos', 'otro',
+  'recibo', 'factura', 'oficio', 'contrato', 'registro_oficial', 'testimonio_escrito', 'testimonio_oral', 'nota_prensa',
+] as const;
+export const TIPOS_EVIDENCIA_LEGADOS = ['recibo_factura', 'documento_oficial'] as const;
+/** Manual C.4: «¿Autoriza transmisión en vivo o grabación de su voz o imagen?» */
+export const VOZ_IMAGEN = ['voz_imagen', 'solo_voz', 'ninguna'] as const;
 export const TIPOS_REACCION = ['like', 'apoyo', 'alerta', 'fuego'] as const;
 export const ORIGENES_TESTIMONIO = ['web', 'facilitador', 'importacion'] as const;
 export const ORIGENES_UBICACION = ['gps', 'mapa', 'manual', 'importada'] as const;
@@ -82,6 +90,7 @@ export const autorizacionPublicacion = pgEnum('autorizacion_publicacion', AUTORI
 export const aparecerComo = pgEnum('aparecer_como', APARECER_COMO);
 export const tieneEvidencia = pgEnum('tiene_evidencia', TIENE_EVIDENCIA);
 export const multimedia = pgEnum('autoriza_multimedia', MULTIMEDIA);
+export const vozImagen = pgEnum('autoriza_voz_imagen', VOZ_IMAGEN);
 export const sensibleAccion = pgEnum('sensible_accion', SENSIBLE_ACCIONES);
 export const tipoEvidencia = pgEnum('tipo_evidencia', TIPOS_EVIDENCIA);
 export const tipoReaccion = pgEnum('tipo_reaccion', TIPOS_REACCION);
@@ -238,20 +247,31 @@ export const testimonios = pgTable(
     evidencia_tipos: tipoEvidencia('evidencia_tipos').array().notNull().default(sql`'{}'::tipo_evidencia[]`),
     evidencia_otro: text('evidencia_otro'),
 
-    // 5 · LOS DATOS DICEN · 6 · LA PREGUNTA DEL TRIBUNAL
-    dato_fuente_anio: text('dato_fuente_anio'),
+    // 04 · LOS DATOS DICEN (datos + varias fuentes) · 05 · LA PREGUNTA DEL TRIBUNAL
+    dato_fuente_anio: text('dato_fuente_anio'), // «Datos» (texto libre)
+    fuentes: jsonb('fuentes').$type<{ fuente: string; anio?: number; enlace?: string }[]>().notNull().default([]),
     fuente_pendiente_verificacion: boolean('fuente_pendiente_verificacion').notNull().default(false),
     pregunta_tribunal: text('pregunta_tribunal'),
+
+    // Manual C.11 · La última pregunta: «¿Hay algo que no te preguntamos…?» (público) y «¿Cómo te gustaría que
+    // quedara registrada tu voz?» (indicación para el equipo, no se publica)
+    algo_mas: text('algo_mas'),
+    registro_voz: text('registro_voz'),
 
     // CONSENTIMIENTO
     consentimiento_aceptado: boolean('consentimiento_aceptado').notNull(),
     autorizacion: autorizacionPublicacion('autorizacion').notNull(),
+    // Manual C.10: «¿Las personas fotografiadas autorizaron el uso de su imagen?» (sí / no / no aplica)
     autoriza_multimedia: multimedia('autoriza_multimedia').notNull().default('na'),
+    // Manual C.4: transmisión en vivo o grabación (null = no se preguntó, fichas anteriores)
+    autoriza_voz_imagen: vozImagen('autoriza_voz_imagen'),
     consentimiento_version: text('consentimiento_version').notNull(),
     consentimiento_at: ts('consentimiento_at').notNull().defaultNow(),
 
     // INFORMACIÓN SENSIBLE
     info_sensible: boolean('info_sensible').notNull().default(false),
+    // Manual C.10: información de niñas, niños o adolescentes (nunca se publica sola: ver reglas)
+    info_menores: boolean('info_menores').notNull().default(false),
     sensible_accion: sensibleAccion('sensible_accion'),
 
     // Moderación y visibilidad. activo = baja lógica (true/false); es_publico lo mantiene un trigger.
@@ -459,6 +479,9 @@ export const v_testimonios_publicos = pgView('v_testimonios_publicos', {
   publicado_at: ts('publicado_at'),
   created_at: ts('created_at'),
   busqueda: tsvector('busqueda'),
+  // Agregadas en 0002 (al final: CREATE OR REPLACE VIEW solo admite columnas nuevas al final)
+  fuentes: jsonb('fuentes').$type<{ fuente: string; anio?: number; enlace?: string }[]>(),
+  algo_mas: text('algo_mas'),
 }).existing();
 
 export type Testimonio = typeof testimonios.$inferSelect;

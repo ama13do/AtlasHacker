@@ -17,11 +17,13 @@ const FIELDS: { key: Field; label: string; rows?: number; max: number }[] = [
   { key: 'lugar_territorio', label: 'Lugar / territorio', max: 300 },
   { key: 'municipio', label: 'Municipio', max: 120 },
   { key: 'entidad', label: 'Entidad', max: 100 },
-  { key: 'relato', label: '1 · El testimonio', rows: 6, max: 10000 },
-  { key: 'territorio_dice', label: '2 · El territorio dice', rows: 3, max: 5000 },
-  { key: 'comunidad_dice', label: '3 · La comunidad dice', rows: 3, max: 5000 },
-  { key: 'dato_fuente_anio', label: '5 · Los datos dicen (dato / fuente / año)', rows: 2, max: 1000 },
-  { key: 'pregunta_tribunal', label: '6 · La pregunta del Tribunal', rows: 2, max: 5000 },
+  { key: 'relato', label: 'El testimonio', rows: 6, max: 10000 },
+  { key: 'territorio_dice', label: '02 · El territorio dice', rows: 3, max: 5000 },
+  { key: 'comunidad_dice', label: '03 · La comunidad dice', rows: 3, max: 5000 },
+  { key: 'dato_fuente_anio', label: '04 · Los datos dicen (datos)', rows: 3, max: 5000 },
+  { key: 'pregunta_tribunal', label: '05 · La pregunta del Tribunal', rows: 2, max: 5000 },
+  { key: 'algo_mas', label: 'Algo más que el Tribunal deba conocer', rows: 2, max: 5000 },
+  { key: 'registro_voz', label: 'Cómo quiere que quede registrada su voz (interno)', rows: 2, max: 2000 },
 ]
 
 const initial = () => ({
@@ -74,7 +76,7 @@ async function save() {
     <div class="flex gap-2">
       <button
         type="submit"
-        class="rounded-full bg-fg px-5 py-2 text-sm font-semibold text-surface disabled:opacity-50"
+        class="btn-hxnf btn-ink btn-sm"
         :disabled="saving || !dirty"
       >
         {{ saving ? 'Guardando…' : 'Guardar cambios' }}

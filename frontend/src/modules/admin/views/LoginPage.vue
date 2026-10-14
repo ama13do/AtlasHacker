@@ -3,6 +3,7 @@ import { ref, useId } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import type { ApiError } from '@/core/http/client'
 import ThemeToggle from '@/shared/components/ThemeToggle.vue'
+import BrandMark from '@/shared/components/BrandMark.vue'
 import { useAuthStore } from '@admin/stores/auth'
 
 const route = useRoute()
@@ -48,16 +49,16 @@ async function submit() {
 </script>
 
 <template>
-  <main class="grid min-h-dvh place-items-center bg-surface px-4 py-10">
+  <main class="grid min-h-dvh place-items-center px-4 py-10">
     <div class="absolute top-4 right-4"><ThemeToggle /></div>
 
-    <form class="w-full max-w-sm space-y-6" @submit.prevent="submit">
-      <div class="space-y-1 text-center">
-        <p class="text-2xl font-semibold tracking-tight">AtlasHacker<span class="text-neon-green light:text-fg">_</span></p>
-        <h1 class="text-sm text-fg/60">Panel del equipo · Tribunal Popular FUTURO/001</h1>
+    <form class="card-brut-lg w-full max-w-sm space-y-6 p-6" @submit.prevent="submit">
+      <div class="space-y-3 text-center">
+        <BrandMark subtitle="Hackers x Nuestro Futuro" />
+        <h1 class="text-sm font-bold uppercase opacity-70">Panel del equipo · Tribunal Popular</h1>
       </div>
 
-      <p v-if="route.query.cambio" class="rounded-xl bg-neon-green/15 px-4 py-3 text-sm light:bg-neon-green/30" role="status">
+      <p v-if="route.query.cambio" class="rounded-2xl border-2 border-black bg-neon-green px-4 py-3 text-sm font-semibold text-black" role="status">
         Tu contraseña se actualizó. Entra con la nueva.
       </p>
       <p v-else-if="auth.expired" class="rounded-xl bg-fg/5 px-4 py-3 text-sm" role="status">
@@ -112,7 +113,7 @@ async function submit() {
 
       <button
         type="submit"
-        class="w-full rounded-full bg-neon-lime py-3 font-semibold text-black transition hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg disabled:opacity-60"
+        class="btn-hxnf btn-lime w-full"
         :disabled="sending || !email.trim() || !password"
       >
         {{ sending ? 'Entrando…' : 'Entrar' }}

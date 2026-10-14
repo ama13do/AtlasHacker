@@ -3,7 +3,10 @@ import { computed, ref } from 'vue'
 
 // Barras agrupadas por día: recibidos vs. aprobados (un solo eje). Colores validados (dataviz):
 // --chart-1 recibidos, --chart-2 aprobados. Hover con tooltip y tabla accesible
-const props = defineProps<{ days: { fecha: string; recibidos: number; aprobados: number }[] }>()
+const props = withDefaults(
+  defineProps<{ days: { fecha: string; recibidos: number; aprobados: number }[]; title?: string; unit?: 'dia' | 'semana' | 'mes' }>(),
+  { title: 'Últimos 30 días', unit: 'dia' },
+)
 
 const SERIES = [
   { key: 'recibidos', label: 'Recibidos', color: 'var(--chart-1)' },
@@ -40,20 +43,30 @@ function barPath(x0: number, value: number, w: number) {
   return `M${x0},${top + h}V${top + r}Q${x0},${top} ${x0 + r},${top}H${x0 + w - r}Q${x0 + w},${top} ${x0 + w},${top + r}V${top + h}Z`
 }
 
-const fmtShort = (iso: string) => new Date(`${iso}T00:00:00`).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
+const asDate = (iso: string) => new Date(`${iso}T00:00:00`)
+const fmtShort = (iso: string) =>
+  props.unit === 'mes'
+    ? asDate(iso).toLocaleDateString('es-MX', { month: 'short', year: '2-digit' })
+    : asDate(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })
 const fmtLong = (iso: string) =>
-  new Date(`${iso}T00:00:00`).toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'long' })
+  props.unit === 'mes'
+    ? asDate(iso).toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })
+    : props.unit === 'semana'
+      ? `Semana del ${asDate(iso).toLocaleDateString('es-MX', { day: 'numeric', month: 'long' })}`
+      : asDate(iso).toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'long' })
 
 const hover = ref<number | null>(null)
 const hovered = computed(() => (hover.value !== null ? props.days[hover.value] : null))
 const tooltipLeft = computed(() => (hover.value === null ? 0 : ((x(hover.value) + slot.value * 0.35) / WIDTH) * 100))
+// Etiquetas del eje: unas 5 en total
+const labelStep = computed(() => Math.max(1, Math.round(props.days.length / 5)))
 const total = computed(() => props.days.reduce((s, d) => s + d.recibidos, 0))
 </script>
 
 <template>
   <figure class="space-y-3">
     <figcaption class="flex flex-wrap items-baseline justify-between gap-3">
-      <span class="text-sm font-semibold">Últimos 30 días</span>
+      <span class="text-sm font-black uppercase">{{ title }}</span>
       <span class="flex items-center gap-4 text-xs text-fg/70" aria-hidden="true">
         <span v-for="s in SERIES" :key="s.key" class="inline-flex items-center gap-1.5">
           <span class="size-2.5 rounded-sm" :style="{ background: s.color }" />
@@ -81,7 +94,7 @@ const total = computed(() => props.days.reduce((s, d) => s + d.recibidos, 0))
           </g>
           <template v-for="(d, i) in days" :key="d.fecha">
             <text
-              v-if="(i % 7 === 0 && days.length - 1 - i >= 4) || i === days.length - 1"
+              v-if="(i % labelStep === 0 && days.length - 1 - i >= labelStep / 2) || i === days.length - 1"
               :x="x(i) + slot * 0.35"
               :y="HEIGHT - 6"
               text-anchor="middle"
@@ -120,7 +133,7 @@ const total = computed(() => props.days.reduce((s, d) => s + d.recibidos, 0))
       <!-- Tooltip -->
       <div
         v-if="hovered"
-        class="pointer-events-none absolute top-0 z-10 -translate-x-1/2 rounded-xl border border-fg/15 bg-surface px-3 py-2 text-xs shadow-lg"
+        class="border-2 border-ink bg-card shadow-brut pointer-events-none absolute top-0 z-10 -translate-x-1/2 rounded-xl px-3 py-2 text-xs shadow-lg"
         :style="{ left: `${Math.min(88, Math.max(12, tooltipLeft))}%` }"
       >
         <p class="mb-1 font-semibold">{{ fmtLong(hovered.fecha) }}</p>

@@ -1,4 +1,7 @@
 import { adminGet, adminRequest } from '@admin/services/adminHttp'
+import { evidenceService, type Reservation } from '@testimonies/services/evidence.service'
+import type { ApiReservaEvidencias, ApiEvidenciaConfirmada, ApiCrearTestimonio } from '@testimonies/types/api'
+import type { EvidenceAttachment } from '@testimonies/types/testimony'
 import type {
   AccionModeracion,
   ApiAuditoria,
@@ -6,6 +9,7 @@ import type {
   ApiEvidenciaStaff,
   ApiTestimonioStaff,
   ApiTestimonioStaffFila,
+  ApiCapturaRespuesta,
   PaginaMeta,
 } from '@admin/types/api'
 
@@ -27,6 +31,11 @@ export interface StaffFilters {
 const base = (id: string) => `/api/admin/testimonios/${encodeURIComponent(id)}`
 
 export const adminTestimoniesService = {
+  // Capturar una ficha en papel. Sin `participante_id` se crea la persona y la API devuelve su folio (una sola vez)
+  async create(payload: Omit<ApiCrearTestimonio, 'nombre_publico'> & { participante_id?: string }): Promise<ApiCapturaRespuesta> {
+    return (await adminRequest<ApiCapturaRespuesta>({ method: 'post', url: '/api/admin/testimonios', data: payload })).data
+  },
+
   async list(filters: StaffFilters): Promise<{ rows: ApiTestimonioStaffFila[]; meta: PaginaMeta }> {
     const params = Object.fromEntries(Object.entries(filters).filter(([, v]) => v !== undefined && v !== ''))
     const { data, meta } = await adminGet<ApiTestimonioStaffFila[]>('/api/admin/testimonios', params)
@@ -83,5 +92,35 @@ export const adminTestimoniesService = {
 
   async deleteEvidence(id: string, evidenceId: string) {
     await adminRequest({ method: 'delete', url: `${base(id)}/evidencias/${encodeURIComponent(evidenceId)}` })
+  },
+}
+
+// Subida de evidencias como personal (mismo flujo que la persona: reservar → PUT a R2 → confirmar),
+// con la forma de `evidenceService` para reutilizar useEvidenceUpload. El folio no se usa: va el token
+export const staffEvidenceService = {
+  async reserve(testimonyId: string, _folio: string, attachments: EvidenceAttachment[]): Promise<Reservation[]> {
+    const { data } = await adminRequest<ApiReservaEvidencias>({
+      method: 'post',
+      url: `${base(testimonyId)}/evidencias`,
+      data: { archivos: attachments.map((a) => ({ nombre: a.file.name.slice(0, 200), mime: a.file.type, bytes: a.file.size, tipo: a.type })) },
+    })
+    return data.archivos.map((r) => ({
+      evidenceId: r.evidencia_id,
+      folio: r.folio,
+      url: r.subir.url,
+      contentType: r.subir.cabeceras['Content-Type'] ?? '',
+      expiresAt: Date.now() + r.subir.expira_en_segundos * 1000,
+    }))
+  },
+
+  put: evidenceService.put,
+
+  async confirm(testimonyId: string, evidenceId: string): Promise<ApiEvidenciaConfirmada> {
+    return (
+      await adminRequest<ApiEvidenciaConfirmada>({
+        method: 'post',
+        url: `${base(testimonyId)}/evidencias/${encodeURIComponent(evidenceId)}/confirmar`,
+      })
+    ).data
   },
 }

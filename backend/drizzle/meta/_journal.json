@@ -15,6 +15,13 @@
       "when": 1791707614875,
       "tag": "0001_postgis_extras",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791968545841,
+      "tag": "0002_manual_anexo",
+      "breakpoints": true
     }
   ]
 }

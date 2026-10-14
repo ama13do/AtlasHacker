@@ -4,6 +4,7 @@ type Entrada = {
   autorizacion: 'publico_con_nombre' | 'publico_anonimo' | 'solo_documentacion_interna' | 'no_autoriza';
   info_sensible: boolean;
   sensible_accion?: 'anonimizar' | 'uso_interno' | 'revision_antes_publicar' | null;
+  info_menores?: boolean;
 };
 
 export type Decision = {
@@ -19,6 +20,7 @@ export type Decision = {
  *  1. «solo documentación interna» y «no autorizo publicación» NUNCA se publican (además la vista pública y
  *     el trigger de es_publico lo vuelven a garantizar en la base de datos).
  *  2. Información sensible con «revisión antes de publicar» o «uso interno» → siempre queda pendiente.
+ *  2b. Información de niñas, niños o adolescentes (Manual C.10) → siempre queda pendiente.
  *  3. Información sensible con «anonimizar» → se oculta el nombre (vista pública) y la ubicación se generaliza.
  */
 export function decidirPublicacion(modo: ModoPublicacion, t: Entrada): Decision {
@@ -30,6 +32,9 @@ export function decidirPublicacion(modo: ModoPublicacion, t: Entrada): Decision 
   if (t.info_sensible && (t.sensible_accion === 'revision_antes_publicar' || t.sensible_accion === 'uso_interno')) {
     return { estado: 'pendiente', ubicacion_aproximada: aproximada, razon: 'información sensible: requiere revisión' };
   }
+  if (t.info_menores) {
+    return { estado: 'pendiente', ubicacion_aproximada: aproximada, razon: 'información de menores: requiere revisión' };
+  }
   if (modo === 'revisar_todo') return { estado: 'pendiente', ubicacion_aproximada: aproximada, razon: 'modo revisar_todo' };
   if (modo === 'auto_si_no_sensible' && t.info_sensible) {
     return { estado: 'pendiente', ubicacion_aproximada: aproximada, razon: 'modo auto_si_no_sensible con información sensible' };
@@ -37,7 +42,7 @@ export function decidirPublicacion(modo: ModoPublicacion, t: Entrada): Decision 
   return { estado: 'aprobado', ubicacion_aproximada: aproximada, razon: `publicación automática (${modo})` };
 }
 
-const TIPOS_CON_DATOS_PERSONALES = new Set(['recibo_factura', 'documento_oficial']);
+const TIPOS_CON_DATOS_PERSONALES = new Set(['recibo_factura', 'documento_oficial', 'recibo', 'factura', 'oficio', 'contrato', 'registro_oficial']);
 
 /**
  * ¿Una evidencia recién subida debe quedar visible al público?

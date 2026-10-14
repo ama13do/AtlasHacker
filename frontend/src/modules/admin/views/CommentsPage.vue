@@ -68,7 +68,7 @@ function onRemoved(id: string) {
 <template>
   <div class="space-y-6">
     <div>
-      <h1 class="text-2xl font-semibold">Comentarios</h1>
+      <h1 class="text-3xl font-black uppercase"><span class="hl-box hl-lime" style="--hl-rot: -1deg">Comentarios</span></h1>
       <p class="text-sm text-fg/60">Moderación de los comentarios en los testimonios públicos.</p>
     </div>
 
@@ -96,11 +96,11 @@ function onRemoved(id: string) {
     <div v-if="status === 'loading'" class="space-y-2" aria-hidden="true">
       <div v-for="n in 5" :key="n" class="h-24 animate-pulse rounded-2xl bg-fg/10" />
     </div>
-    <div v-else-if="status === 'error'" class="space-y-2 rounded-2xl border border-fg/15 p-6" role="alert">
+    <div v-else-if="status === 'error'" class="border-2 border-ink bg-card shadow-brut space-y-2 rounded-[22px] p-6" role="alert">
       <p class="font-semibold">No pudimos cargar los comentarios.</p>
       <button type="button" class="text-sm font-semibold text-accent-ink hover:underline" @click="load">Reintentar</button>
     </div>
-    <p v-else-if="!rows.length" class="rounded-2xl border border-dashed border-fg/20 p-8 text-center text-sm text-fg/60">
+    <p v-else-if="!rows.length" class="rounded-[20px] border-2 border-dashed border-ink/40 p-8 text-center text-sm text-fg/60">
       {{
         tab === 'pendientes'
           ? 'No hay comentarios por revisar. (Si la configuración no exige moderación, los comentarios se publican directo.)'

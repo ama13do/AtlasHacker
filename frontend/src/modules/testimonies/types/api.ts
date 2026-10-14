@@ -4,15 +4,25 @@
 import type { Point } from 'geojson'
 
 export type ApiTipoEvidencia =
-  | 'recibo_factura'
-  | 'documento_oficial'
+  // Manual C.7
+  | 'recibo'
+  | 'factura'
+  | 'oficio'
+  | 'contrato'
   | 'foto'
   | 'video'
   | 'audio'
   | 'mapa'
   | 'estudio'
+  | 'registro_oficial'
+  | 'testimonio_escrito'
+  | 'testimonio_oral'
   | 'datos'
+  | 'nota_prensa'
   | 'otro'
+  // De la primera versión (solo en testimonios anteriores)
+  | 'recibo_factura'
+  | 'documento_oficial'
 
 export interface ApiCategoria {
   id: string
@@ -49,6 +59,21 @@ export interface ApiConfig {
   categorias: ApiCategoria[]
   expedientes: ApiExpediente[]
   configuracion: ApiConfiguracionPublica
+}
+
+// GET /api/estadisticas
+export interface ApiEstadisticasPublicas {
+  testimonios: number
+  ultimo_publicado_at: string | null
+  por_categoria: { slug: string; nombre: string; color: string | null; total: number }[]
+  por_entidad: { entidad: string; total: number }[]
+}
+
+// GET /api/colaboradores
+export interface ApiColaborador {
+  id: string
+  nombre_publico: string | null
+  testimonios_publicados: number
 }
 
 // GET /api/mapa (geometria=punto) → FeatureCollection con estas properties
@@ -106,6 +131,8 @@ export interface ApiTestimonioDetalle {
   evidencia_tipos: ApiTipoEvidencia[] | null
   dato_fuente_anio: string | null
   fuente_pendiente_verificacion: boolean
+  fuentes?: ApiFuente[] | null
+  algo_mas?: string | null
   pregunta_tribunal: string | null
   tipo_geometria: string
   aproximada: boolean
@@ -119,6 +146,16 @@ export interface ApiTestimonioDetalle {
   evidencias: ApiEvidenciaPublica[]
 }
 
+// 04 · Los datos dicen: una fuente (Manual C.6)
+export interface ApiFuente {
+  fuente: string
+  anio?: number
+  enlace?: string
+}
+
+// Manual C.4: transmisión en vivo o grabación de voz o imagen
+export type ApiVozImagen = 'voz_imagen' | 'solo_voz' | 'ninguna'
+
 // POST /api/testimonios (CrearTestimonioSchema en el back)
 export interface ApiCrearTestimonio {
   categoria: string
@@ -126,6 +163,8 @@ export interface ApiCrearTestimonio {
   fecha?: string
   titulo?: string
   lugar_territorio?: string
+  entidad?: string
+  municipio?: string
   ubicacion: Point
   origen_ubicacion?: 'gps' | 'mapa' | 'manual'
   aparecer_como?: 'nombre' | 'anonimo'
@@ -139,11 +178,16 @@ export interface ApiCrearTestimonio {
   evidencia_tipos?: ApiTipoEvidencia[]
   evidencia_otro?: string
   dato_fuente_anio?: string
+  fuentes?: ApiFuente[]
   fuente_pendiente_verificacion?: boolean
   pregunta_tribunal?: string
+  algo_mas?: string
+  registro_voz?: string
   autorizacion: 'publico_con_nombre' | 'publico_anonimo' | 'solo_documentacion_interna' | 'no_autoriza'
   autoriza_multimedia?: 'si' | 'no' | 'na'
+  autoriza_voz_imagen?: ApiVozImagen
   info_sensible?: boolean
+  info_menores?: boolean
   sensible_accion?: 'anonimizar' | 'uso_interno' | 'revision_antes_publicar'
   consentimiento_aceptado: true
   contacto?: { correo?: string; telefono?: string }
@@ -254,11 +298,16 @@ export interface ApiMiTestimonio extends Omit<ApiMiTestimonioResumen, 'categoria
   evidencia_tipos: ApiTipoEvidencia[] | null
   evidencia_otro: string | null
   dato_fuente_anio: string | null
+  fuentes: ApiFuente[] | null
   fuente_pendiente_verificacion: boolean
   pregunta_tribunal: string | null
+  algo_mas: string | null
+  registro_voz: string | null
   autorizacion: ApiCrearTestimonio['autorizacion']
   autoriza_multimedia: 'si' | 'no' | 'na'
+  autoriza_voz_imagen: ApiVozImagen | null
   info_sensible: boolean
+  info_menores: boolean
   sensible_accion: ApiCrearTestimonio['sensible_accion'] | null
   origen_ubicacion: 'gps' | 'mapa' | 'manual' | 'importada'
   ubicacion: unknown

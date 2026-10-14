@@ -136,7 +136,7 @@ async function clear(f: (typeof FIELDS)[number]) {
       </div>
     </div>
 
-    <div class="space-y-3 rounded-xl border border-fg/15 p-4">
+    <div class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-xl p-4">
       <label class="flex cursor-pointer items-start gap-3 text-sm">
         <input v-model="publicProfile" type="checkbox" class="mt-0.5 size-5 accent-neon-lime" />
         <span>
@@ -161,7 +161,7 @@ async function clear(f: (typeof FIELDS)[number]) {
       </p>
       <button
         type="submit"
-        class="rounded-full bg-fg px-6 py-2.5 text-sm font-semibold text-surface transition hover:bg-neon-lime hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg disabled:opacity-50"
+        class="btn-hxnf btn-ink btn-sm"
         :disabled="saving"
       >
         {{ saving ? 'Guardando…' : 'Guardar' }}

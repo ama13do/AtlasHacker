@@ -26,7 +26,7 @@ function uploadStatus(item: UploadItem) {
 </script>
 
 <template>
-  <section v-if="uploads.length" class="space-y-3 rounded-2xl border border-fg/15 p-4 text-left" :aria-labelledby="titleId">
+  <section v-if="uploads.length" class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-4 text-left" :aria-labelledby="titleId">
     <header class="flex items-baseline justify-between gap-3">
       <h3 :id="titleId" class="text-sm font-semibold">Evidencias</h3>
       <p class="text-xs text-fg/60 tabular-nums" aria-live="polite">

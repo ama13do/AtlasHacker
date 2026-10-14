@@ -1,5 +1,6 @@
 <script setup lang="ts" generic="T extends string | boolean">
 import { computed, useId } from 'vue'
+import FieldHelp from '@testimonies/components/form/FieldHelp.vue'
 
 export interface Choice<V> {
   value: V
@@ -14,6 +15,8 @@ const props = defineProps<{
   multiple?: boolean
   error?: string
   hint?: string
+  help?: string
+  example?: string
   columns?: 1 | 2 | 3 | 4
   required?: boolean
 }>()
@@ -50,18 +53,19 @@ function toggle(value: T) {
 
 <template>
   <fieldset class="space-y-1.5" :aria-describedby="error ? errorId : undefined">
-    <legend class="mb-1.5 text-sm font-semibold text-fg">
+    <legend class="mb-1.5 text-sm font-bold text-fg">
       {{ label }}
       <span v-if="required" class="text-accent-ink" aria-hidden="true">*</span>
     </legend>
-    <p v-if="hint" class="mb-1.5 text-xs text-fg/50">{{ hint }}</p>
+    <p v-if="hint" class="mb-1.5 text-xs text-fg/60">{{ hint }}</p>
+    <FieldHelp v-if="help || example" :help="help" :example="example" class="mb-2" />
     <div class="grid gap-2" :class="gridClass">
       <label
         v-for="option in options"
         :key="String(option.value)"
-        class="relative flex cursor-pointer items-start gap-3 rounded-xl border px-3.5 py-2.5 transition has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-fg"
+        class="relative flex cursor-pointer items-start gap-3 rounded-2xl border-2 px-3.5 py-2.5 transition-[translate,box-shadow,background-color] has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand-blue"
         :class="[
-          isChecked(option.value) ? 'border-neon-lime bg-neon-lime/10 light:border-fg light:bg-neon-lime/35' : 'border-fg/20 hover:border-fg/40',
+          isChecked(option.value) ? '-translate-y-px border-ink bg-neon-lime text-black shadow-brut-sm' : 'border-ink/30 bg-card hover:border-ink',
           option.disabled && 'cursor-not-allowed opacity-40',
         ]"
       >
@@ -77,7 +81,7 @@ function toggle(value: T) {
           class="mt-0.5 grid size-5 shrink-0 place-items-center border-2 transition"
           :class="[
             multiple ? 'rounded-md' : 'rounded-full',
-            isChecked(option.value) ? 'border-neon-lime bg-neon-lime text-black' : 'border-fg/40',
+            isChecked(option.value) ? 'border-black bg-black text-neon-lime' : 'border-ink/50',
           ]"
           aria-hidden="true"
         >
@@ -87,7 +91,7 @@ function toggle(value: T) {
         </span>
         <span class="min-w-0">
           <span class="block text-sm font-semibold">{{ option.label }}</span>
-          <span v-if="option.description" class="block text-xs text-fg/60">{{ option.description }}</span>
+          <span v-if="option.description" class="block text-xs opacity-70">{{ option.description }}</span>
         </span>
       </label>
     </div>

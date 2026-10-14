@@ -27,6 +27,30 @@ export interface Category {
   description: string | null
 }
 
+// Expediente: cada uno es un mapa (GET /api/config)
+export interface Dossier {
+  id: string
+  code: string // FUTURO/001
+  title: string
+  matter: string | null
+  description: string | null
+}
+
+// Contadores públicos (GET /api/estadisticas)
+export interface PublicStats {
+  testimonies: number
+  lastPublishedAt: string | null
+  byCategory: { slug: string; label: string; total: number }[]
+  byState: { state: string; total: number }[]
+}
+
+// Personas con perfil público (GET /api/colaboradores)
+export interface Collaborator {
+  id: string
+  name: string
+  published: number
+}
+
 // Lo necesario para pines, historias y lista (GET /api/mapa)
 export interface TestimonySummary {
   id: string
@@ -54,13 +78,15 @@ export interface EvidenceFile {
 
 // Ficha completa (GET /api/testimonios/{id})
 export interface TestimonyDetail extends TestimonySummary {
+  dossier?: string // Expediente (FUTURO/001)
   author: { visibility: 'nombre' | 'anonimo'; name?: string }
   testimony: string // 1 · El testimonio
   territory?: string // 2 · El territorio dice
   community?: string // 3 · La comunidad dice
   document: { status: 'si' | 'no' | 'pendiente' } // 4 · El recibo / documento dice
-  data?: { text: string; pendingVerification: boolean } // 5 · Los datos dicen (dato / fuente / año)
-  tribunalQuestion?: string // 6 · La pregunta del tribunal
+  data?: { text: string; sources: Source[]; pendingVerification: boolean } // 04 · Los datos dicen
+  tribunalQuestion?: string // 05 · La pregunta del Tribunal
+  anythingElse?: string // C.11 · Algo más que el Tribunal deba conocer
   evidence: EvidenceType[]
   files: EvidenceFile[]
   reactionCounts: Record<ReactionType, number>
@@ -75,6 +101,20 @@ export type Consent = 'publico-nombre' | 'publico-anonimo' | 'interno' | 'no-pub
 export type MediaConsent = 'si' | 'no' | 'na'
 export type SensitiveHandling = 'anonimizar' | 'interno' | 'revision'
 export type LocationSource = 'gps' | 'mapa'
+export type VoiceImage = 'voz_imagen' | 'solo_voz' | 'ninguna'
+
+// 04 · Una fuente de los datos (en el formulario lleva id local para las keys)
+export interface Source {
+  source: string
+  year?: number
+  link?: string
+}
+export interface DraftSource {
+  id: string
+  source: string
+  year: string
+  link: string
+}
 
 // Archivo elegido en el formulario, con el tipo de evidencia que se declara a la API
 export interface EvidenceAttachment {
@@ -101,6 +141,8 @@ export interface TestimonyDraft {
   title: string
   place: string
   coordinates: [number, number] | null
+  state: string // Entidad (se completa sola al marcar el lugar)
+  municipality: string // Municipio (se completa con la búsqueda / geocodificación inversa)
   locationSource: LocationSource | null
   gpsAccuracy: number | null // metros
   date: string // YYYY-MM-DD
@@ -118,16 +160,21 @@ export interface TestimonyDraft {
   evidenceOther: string
   files: EvidenceAttachment[]
   // 5–6
-  dataText: string
-  dataSource: string
-  dataYear: string
+  dataText: string // «Datos»
+  sources: DraftSource[] // Una o varias fuentes
   dataPendingVerification: boolean
   tribunalQuestion: string
+  // C.11 · La última pregunta
+  anythingElse: string
+  voiceRecord: string // Cómo quiere que quede registrada su voz (interno)
   // Consentimiento e información sensible
   voluntary: boolean
   consent: Consent | null
-  mediaConsent: MediaConsent | null
+  mediaConsent: MediaConsent | null // C.10 · Personas fotografiadas autorizaron su imagen
+  voiceImage: VoiceImage | null // C.4 · Transmisión o grabación de voz o imagen
   sensitive: boolean | null
+  minors: boolean | null // C.10 · Información de niñas, niños o adolescentes
+  stripMetadata: boolean // Borrar la huella digital (metadatos) de las fotos antes de subirlas
   sensitiveHandling: SensitiveHandling | null
   // Folio de participante y contacto (opcionales)
   folio: string

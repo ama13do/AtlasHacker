@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import ThemeToggle from '@/shared/components/ThemeToggle.vue'
 import { useAuthStore } from '@admin/stores/auth'
 import AdminNav from '@admin/components/AdminNav.vue'
+import BrandMark from '@/shared/components/BrandMark.vue'
 
 const ROLE_LABELS = { admin: 'Administración', moderador: 'Moderación', facilitador: 'Facilitación', lector: 'Lectura' } as const
 
@@ -30,34 +31,31 @@ async function logout() {
 </script>
 
 <template>
-  <div class="min-h-dvh bg-surface" :class="{ 'md:grid md:grid-cols-[15rem_1fr]': !mustChange }">
+  <div class="min-h-dvh" :class="{ 'md:grid md:grid-cols-[15rem_1fr]': !mustChange }">
     <!-- Lateral (escritorio) / cajón (móvil) -->
     <aside
       v-if="!mustChange"
-      class="fixed inset-y-0 left-0 z-30 flex w-64 -translate-x-full flex-col gap-6 border-r border-fg/10 bg-surface p-4 transition-transform md:sticky md:top-0 md:h-dvh md:w-auto md:translate-x-0"
+      class="fixed inset-y-0 left-0 z-30 flex w-64 -translate-x-full flex-col gap-6 border-r-2 border-ink bg-surface p-4 transition-transform md:sticky md:top-0 md:h-dvh md:w-auto md:translate-x-0"
       :class="{ 'translate-x-0': drawerOpen }"
       aria-label="Navegación del panel"
     >
-      <div class="px-2 pt-1">
-        <p class="text-lg font-semibold tracking-tight">AtlasHacker<span class="text-neon-green light:text-fg">_</span></p>
-        <p class="text-xs text-fg/50">Panel del equipo</p>
+      <div class="px-1 pt-1">
+        <BrandMark size="sm" subtitle="Panel del equipo" />
       </div>
       <AdminNav @navigate="drawerOpen = false" />
       <div class="mt-auto space-y-1 px-2 text-sm">
-        <RouterLink :to="{ name: 'home' }" class="block py-1 text-fg/60 hover:text-fg hover:underline">Ver mapa público</RouterLink>
+        <RouterLink :to="{ name: 'home' }" class="block py-1 font-semibold text-fg/70 hover:text-fg hover:underline">Ver mapas públicos ↗</RouterLink>
       </div>
     </aside>
     <div v-if="drawerOpen" class="fixed inset-0 z-20 bg-black/50 md:hidden" aria-hidden="true" @click="drawerOpen = false" />
 
     <div class="flex min-w-0 flex-col">
-      <header class="sticky top-0 z-10 flex items-center gap-3 border-b border-fg/10 bg-surface/95 px-4 py-3 backdrop-blur md:px-8">
-        <p v-if="mustChange" class="text-lg font-semibold tracking-tight">
-          AtlasHacker<span class="text-neon-green light:text-fg">_</span>
-        </p>
+      <header class="sticky top-0 z-10 flex items-center gap-3 border-b-2 border-ink bg-surface/95 px-4 py-3 backdrop-blur md:px-8">
+        <BrandMark v-if="mustChange" size="sm" subtitle="Panel del equipo" />
         <button
           v-else
           type="button"
-          class="grid size-9 place-items-center rounded-full bg-fg/10 md:hidden"
+          class="icon-btn md:hidden"
           aria-label="Abrir navegación"
           :aria-expanded="drawerOpen"
           @click="drawerOpen = true"
@@ -73,13 +71,13 @@ async function logout() {
         <RouterLink
           v-if="!mustChange"
           :to="{ name: 'admin-account' }"
-          class="rounded-full px-3 py-1.5 text-sm font-semibold whitespace-nowrap text-fg/70 hover:bg-fg/10 hover:text-fg focus-visible:outline-2 focus-visible:outline-fg"
+          class="btn-hxnf btn-paper btn-sm whitespace-nowrap"
         >
           Mi cuenta
         </RouterLink>
         <button
           type="button"
-          class="rounded-full px-3 py-1.5 text-sm font-semibold text-fg/70 hover:bg-fg/10 hover:text-fg focus-visible:outline-2 focus-visible:outline-fg"
+          class="btn-hxnf btn-ink btn-sm"
           @click="logout"
         >
           Salir

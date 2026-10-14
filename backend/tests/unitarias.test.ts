@@ -36,6 +36,12 @@ describe('reglas de publicación', () => {
     }
   });
 
+  it('REGLA FIJA (Manual C.10): con información de niñas, niños o adolescentes nunca se publica solo', () => {
+    for (const modo of ['revisar_todo', 'auto_si_no_sensible', 'auto_todo'] as const) {
+      expect(decidirPublicacion(modo, { ...base, info_menores: true }).estado).toBe('pendiente');
+    }
+  });
+
   it('evidencias: recibos y documentos oficiales nunca se publican solos; multimedia solo en modos automáticos y con autorización', () => {
     expect(evidenciaPublicaPorDefecto('auto_todo', 'aprobado', 'si', 'foto')).toBe(true);
     expect(evidenciaPublicaPorDefecto('auto_todo', 'aprobado', 'si', 'recibo_factura')).toBe(false);

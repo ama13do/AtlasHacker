@@ -2,12 +2,12 @@
 import { computed, ref, watch } from 'vue'
 import { LIMITS, useTestimonyFormContext } from '@testimonies/composables/useTestimonyForm'
 import { useParticipantFolio } from '@testimonies/composables/useParticipantFolio'
-import type { Consent, MediaConsent, SensitiveHandling } from '@testimonies/types/testimony'
+import type { Consent, MediaConsent, SensitiveHandling, VoiceImage } from '@testimonies/types/testimony'
 import { maskFolio } from '@testimonies/utils/folio'
 import ChoiceGroup, { type Choice } from '@testimonies/components/form/ChoiceGroup.vue'
 import FormField from '@testimonies/components/form/FormField.vue'
 
-const { draft, errors, publishable, editing } = useTestimonyFormContext()
+const { draft, errors, publishable, editing, staff } = useTestimonyFormContext()
 
 // Fotos, video o audio adjuntos sin autorizar su uso: se guardan, pero no se publican
 const mediaWithoutConsent = computed(
@@ -21,15 +21,28 @@ const consentOptions = computed<Choice<Consent>[]>(() => [
     description: draft.visibility === 'anonimo' ? 'Elegiste aparecer como anónimo' : undefined,
     disabled: draft.visibility === 'anonimo',
   },
-  { value: 'publico-anonimo', label: 'Público anónimo' },
-  { value: 'interno', label: 'Solo documentación interna' },
-  { value: 'no-publicar', label: 'No autorizo publicación' },
+  { value: 'publico-anonimo', label: 'Público anónimo', description: 'Se publica sin tu nombre' },
+  { value: 'interno', label: 'Solo documentación interna', description: 'Lo ve solo el equipo; no sale en el mapa' },
+  { value: 'no-publicar', label: 'No autorizo su uso', description: 'Se guarda, pero no se usa ni se publica' },
 ])
 
+// Manual C.4
+const voiceOptions: Choice<VoiceImage>[] = [
+  { value: 'voz_imagen', label: 'Voz e imagen' },
+  { value: 'solo_voz', label: 'Solo voz' },
+  { value: 'ninguna', label: 'Ninguna' },
+]
+
+// Manual C.10
 const mediaOptions: Choice<MediaConsent>[] = [
   { value: 'si', label: 'Sí' },
   { value: 'no', label: 'No' },
-  { value: 'na', label: 'N/A' },
+  { value: 'na', label: 'No aplica', description: 'No hay personas en las fotos' },
+]
+
+const minorsOptions: Choice<boolean>[] = [
+  { value: false, label: 'No' },
+  { value: true, label: 'Sí', description: 'Se revisa antes de publicar' },
 ]
 
 const sensitiveOptions: Choice<boolean>[] = [
@@ -71,6 +84,13 @@ function toggleTyping(on: boolean) {
 
 <template>
   <div class="space-y-8">
+    <!-- Aviso clave del Manual (C.1) -->
+    <p class="rounded-2xl border-l-8 border-black bg-neon-lime px-4 py-3 text-sm text-black" role="note">
+      <span class="block text-xs font-black uppercase">Importante</span>
+      Este formato no es una declaración jurídica oficial ni sustituye una denuncia formal. Es una herramienta de documentación y participación
+      para el Tribunal Popular por Nuestro Futuro, impulsada por Hackers x Nuestro Futuro.
+    </p>
+
     <div class="space-y-2">
       <label
         class="flex cursor-pointer items-start gap-3 rounded-xl border px-4 py-3 text-sm transition"
@@ -83,7 +103,10 @@ function toggleTyping(on: boolean) {
           :aria-invalid="!!errors.voluntary"
           :aria-describedby="errors.voluntary ? 'voluntary-error' : undefined"
         />
-        <span>Declaro que participo voluntariamente y entiendo el uso de mi testimonio.</span>
+        <span>
+          <span class="block font-bold">Participo de forma voluntaria y entiendo el uso de mi testimonio.</span>
+          <span class="block text-xs opacity-75">Puedes no responder cualquier pregunta y retirar tu testimonio hasta el cierre de la relatoría (desde «Mi folio»).</span>
+        </span>
       </label>
       <p v-if="errors.voluntary" id="voluntary-error" class="text-sm text-danger">{{ errors.voluntary }}</p>
     </div>
@@ -91,18 +114,37 @@ function toggleTyping(on: boolean) {
     <section class="space-y-4">
       <h3 class="form-group-title">Uso del testimonio</h3>
       <div class="grid gap-8 @3xl:grid-cols-[3fr_2fr]">
-        <ChoiceGroup v-model="draft.consent" label="Autorizo" required :options="consentOptions" :error="errors.consent" />
         <ChoiceGroup
-          v-model="draft.mediaConsent"
-          label="Uso de foto, audio o video"
+          v-model="draft.consent"
+          label="¿Autorizas que tu testimonio se use para los Juicios por Nuestro Futuro?"
           required
-          :options="mediaOptions"
-          :columns="3"
-          :error="errors.mediaConsent"
+          :options="consentOptions"
+          :error="errors.consent"
+          help="Decide si tu testimonio aparece en el mapa público y si con tu nombre. «Solo documentación interna» y «No autorizo» nunca se publican."
         />
+        <div class="space-y-6">
+          <ChoiceGroup
+            v-model="draft.voiceImage"
+            label="¿Autorizas transmisión en vivo o grabación de tu voz o imagen?"
+            required
+            :options="voiceOptions"
+            :columns="3"
+            :error="errors.voiceImage"
+            help="Por ejemplo, si el testimonio se lee o se presenta en una audiencia del Tribunal que se transmite o se graba."
+          />
+          <ChoiceGroup
+            v-model="draft.mediaConsent"
+            label="¿Las personas que aparecen en fotos o videos autorizaron el uso de su imagen?"
+            required
+            :options="mediaOptions"
+            :columns="3"
+            :error="errors.mediaConsent"
+            help="Si no lo autorizaron, las fotos y videos se guardan solo para documentación interna."
+          />
+        </div>
       </div>
       <p v-if="mediaWithoutConsent" class="rounded-xl bg-fg/5 px-4 py-3 text-sm text-fg/80" role="note">
-        Elegiste no autorizar foto, audio o video: los archivos que adjuntaste se guardarán solo para documentación interna.
+        Las personas fotografiadas no autorizaron su imagen: los archivos que adjuntaste se guardarán solo para documentación interna.
       </p>
     </section>
 
@@ -113,6 +155,7 @@ function toggleTyping(on: boolean) {
           v-model="draft.sensitive"
           label="¿Existe información que pueda poner a alguien en riesgo?"
           required
+          help="Por ejemplo: nombres y contactos, domicilios o ubicaciones precisas, conflictos comunitarios, procesos legales, violencia o amenazas, o fotos que identifiquen a personas o lugares vulnerables. La seguridad de la persona está por encima de completar la ficha."
           :options="sensitiveOptions"
           :error="errors.sensitive"
         />
@@ -126,11 +169,21 @@ function toggleTyping(on: boolean) {
           :error="errors.sensitiveHandling"
         />
       </div>
+      <ChoiceGroup
+        v-model="draft.minors"
+        label="¿Hay información de niñas, niños o adolescentes?"
+        required
+        :options="minorsOptions"
+        :columns="2"
+        :error="errors.minors"
+        help="No se recopila información que los identifique sin autorización de sus tutores y salvaguardas. Si marcas «Sí», el testimonio siempre se revisa antes de publicarse."
+      />
     </section>
 
     <!-- Al editar, el folio y el contacto se manejan en Mi folio -->
     <section v-if="!editing" class="space-y-4">
-      <div class="space-y-1">
+      <!-- Captura en el panel: la persona se elige allí (folio existente o uno nuevo) -->
+      <div v-if="!staff" class="space-y-1">
         <h3 class="form-group-title">Tu folio <span class="normal-case">(opcional)</span></h3>
         <p class="text-xs text-fg/50">
           Con tu folio puedes subir más testimonios y editar los tuyos. Si no tienes uno, te daremos uno al enviar.
@@ -138,9 +191,10 @@ function toggleTyping(on: boolean) {
       </div>
 
       <!-- Folio recordado en este dispositivo -->
+      <template v-if="staff" />
       <div
-        v-if="remembered && !typingFolio"
-        class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-fg/15 px-4 py-3 text-sm"
+        v-else-if="remembered && !typingFolio"
+        class="border-2 border-ink bg-card shadow-brut flex flex-wrap items-center justify-between gap-3 rounded-xl px-4 py-3 text-sm"
       >
         <span>
           Enviarás con tu folio <span class="font-semibold tabular-nums">{{ maskFolio(remembered) }}</span>
@@ -211,8 +265,8 @@ function toggleTyping(on: boolean) {
 
     <p
       v-if="draft.consent"
-      class="rounded-xl px-4 py-3 text-sm"
-      :class="publishable ? 'bg-neon-green/10 light:bg-neon-green/25 text-neon-green light:text-fg' : 'bg-fg/5 text-fg/80'"
+      class="rounded-2xl border-2 px-4 py-3 text-sm font-semibold"
+      :class="publishable ? 'border-black bg-neon-green text-black' : 'border-dashed border-ink/60'"
     >
       {{
         publishable

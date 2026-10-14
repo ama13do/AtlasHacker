@@ -38,6 +38,13 @@ export const adminRoutes: RouteRecordRaw[] = [
         props: true,
       },
       {
+        // Ficha en papel (facilitación, moderación y administración)
+        path: 'capturar',
+        name: 'admin-capture',
+        component: () => import('@admin/views/CapturePage.vue'),
+        meta: { roles: ['admin', 'moderador', 'facilitador'] },
+      },
+      {
         path: 'comentarios',
         name: 'admin-comments',
         component: () => import('@admin/views/CommentsPage.vue'),

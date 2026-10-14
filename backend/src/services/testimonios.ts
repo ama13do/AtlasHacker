@@ -75,7 +75,12 @@ export async function crearTestimonio(c: Ctx, input: CrearTestimonioInput | Crea
 
   const aparecerComo = input.aparecer_como ?? 'anonimo';
   const infoSensible = input.info_sensible ?? false;
-  const decision = decidirPublicacion(cfg.modo_publicacion, { autorizacion: input.autorizacion, info_sensible: infoSensible, sensible_accion: input.sensible_accion });
+  const decision = decidirPublicacion(cfg.modo_publicacion, {
+    autorizacion: input.autorizacion,
+    info_sensible: infoSensible,
+    sensible_accion: input.sensible_accion,
+    info_menores: input.info_menores ?? false,
+  });
   const nombrePublico = aparecerComo === 'nombre' ? (input.nombre_publico ?? input.nombre ?? null) : null;
 
   const participanteIdDado = op.participanteId ?? ('participante_id' in input ? input.participante_id : undefined);
@@ -127,11 +132,16 @@ export async function crearTestimonio(c: Ctx, input: CrearTestimonioInput | Crea
             evidencia_tipos: input.evidencia_tipos ?? [],
             evidencia_otro: input.evidencia_otro,
             dato_fuente_anio: input.dato_fuente_anio,
+            fuentes: input.fuentes ?? [],
             fuente_pendiente_verificacion: input.fuente_pendiente_verificacion ?? false,
             pregunta_tribunal: input.pregunta_tribunal,
+            algo_mas: input.algo_mas,
+            registro_voz: input.registro_voz,
             consentimiento_aceptado: true,
             autorizacion: input.autorizacion,
             autoriza_multimedia: input.autoriza_multimedia ?? 'na',
+            autoriza_voz_imagen: input.autoriza_voz_imagen ?? null,
+            info_menores: input.info_menores ?? false,
             consentimiento_version: cfg.consentimiento_version_actual,
             info_sensible: infoSensible,
             sensible_accion: infoSensible ? (input.sensible_accion ?? null) : null,
@@ -392,6 +402,7 @@ export async function editarPropio(c: Ctx, participanteId: string, id: string, i
     autorizacion: (set.autorizacion ?? actual.autorizacion) as never,
     info_sensible: sensible,
     sensible_accion: (set.info_sensible === false ? null : accion) as never,
+    info_menores: (set.info_menores ?? actual.info_menores) as boolean,
   });
   set.estado = cfg.edicion_requiere_revision ? 'pendiente' : decision.estado;
   set.motivo_rechazo = null;

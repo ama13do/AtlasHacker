@@ -67,7 +67,7 @@ const btn = 'rounded-full px-4 py-2 text-sm font-semibold transition focus-visib
 </script>
 
 <template>
-  <section v-if="canModerate" class="space-y-3 rounded-2xl border border-fg/15 p-4" aria-label="Moderación">
+  <section v-if="canModerate" class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-4" aria-label="Moderación">
     <div class="flex flex-wrap gap-2">
       <template v-if="t.activo">
         <button v-if="t.estado !== 'aprobado'" type="button" :class="[btn, 'bg-neon-green text-black']" @click="open('aprobar')">Aprobar</button>

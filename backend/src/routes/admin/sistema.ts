@@ -90,7 +90,7 @@ adminSistema.openapi(
         fecha: testimonios.fecha, lugar_territorio: testimonios.lugar_territorio, entidad: testimonios.entidad, municipio: testimonios.municipio,
         categoria: categorias.slug, expediente: expedientes.codigo, autorizacion: testimonios.autorizacion, info_sensible: testimonios.info_sensible,
         tipo_geometria: testimonios.tipo_geometria, relato: testimonios.relato, territorio_dice: testimonios.territorio_dice, comunidad_dice: testimonios.comunidad_dice,
-        dato_fuente_anio: testimonios.dato_fuente_anio, pregunta_tribunal: testimonios.pregunta_tribunal, created_at: testimonios.created_at,
+        dato_fuente_anio: testimonios.dato_fuente_anio, fuentes: testimonios.fuentes, pregunta_tribunal: testimonios.pregunta_tribunal, created_at: testimonios.created_at,
         geometry: geoJson(testimonios.ubicacion),
       })
       .from(testimonios)

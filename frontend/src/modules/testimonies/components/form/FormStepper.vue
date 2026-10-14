@@ -11,10 +11,10 @@ defineEmits<{ go: [step: number] }>()
       <li v-for="(item, i) in STEPS" :key="item.title">
         <button
           type="button"
-          class="group relative flex w-full items-center gap-3 rounded-xl py-2 pr-3 pl-4 text-left text-sm transition focus-visible:outline-2 focus-visible:outline-fg disabled:cursor-default"
+          class="group relative flex w-full items-center gap-3 rounded-full border-2 py-1.5 pr-3 pl-1.5 text-left text-sm transition focus-visible:outline-3 focus-visible:outline-brand-blue disabled:cursor-default"
           :class="[
-            i === step && !done ? 'bg-fg/5 font-semibold text-fg' : 'text-fg/60',
-            i <= maxReached && i !== step && !done ? 'hover:bg-fg/5 hover:text-fg' : '',
+            i === step && !done ? 'border-ink bg-card font-bold text-fg shadow-brut-sm' : 'border-transparent text-fg/65',
+            i <= maxReached && i !== step && !done ? 'hover:border-ink/40 hover:text-fg' : '',
             i > maxReached && !done ? 'text-fg/30' : '',
           ]"
           :disabled="done || i > maxReached || i === step"
@@ -23,18 +23,13 @@ defineEmits<{ go: [step: number] }>()
         >
           <!-- Barra del paso actual -->
           <span
-            v-if="i === step && !done"
-            class="absolute top-2 bottom-2 left-0 w-1 rounded-full bg-neon-lime"
-            aria-hidden="true"
-          />
-          <span
-            class="grid size-6 shrink-0 place-items-center rounded-full text-xs font-semibold tabular-nums"
+            class="grid size-7 shrink-0 place-items-center rounded-full border-2 text-xs font-black tabular-nums"
             :class="
               done || i < step || (i <= maxReached && i !== step)
-                ? 'bg-neon-lime text-black'
+                ? 'border-black bg-neon-green text-black'
                 : i === step
-                  ? 'border-2 border-neon-lime text-accent-ink light:border-fg'
-                  : 'border border-fg/20'
+                  ? 'border-black bg-neon-lime text-black'
+                  : 'border-ink/25'
             "
             aria-hidden="true"
           >

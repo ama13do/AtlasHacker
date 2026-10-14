@@ -110,12 +110,12 @@ async function create() {
   <div class="space-y-6">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 class="text-2xl font-semibold">Personas</h1>
+        <h1 class="text-3xl font-black uppercase"><span class="hl-box hl-blue" style="--hl-rot: -1deg">Personas</span></h1>
         <p class="text-sm text-fg/60">Quienes aportan testimonios, identificadas por su folio.</p>
       </div>
       <button
         type="button"
-        class="rounded-full bg-fg px-4 py-2 text-sm font-semibold text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
+        class="btn-hxnf btn-ink btn-sm"
         @click="(creating = !creating), (createdFolio = null)"
       >
         {{ creating ? 'Cerrar' : 'Nueva persona' }}
@@ -123,7 +123,7 @@ async function create() {
     </div>
 
     <!-- Alta -->
-    <section v-if="creating" class="space-y-3 rounded-2xl border border-fg/15 p-4" aria-label="Nueva persona">
+    <section v-if="creating" class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-4" aria-label="Nueva persona">
       <OneTimeFolio v-if="createdFolio" :folio="createdFolio" title="Folio de la nueva persona" />
       <form v-else class="space-y-3" @submit.prevent="create">
         <p class="text-sm text-fg/60">Para dar un folio a alguien antes de capturar su ficha. Todo es opcional y se guarda cifrado.</p>
@@ -133,7 +133,7 @@ async function create() {
           <input v-model="newPerson.telefono" type="tel" maxlength="25" class="field-input text-sm md:py-2" placeholder="Teléfono" aria-label="Teléfono" />
         </div>
         <p v-if="createError" class="text-sm text-danger" role="alert">{{ createError }}</p>
-        <button type="submit" class="rounded-full bg-neon-lime px-5 py-2 text-sm font-semibold text-black disabled:opacity-50" :disabled="saving">
+        <button type="submit" class="btn-hxnf btn-lime btn-sm" :disabled="saving">
           {{ saving ? 'Creando…' : 'Crear y emitir folio' }}
         </button>
       </form>
@@ -154,7 +154,7 @@ async function create() {
             aria-label="Últimos 4 caracteres del folio"
           />
           <div class="flex gap-2">
-            <button type="submit" class="rounded-full bg-fg px-4 py-2 text-sm font-semibold text-surface">Buscar</button>
+            <button type="submit" class="btn-hxnf btn-ink btn-sm">Buscar</button>
             <button type="button" class="rounded-full px-3 py-2 text-sm text-fg/70 hover:underline" @click="clear">Todas</button>
           </div>
         </div>
@@ -167,8 +167,8 @@ async function create() {
       <div v-if="status === 'loading'" class="space-y-2" aria-hidden="true">
         <div v-for="n in 5" :key="n" class="h-16 animate-pulse rounded-2xl bg-fg/10" />
       </div>
-      <p v-else-if="status === 'error'" class="rounded-2xl border border-fg/15 p-4 text-sm text-danger" role="alert">{{ error }}</p>
-      <p v-else-if="status === 'ready' && !rows.length" class="rounded-2xl border border-dashed border-fg/20 p-8 text-center text-sm text-fg/60">
+      <p v-else-if="status === 'error'" class="rounded-[20px] border-2 border-ink bg-card shadow-brut-sm p-4 text-sm text-danger" role="alert">{{ error }}</p>
+      <p v-else-if="status === 'ready' && !rows.length" class="rounded-[20px] border-2 border-dashed border-ink/40 p-8 text-center text-sm text-fg/60">
         Nadie coincide con la búsqueda.
       </p>
       <template v-else-if="status === 'ready'">
@@ -177,7 +177,7 @@ async function create() {
           <li v-for="p in rows" :key="p.id">
             <button
               type="button"
-              class="flex w-full flex-wrap items-center gap-x-4 gap-y-1 rounded-2xl border border-fg/15 p-4 text-left text-sm transition hover:border-fg/40 focus-visible:outline-2 focus-visible:outline-fg"
+              class="flex w-full flex-wrap items-center gap-x-4 gap-y-1 rounded-[20px] border-2 border-ink bg-card shadow-brut-sm p-4 text-left text-sm transition card-lift focus-visible:outline-3 focus-visible:outline-brand-blue"
               :class="{ 'opacity-60': !p.activo }"
               @click="open(p)"
             >
@@ -188,8 +188,8 @@ async function create() {
                 <span v-if="p.dejo_correo" class="rounded-full border border-fg/20 px-2">correo</span>
                 <span v-if="p.dejo_telefono" class="rounded-full border border-fg/20 px-2">teléfono</span>
                 <span v-if="p.perfil_publico" class="rounded-full bg-neon-green px-2 font-semibold text-black">perfil público</span>
-                <span v-if="!p.activo" class="rounded-full border border-fg/25 px-2">folio desactivado</span>
-                <span v-if="p.datos_cancelados_at" class="rounded-full border border-fg/25 px-2">datos cancelados</span>
+                <span v-if="!p.activo" class="chip bg-card">folio desactivado</span>
+                <span v-if="p.datos_cancelados_at" class="chip bg-card">datos cancelados</span>
               </span>
               <span class="ml-auto text-xs text-fg/50">Alta {{ fmtDate(p.created_at) }}</span>
             </button>

@@ -134,7 +134,7 @@ onMounted(load)
 <template>
   <div class="space-y-6">
     <div>
-      <h1 class="text-2xl font-semibold">Catálogos</h1>
+      <h1 class="text-3xl font-black uppercase"><span class="hl-box hl-pink" style="--hl-rot: -1deg">Catálogos</span></h1>
       <p class="text-sm text-fg/60">Categorías de los testimonios y expedientes del Tribunal.</p>
     </div>
 
@@ -143,7 +143,7 @@ onMounted(load)
     </p>
 
     <div v-if="status === 'loading'" class="h-40 animate-pulse rounded-2xl bg-fg/10" aria-hidden="true" />
-    <div v-else-if="status === 'error'" class="space-y-2 rounded-2xl border border-fg/15 p-6" role="alert">
+    <div v-else-if="status === 'error'" class="border-2 border-ink bg-card shadow-brut space-y-2 rounded-[22px] p-6" role="alert">
       <p class="font-semibold">No pudimos cargar los catálogos.</p>
       <button type="button" class="text-sm font-semibold text-accent-ink hover:underline" @click="load">Reintentar</button>
     </div>
@@ -153,12 +153,12 @@ onMounted(load)
       <section class="space-y-3" aria-labelledby="cat-title">
         <div class="flex items-center justify-between gap-3">
           <h2 id="cat-title" class="text-lg font-semibold">Categorías</h2>
-          <button v-if="canEdit && !catOpen" type="button" class="rounded-full border border-fg/25 px-4 py-1.5 text-sm font-semibold hover:border-fg" @click="editCategory()">
+          <button v-if="canEdit && !catOpen" type="button" class="btn-hxnf btn-paper btn-sm" @click="editCategory()">
             Nueva categoría
           </button>
         </div>
 
-        <form v-if="catOpen" class="space-y-3 rounded-2xl border border-fg/15 p-4" @submit.prevent="saveCategory">
+        <form v-if="catOpen" class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-4" @submit.prevent="saveCategory">
           <div class="grid gap-3 sm:grid-cols-2">
             <label class="space-y-1 text-sm"><span class="font-semibold">Nombre</span><input v-model="catForm.nombre" type="text" maxlength="120" class="field-input text-sm md:py-2" /></label>
             <label class="space-y-1 text-sm">
@@ -180,17 +180,17 @@ onMounted(load)
           </p>
           <p v-if="catError" class="text-xs text-danger">{{ catError }}</p>
           <div class="flex gap-3">
-            <button type="submit" class="rounded-full bg-fg px-5 py-2 text-sm font-semibold text-surface disabled:opacity-50" :disabled="!!catError">Guardar</button>
+            <button type="submit" class="btn-hxnf btn-ink btn-sm" :disabled="!!catError">Guardar</button>
             <button type="button" class="text-sm text-fg/60 hover:underline" @click="catOpen = false">Cancelar</button>
           </div>
         </form>
 
         <ul class="space-y-2">
-          <li v-for="c in categories" :key="c.id" class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-fg/15 p-3 text-sm" :class="{ 'opacity-60': !c.activo }">
+          <li v-for="c in categories" :key="c.id" class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[20px] border-2 border-ink bg-card shadow-brut-sm p-3 text-sm" :class="{ 'opacity-60': !c.activo }">
             <span class="size-3 shrink-0 rounded-full" :class="categoryStyle(c.slug).bg" aria-hidden="true" />
             <span class="font-semibold">{{ c.nombre }}</span>
             <span class="font-mono text-xs text-fg/50">{{ c.slug }}</span>
-            <span v-if="!c.activo" class="rounded-full border border-fg/25 px-2 text-xs">Inactiva</span>
+            <span v-if="!c.activo" class="chip bg-card">Inactiva</span>
             <span class="text-xs text-fg/50">orden {{ c.orden }}</span>
             <span v-if="canEdit" class="ml-auto flex gap-4">
               <button type="button" :class="link" @click="editCategory(c)">Editar</button>
@@ -205,12 +205,12 @@ onMounted(load)
       <section class="space-y-3" aria-labelledby="case-title">
         <div class="flex items-center justify-between gap-3">
           <h2 id="case-title" class="text-lg font-semibold">Expedientes</h2>
-          <button v-if="canEdit && !caseOpen" type="button" class="rounded-full border border-fg/25 px-4 py-1.5 text-sm font-semibold hover:border-fg" @click="editCase()">
+          <button v-if="canEdit && !caseOpen" type="button" class="btn-hxnf btn-paper btn-sm" @click="editCase()">
             Nuevo expediente
           </button>
         </div>
 
-        <form v-if="caseOpen" class="space-y-3 rounded-2xl border border-fg/15 p-4" @submit.prevent="saveCase">
+        <form v-if="caseOpen" class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-4" @submit.prevent="saveCase">
           <div class="grid gap-3 sm:grid-cols-3">
             <label class="space-y-1 text-sm"><span class="font-semibold">Código</span><input v-model="caseForm.codigo" type="text" maxlength="40" class="field-input font-mono text-sm uppercase md:py-2" placeholder="FUTURO/002" /></label>
             <label class="space-y-1 text-sm sm:col-span-2"><span class="font-semibold">Título</span><input v-model="caseForm.titulo" type="text" maxlength="200" class="field-input text-sm md:py-2" /></label>
@@ -219,17 +219,17 @@ onMounted(load)
           <label class="block space-y-1 text-sm"><span class="font-semibold">Descripción</span><textarea v-model="caseForm.descripcion" rows="2" maxlength="2000" class="field-input text-sm" /></label>
           <p v-if="caseError" class="text-xs text-danger">{{ caseError }}</p>
           <div class="flex gap-3">
-            <button type="submit" class="rounded-full bg-fg px-5 py-2 text-sm font-semibold text-surface disabled:opacity-50" :disabled="!!caseError">Guardar</button>
+            <button type="submit" class="btn-hxnf btn-ink btn-sm" :disabled="!!caseError">Guardar</button>
             <button type="button" class="text-sm text-fg/60 hover:underline" @click="caseOpen = false">Cancelar</button>
           </div>
         </form>
 
         <ul class="space-y-2">
-          <li v-for="e in cases" :key="e.id" class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-2xl border border-fg/15 p-3 text-sm" :class="{ 'opacity-60': !e.activo }">
+          <li v-for="e in cases" :key="e.id" class="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-[20px] border-2 border-ink bg-card shadow-brut-sm p-3 text-sm" :class="{ 'opacity-60': !e.activo }">
             <span class="font-mono font-semibold">{{ e.codigo }}</span>
             <span>{{ e.titulo }}</span>
             <span v-if="e.materia" class="text-xs text-fg/50">· {{ e.materia }}</span>
-            <span v-if="!e.activo" class="rounded-full border border-fg/25 px-2 text-xs">Inactivo</span>
+            <span v-if="!e.activo" class="chip bg-card">Inactivo</span>
             <span v-if="canEdit" class="ml-auto flex gap-4">
               <button type="button" :class="link" @click="editCase(e)">Editar</button>
               <button type="button" :class="link" @click="toggleCase(e)">{{ e.activo ? 'Desactivar' : 'Activar' }}</button>

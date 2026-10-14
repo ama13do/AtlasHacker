@@ -19,6 +19,7 @@ const ALL: Rol[] = ['admin', 'moderador', 'facilitador', 'lector']
 const ITEMS: NavItem[] = [
   { label: 'Resumen', to: { name: 'admin-home' }, exact: true, roles: ['admin', 'moderador', 'lector'], icon: 'M3 13h8V3H3zM13 21h8V11h-8zM3 21h8v-6H3zM13 9h8V3h-8z' },
   { label: 'Testimonios', to: { name: 'admin-testimonies' }, roles: ALL, icon: 'M4 4h16v12H5.17L4 17.17zM8 8h8M8 12h5' },
+  { label: 'Capturar ficha', to: { name: 'admin-capture' }, roles: ['admin', 'moderador', 'facilitador'], icon: 'M12 5v14M5 12h14' },
   { label: 'Comentarios', to: { name: 'admin-comments' }, roles: ['admin', 'moderador', 'lector'], icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' },
   { label: 'Personas', to: { name: 'admin-people' }, roles: ['admin', 'moderador', 'facilitador'], icon: 'M16 21v-2a4 4 0 0 0-8 0v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
   { label: 'Usuarios', to: { name: 'admin-users' }, roles: ['admin'], icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' },
@@ -27,7 +28,7 @@ const ITEMS: NavItem[] = [
   { label: 'Bitácora', to: { name: 'admin-log' }, roles: ['admin'], icon: 'M12 8v4l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z' },
 ]
 
-const ACTIVE = 'bg-fg/10 !text-fg'
+const ACTIVE = '!border-ink bg-neon-lime !text-black shadow-brut-sm -translate-y-px'
 
 const auth = useAuthStore()
 const items = computed(() => ITEMS.filter((i) => auth.can(...i.roles)))
@@ -40,7 +41,7 @@ const items = computed(() => ITEMS.filter((i) => auth.can(...i.roles)))
         <RouterLink
           v-if="item.to"
           :to="item.to"
-          class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold text-fg/70 transition hover:bg-fg/5 hover:text-fg focus-visible:outline-2 focus-visible:outline-fg"
+          class="flex items-center gap-3 rounded-full border-2 border-transparent px-3 py-1.5 text-sm font-bold text-fg/75 transition hover:border-ink/40 hover:text-fg focus-visible:outline-3 focus-visible:outline-brand-blue"
           :active-class="item.exact ? '' : ACTIVE"
           :exact-active-class="ACTIVE"
           @click="$emit('navigate')"

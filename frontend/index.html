@@ -3,15 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#ffffff" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AtlasHacker</title>
+    <title>Atlas · Hackers x Nuestro Futuro</title>
+    <meta name="description" content="Mapas de testimonios de Hackers x Nuestro Futuro: Juicios por Nuestro Futuro y más." />
     <script>
       // Aplica el tema guardado antes de pintar (ver src/core/theme/useTheme.ts)
       try {
-        if (localStorage.getItem('atlashacker:theme') === 'light') {
-          document.documentElement.dataset.theme = 'light'
-          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        document.documentElement.dataset.theme = 'light'
+        if (localStorage.getItem('atlashacker:theme') === 'dark') {
+          document.documentElement.dataset.theme = 'dark'
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#000000')
         }
       } catch (e) {}
     </script>

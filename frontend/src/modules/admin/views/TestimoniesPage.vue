@@ -186,7 +186,7 @@ const rangeText = computed(() => {
   <div class="space-y-6">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <div>
-        <h1 class="text-2xl font-semibold">Testimonios</h1>
+        <h1 class="text-3xl font-black uppercase"><span class="hl-box hl-pink" style="--hl-rot: -1deg">Testimonios</span></h1>
         <p class="text-sm text-fg/60">
           {{ auth.user?.rol === 'facilitador' ? 'Los testimonios que capturaste.' : 'Cola de moderación y consulta.' }}
         </p>
@@ -194,7 +194,7 @@ const rangeText = computed(() => {
       <button
         v-if="canModerate"
         type="button"
-        class="rounded-full border border-fg/25 px-4 py-1.5 text-sm font-semibold hover:border-fg disabled:opacity-50"
+        class="btn-hxnf btn-paper btn-sm"
         :disabled="exporting"
         title="Con los filtros actuales. Incluye ubicaciones exactas; queda en la bitácora."
         @click="exportGeoJson"
@@ -237,7 +237,7 @@ const rangeText = computed(() => {
         <option value="false">Sin información sensible</option>
       </select>
       <div class="flex gap-2">
-        <button type="submit" class="rounded-full bg-fg px-4 py-2 text-sm font-semibold text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg">
+        <button type="submit" class="btn-hxnf btn-ink btn-sm">
           Filtrar
         </button>
         <button v-if="hasFilters" type="button" class="rounded-full px-3 py-2 text-sm text-fg/70 hover:text-fg hover:underline" @click="clearFilters">
@@ -255,7 +255,7 @@ const rangeText = computed(() => {
     <!-- Barra de lote -->
     <div
       v-if="canModerate && selected.length"
-      class="sticky top-16 z-[5] flex flex-wrap items-center gap-2 rounded-2xl border border-fg/15 bg-surface px-4 py-3 shadow-lg"
+      class="border-2 border-ink bg-card shadow-brut sticky top-16 z-[5] flex flex-wrap items-center gap-2 rounded-[22px] px-4 py-3 shadow-lg"
       role="region"
       aria-label="Acciones para la selección"
     >
@@ -272,7 +272,7 @@ const rangeText = computed(() => {
           v-for="b in BATCH_ACTIONS[tab]"
           :key="b.action"
           type="button"
-          class="rounded-full border border-fg/25 px-4 py-1.5 text-sm font-semibold hover:border-fg disabled:opacity-50"
+          class="btn-hxnf btn-paper btn-sm"
           :disabled="batch.running"
           @click="startBatch(b.action)"
         >
@@ -287,11 +287,11 @@ const rangeText = computed(() => {
     <div v-if="status === 'loading'" class="space-y-2" aria-hidden="true">
       <div v-for="n in 6" :key="n" class="h-20 animate-pulse rounded-2xl bg-fg/10" />
     </div>
-    <div v-else-if="status === 'error'" class="space-y-2 rounded-2xl border border-fg/15 p-6" role="alert">
+    <div v-else-if="status === 'error'" class="border-2 border-ink bg-card shadow-brut space-y-2 rounded-[22px] p-6" role="alert">
       <p class="font-semibold">No pudimos cargar los testimonios.</p>
       <button type="button" class="text-sm font-semibold text-accent-ink hover:underline" @click="load">Reintentar</button>
     </div>
-    <p v-else-if="!rows.length" class="rounded-2xl border border-dashed border-fg/20 p-8 text-center text-sm text-fg/60">
+    <p v-else-if="!rows.length" class="rounded-[20px] border-2 border-dashed border-ink/40 p-8 text-center text-sm text-fg/60">
       {{ hasFilters ? 'Ningún testimonio coincide con los filtros.' : 'No hay testimonios aquí.' }}
     </p>
 

@@ -41,6 +41,21 @@ export interface ApiResumen {
   ultimos_30_dias: { fecha: string; recibidos: number; aprobados: number }[]
 }
 
+// GET /api/admin/estadisticas/serie
+export interface ApiSerie {
+  periodo: string // AAAA-MM-DD (inicio del día, semana o mes)
+  recibidos: number
+  aprobados: number
+  rechazados: number
+}
+
+// POST /api/admin/testimonios
+export interface ApiCapturaRespuesta {
+  testimonio: { id: string; folio: string; estado: EstadoModeracion; publicado: boolean }
+  participante: { id: string; folio: string | null } // folio solo si la persona se creó ahora
+  razon?: string
+}
+
 // --- Testimonios (moderación) ---
 
 export type EstadoModeracion = 'pendiente' | 'aprobado' | 'rechazado'
@@ -123,7 +138,12 @@ export interface ApiTestimonioStaff extends Omit<ApiTestimonioStaffFila, 'catego
   dato_fuente_anio: string | null
   fuente_pendiente_verificacion: boolean
   pregunta_tribunal: string | null
+  fuentes: { fuente: string; anio?: number; enlace?: string }[] | null
+  algo_mas: string | null
+  registro_voz: string | null
   autoriza_multimedia: 'si' | 'no' | 'na'
+  autoriza_voz_imagen: 'voz_imagen' | 'solo_voz' | 'ninguna' | null
+  info_menores: boolean
   consentimiento_version: string | null
   consentimiento_at: string | null
   moderado_at: string | null
@@ -148,6 +168,8 @@ export interface ApiEditarTestimonioStaff {
   comunidad_dice?: string
   dato_fuente_anio?: string
   pregunta_tribunal?: string
+  algo_mas?: string
+  registro_voz?: string
   notas_internas?: string | null
   ubicacion_aproximada?: boolean
 }

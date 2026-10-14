@@ -144,21 +144,21 @@ onMounted(load)
 <template>
   <div class="max-w-3xl space-y-6">
     <div>
-      <h1 class="text-2xl font-semibold">Configuración</h1>
+      <h1 class="text-3xl font-black uppercase"><span class="hl-box hl-green" style="--hl-rot: -1deg">Configuración</span></h1>
       <p class="text-sm text-fg/60">Cada cambio queda registrado en la bitácora.</p>
     </div>
 
     <div v-if="status === 'loading'" class="space-y-3" aria-hidden="true">
       <div v-for="n in 3" :key="n" class="h-32 animate-pulse rounded-2xl bg-fg/10" />
     </div>
-    <div v-else-if="status === 'error'" class="space-y-2 rounded-2xl border border-fg/15 p-6" role="alert">
+    <div v-else-if="status === 'error'" class="border-2 border-ink bg-card shadow-brut space-y-2 rounded-[22px] p-6" role="alert">
       <p class="font-semibold">No pudimos cargar la configuración.</p>
       <button type="button" class="text-sm font-semibold text-accent-ink hover:underline" @click="load">Reintentar</button>
     </div>
 
     <form v-else-if="form" class="space-y-5" @submit.prevent="save">
       <!-- Publicación -->
-      <fieldset class="space-y-3 rounded-2xl border border-fg/15 p-5">
+      <fieldset class="space-y-3 rounded-[20px] border-2 border-ink bg-card shadow-brut-sm p-5">
         <legend class="px-1 font-semibold">Publicación en el mapa</legend>
         <label
           v-for="m in MODES"
@@ -179,7 +179,7 @@ onMounted(load)
       </fieldset>
 
       <!-- Participación -->
-      <fieldset class="space-y-2 rounded-2xl border border-fg/15 p-5">
+      <fieldset class="space-y-2 rounded-[20px] border-2 border-ink bg-card shadow-brut-sm p-5">
         <legend class="px-1 font-semibold">Participación</legend>
         <label v-for="t in PARTICIPATION" :key="t.key" class="flex cursor-pointer items-start gap-3 py-1 text-sm">
           <input v-model="(form as Record<string, unknown>)[t.key]" type="checkbox" class="mt-0.5 size-4 accent-neon-lime" />
@@ -188,7 +188,7 @@ onMounted(load)
       </fieldset>
 
       <!-- Seguridad -->
-      <fieldset class="space-y-2 rounded-2xl border border-fg/15 p-5">
+      <fieldset class="space-y-2 rounded-[20px] border-2 border-ink bg-card shadow-brut-sm p-5">
         <legend class="px-1 font-semibold">Seguridad y privacidad</legend>
         <label v-for="t in SECURITY" :key="t.key" class="flex cursor-pointer items-start gap-3 py-1 text-sm">
           <input v-model="(form as Record<string, unknown>)[t.key]" type="checkbox" class="mt-0.5 size-4 accent-neon-lime" />
@@ -202,7 +202,7 @@ onMounted(load)
       </fieldset>
 
       <!-- Archivos -->
-      <fieldset class="space-y-3 rounded-2xl border border-fg/15 p-5">
+      <fieldset class="space-y-3 rounded-[20px] border-2 border-ink bg-card shadow-brut-sm p-5">
         <legend class="px-1 font-semibold">Evidencias</legend>
         <div class="flex flex-wrap gap-4 text-sm">
           <label class="flex items-center gap-2">
@@ -231,7 +231,7 @@ onMounted(load)
       </fieldset>
 
       <!-- Consentimiento -->
-      <fieldset class="space-y-2 rounded-2xl border border-fg/15 p-5">
+      <fieldset class="space-y-2 rounded-[20px] border-2 border-ink bg-card shadow-brut-sm p-5">
         <legend class="px-1 font-semibold">Consentimiento</legend>
         <label class="flex flex-wrap items-center gap-3 text-sm">
           Versión vigente del aviso
@@ -240,7 +240,7 @@ onMounted(load)
       </fieldset>
 
       <!-- Mantenimiento -->
-      <section class="space-y-2 rounded-2xl border border-fg/15 p-5 text-sm" aria-labelledby="maint-title">
+      <section class="border-2 border-ink bg-card shadow-brut space-y-2 rounded-[22px] p-5 text-sm" aria-labelledby="maint-title">
         <h2 id="maint-title" class="font-semibold">Mantenimiento</h2>
         <p class="text-fg/60">
           Borra la auditoría cuya retención ya venció ({{ form.auditoria_retencion_dias }} días), sesiones caducadas y límites de uso expirados.
@@ -250,7 +250,7 @@ onMounted(load)
           <button type="button" class="font-semibold text-danger hover:underline disabled:opacity-50" :disabled="purge.busy" @click="runPurge">Sí, purgar</button>
           <button type="button" class="text-fg/60 hover:underline" @click="purge.confirming = false">Cancelar</button>
         </div>
-        <button v-else type="button" class="rounded-full border border-fg/25 px-4 py-1.5 font-semibold hover:border-fg" @click="purge.confirming = true">
+        <button v-else type="button" class="btn-hxnf btn-paper btn-sm" @click="purge.confirming = true">
           Purgar datos vencidos
         </button>
         <p v-if="purge.result" class="text-fg/70" role="status">{{ purge.result }}</p>

@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useTestimonyFormContext } from '@testimonies/composables/useTestimonyForm'
+import { computed, onBeforeUnmount } from 'vue'
+import { asText, useTestimonyFormContext } from '@testimonies/composables/useTestimonyForm'
 import { EVIDENCE_LABELS } from '@testimonies/data/categories'
 import { useCategoriesStore } from '@testimonies/stores/categories'
 import CategoryBadge from '@testimonies/components/CategoryBadge.vue'
 import { useParticipantFolio } from '@testimonies/composables/useParticipantFolio'
 import { maskFolio, normalizeParticipantFolio } from '@testimonies/utils/folio'
 
-const { draft, publishable, goTo, editing } = useTestimonyFormContext()
+const { draft, publishable, goTo, editing, staff } = useTestimonyFormContext()
 const categories = useCategoriesStore()
 const { remembered } = useParticipantFolio()
 
@@ -23,9 +23,10 @@ const LABELS = {
     'publico-nombre': 'Público con nombre',
     'publico-anonimo': 'Público anónimo',
     interno: 'Solo documentación interna',
-    'no-publicar': 'No autorizo publicación',
+    'no-publicar': 'No autoriza su uso',
   },
-  media: { si: 'Sí', no: 'No', na: 'N/A' },
+  media: { si: 'Sí', no: 'No', na: 'No aplica' },
+  voice: { voz_imagen: 'Voz e imagen', solo_voz: 'Solo voz', ninguna: 'Ninguna' },
   handling: { anonimizar: 'Anonimizar', interno: 'Uso interno', revision: 'Revisión antes de publicar' },
 } as const
 
@@ -39,6 +40,19 @@ const evidence = computed(() =>
   draft.evidence.map((e) => (e === 'otro' && draft.evidenceOther ? `Otro: ${draft.evidenceOther}` : EVIDENCE_LABELS[e])),
 )
 
+const sources = computed(() =>
+  draft.sources
+    .filter((s) => asText(s.source).trim())
+    .map((s) => [asText(s.source).trim(), asText(s.year).trim(), asText(s.link).trim()].filter(Boolean).join(' · '))
+    .join('\n'),
+)
+
+// Miniaturas de lo adjuntado (URLs locales; se liberan al salir)
+const thumbs = computed(() =>
+  draft.files.map((a) => ({ id: a.id, name: a.file.name, kind: a.file.type.split('/')[0], type: a.type, url: URL.createObjectURL(a.file) })),
+)
+onBeforeUnmount(() => thumbs.value.forEach((t) => URL.revokeObjectURL(t.url)))
+
 const sections = computed(() => [
   {
     step: 0,
@@ -47,58 +61,60 @@ const sections = computed(() => [
       ['Categoría', draft.topic ? categories.bySlug(draft.topic).label : '—'],
       ['Título', draft.title],
       ['Lugar', draft.place],
+      ['Municipio · Estado', [draft.municipality, draft.state].filter(Boolean).join(' · ')],
       ['Ubicación', draft.coordinates ? `${draft.coordinates[1].toFixed(4)}, ${draft.coordinates[0].toFixed(4)}` : '—'],
       ['Fecha', date.value],
       ['Aparece como', draft.visibility === 'nombre' ? draft.name || '—' : 'Anónimo'],
       ['Facilitador/a', draft.facilitator],
     ],
   },
-  { step: 1, title: '1 · El testimonio', text: draft.testimony },
+  { step: 1, title: 'El testimonio', text: draft.testimony },
   {
     step: 2,
-    title: '2 y 3 · El territorio y la comunidad',
+    title: '01 · El recibo dice',
     rows: [
-      ['El territorio dice', draft.territory],
-      ['La comunidad dice', draft.community],
+      ['Documento', draft.documentStatus ? LABELS.document[draft.documentStatus] : '—'],
+      ['Qué dice', draft.documentDescription],
+      ['Evidencias', evidence.value.join(', ')],
+      ['Huella digital', draft.files.some((a) => a.file.type.startsWith('image/')) ? (draft.stripMetadata ? 'Se borran los metadatos de las fotos' : 'Las fotos se suben tal cual') : ''],
     ],
+    files: true,
   },
   {
     step: 3,
-    title: '4 · El recibo / documento dice',
+    title: '02 · El territorio · 03 · La comunidad',
     rows: [
-      ['Documento', draft.documentStatus ? LABELS.document[draft.documentStatus] : '—'],
-      ['Descripción', draft.documentDescription],
-      ['Evidencias', evidence.value.join(', ')],
-      ['Archivos', draft.files.map((a) => `${a.file.name} (${EVIDENCE_LABELS[a.type]})`).join('\n')],
+      ['El territorio dice', draft.territory || 'Pendiente'],
+      ['La comunidad dice', draft.community || 'Pendiente'],
     ],
   },
   {
     step: 4,
-    title: '5 y 6 · Los datos y la pregunta',
+    title: '04 · Los datos · 05 · La pregunta',
     wide: true,
     rows: [
-      ['Dato', draft.dataText],
-      ['Fuente', [draft.dataSource, draft.dataYear].filter(Boolean).join(', ')],
-      ['Verificación', draft.dataText ? (draft.dataPendingVerification ? 'Pendiente' : 'Verificada') : ''],
-      ['Pregunta del Tribunal', draft.tribunalQuestion],
+      ['Datos', draft.dataText],
+      ['Fuentes', sources.value],
+      ['Verificación', draft.dataText || sources.value ? (draft.dataPendingVerification ? 'Pendiente de verificación' : 'Verificada') : ''],
+      ['Pregunta del Tribunal', draft.tribunalQuestion || 'Pendiente'],
+      ['Algo más', draft.anythingElse],
+      ['Cómo registrar su voz', draft.voiceRecord],
     ],
   },
   {
     step: 5,
-    title: 'Consentimiento',
+    title: 'Consentimiento y cuidados',
     wide: true,
     rows: [
-      ['Autorizo', draft.consent ? LABELS.consent[draft.consent] : '—'],
-      ['Foto/audio/video', draft.mediaConsent ? LABELS.media[draft.mediaConsent] : '—'],
+      ['Autoriza', draft.consent ? LABELS.consent[draft.consent] : '—'],
+      ['Voz o imagen', draft.voiceImage ? LABELS.voice[draft.voiceImage] : '—'],
+      ['Personas fotografiadas', draft.mediaConsent ? LABELS.media[draft.mediaConsent] : '—'],
       [
-        'Información sensible',
-        draft.sensitive === null
-          ? '—'
-          : draft.sensitive
-            ? `Sí · ${draft.sensitiveHandling ? LABELS.handling[draft.sensitiveHandling] : '—'}`
-            : 'No',
+        'Información de riesgo',
+        draft.sensitive === null ? '—' : draft.sensitive ? `Sí · ${draft.sensitiveHandling ? LABELS.handling[draft.sensitiveHandling] : '—'}` : 'No',
       ],
-      ['Folio', editing ? '' : folio.value],
+      ['Niñas, niños o adolescentes', draft.minors === null ? '—' : draft.minors ? 'Sí · se revisa antes de publicar' : 'No'],
+      ['Folio', editing || staff ? '' : folio.value],
       ['Contacto', editing ? '' : [draft.email.trim(), draft.phone.trim()].filter(Boolean).join(' · ')],
     ],
   },
@@ -109,8 +125,8 @@ const sections = computed(() => [
   <div class="space-y-4">
     <div class="flex flex-wrap items-center gap-3">
       <CategoryBadge v-if="draft.topic" :category="draft.topic" />
-      <p class="text-sm" :class="publishable ? 'text-neon-green light:text-fg' : 'text-fg/70'">
-        {{ publishable ? 'Se publicará en el mapa después de una revisión' : 'No se publicará en el mapa' }}
+      <p class="chip px-3 py-1" :class="publishable ? 'bg-neon-green text-black' : 'bg-card'">
+        {{ publishable ? (draft.minors ? 'Se publicará después de una revisión cuidadosa' : 'Se publicará en el mapa después de una revisión') : 'No se publicará en el mapa' }}
       </p>
     </div>
 
@@ -118,29 +134,36 @@ const sections = computed(() => [
       <section
         v-for="section in sections"
         :key="section.step"
-        class="rounded-2xl border border-fg/15 p-4"
+        class="rounded-[22px] border-2 border-ink bg-card p-4 shadow-brut"
         :class="{ '@3xl:col-span-2': 'wide' in section && section.wide }"
       >
         <header class="mb-3 flex items-center justify-between gap-3">
-          <h3 class="text-sm font-semibold">{{ section.title }}</h3>
-          <button
-            type="button"
-            class="rounded-full px-3 py-1 text-xs font-semibold text-accent-ink hover:bg-neon-lime/10 light:hover:bg-neon-lime/40 focus-visible:outline-2 focus-visible:outline-fg"
-            :aria-label="`Editar ${section.title}`"
-            @click="goTo(section.step)"
-          >
+          <h3 class="text-sm font-black uppercase">{{ section.title }}</h3>
+          <button type="button" class="btn-hxnf btn-paper btn-sm min-h-8 px-3 text-xs" :aria-label="`Editar ${section.title}`" @click="goTo(section.step)">
             Editar
           </button>
         </header>
         <p v-if="section.text" class="text-sm whitespace-pre-line text-fg/85">{{ section.text }}</p>
         <dl v-else class="space-y-2 text-sm">
           <template v-for="[label, value] in section.rows" :key="label">
-            <div v-if="value" class="grid grid-cols-[8rem_1fr] gap-3">
-              <dt class="text-fg/50">{{ label }}</dt>
-              <dd class="whitespace-pre-line text-fg/85">{{ value }}</dd>
+            <div v-if="value" class="grid grid-cols-[9rem_1fr] gap-3">
+              <dt class="text-fg/55">{{ label }}</dt>
+              <dd class="whitespace-pre-line text-fg/90" :class="{ 'italic opacity-60': value === 'Pendiente' }">{{ value }}</dd>
             </div>
           </template>
         </dl>
+
+        <!-- Miniaturas de los archivos -->
+        <ul v-if="'files' in section && thumbs.length" class="mt-3 flex gap-2 overflow-x-auto pb-1" aria-label="Archivos adjuntos">
+          <li v-for="t in thumbs" :key="t.id" class="w-24 shrink-0">
+            <div class="relative aspect-square overflow-hidden rounded-xl border-2 border-ink bg-fg/5">
+              <img v-if="t.kind === 'image'" :src="t.url" :alt="t.name" class="size-full object-cover" />
+              <video v-else-if="t.kind === 'video'" :src="t.url" class="size-full object-cover" muted preload="metadata" />
+              <span v-else class="grid size-full place-items-center text-xs font-black uppercase">{{ t.kind === 'audio' ? 'Audio' : 'PDF' }}</span>
+            </div>
+            <p class="mt-1 truncate text-[10px] font-semibold">{{ EVIDENCE_LABELS[t.type] }}</p>
+          </li>
+        </ul>
       </section>
     </div>
   </div>

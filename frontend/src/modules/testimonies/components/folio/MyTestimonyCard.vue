@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { DEFAULT_MAP_SLUG } from '@testimonies/data/maps'
 import { computed, ref } from 'vue'
 import { participantService } from '@testimonies/services/participant.service'
 import type { MyTestimony } from '@testimonies/types/testimony'
@@ -38,7 +39,7 @@ const actionClass =
 </script>
 
 <template>
-  <article class="space-y-3 rounded-2xl border border-fg/15 p-4" :class="{ 'opacity-70': !testimony.active }">
+  <article class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-4" :class="{ 'opacity-70': !testimony.active }">
     <header class="flex flex-wrap items-start justify-between gap-2">
       <div class="min-w-0 space-y-1.5">
         <CategoryBadge :category="testimony.category" />
@@ -64,7 +65,7 @@ const actionClass =
 
     <!-- Acciones -->
     <div v-if="testimony.active" class="flex flex-wrap items-center gap-2">
-      <RouterLink v-if="testimony.public" :to="{ name: 'home', query: { t: testimony.id } }" :class="actionClass">
+      <RouterLink v-if="testimony.public" :to="{ name: 'map', params: { mapa: DEFAULT_MAP_SLUG }, query: { t: testimony.id } }" :class="actionClass">
         Ver en el mapa
       </RouterLink>
       <RouterLink

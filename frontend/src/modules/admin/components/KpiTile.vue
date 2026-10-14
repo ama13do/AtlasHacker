@@ -9,16 +9,13 @@ defineProps<{ label: string; value: string | number; detail?: string; alert?: st
   <component
     :is="to ? 'RouterLink' : 'div'"
     :to="to"
-    class="flex flex-col gap-1 rounded-2xl border border-fg/15 p-4"
-    :class="{ 'transition hover:border-fg/40 focus-visible:outline-2 focus-visible:outline-fg': to }"
+    class="flex flex-col gap-1 rounded-[22px] border-2 border-ink bg-card p-4 shadow-brut"
+    :class="{ 'card-lift focus-visible:outline-3 focus-visible:outline-brand-blue': to }"
   >
-    <span class="text-xs font-semibold tracking-wide text-fg/60 uppercase">{{ label }}</span>
-    <span class="text-3xl font-semibold tabular-nums">{{ value }}</span>
-    <span v-if="detail" class="text-xs text-fg/60">{{ detail }}</span>
-    <span
-      v-if="alert"
-      class="mt-1 inline-flex w-fit items-center gap-1 rounded-full bg-brand-orange px-2 py-0.5 text-xs font-semibold text-black"
-    >
+    <span class="text-[11px] font-black tracking-wider uppercase opacity-65">{{ label }}</span>
+    <span class="font-wide text-4xl leading-none font-black tabular-nums">{{ value }}</span>
+    <span v-if="detail" class="text-xs font-semibold opacity-65">{{ detail }}</span>
+    <span v-if="alert" class="chip mt-1 w-fit border-black bg-brand-orange text-black">
       <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
         <path d="M12 8v5M12 17h.01" />
         <circle cx="12" cy="12" r="10" />
