@@ -118,19 +118,14 @@
 }
 
 @layer base {
-  html,
-  body {
-    height: 100%;
-    overflow: hidden;
-    overscroll-behavior: none;
-  }
-
   html {
     @apply bg-surface font-sans text-fg antialiased;
+    min-height: 100%;
   }
 
   /* Papel con grano y relieve (solo en claro, como hxnf.vercel.app) */
   body {
+    min-height: 100%;
     font-weight: 400;
     background-color: var(--surface);
     background-image: var(--paper-grain), var(--paper-relief);

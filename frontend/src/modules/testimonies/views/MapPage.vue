@@ -226,19 +226,23 @@ watch(() => route.query.t, openFromQuery)
 watch(status, (s) => s === 'ready' && openFromQuery())
 
 onMounted(() => {
+  document.documentElement.classList.add('overflow-hidden')
+  document.body.classList.add('overflow-hidden')
   window.addEventListener('keydown', onKeydown)
   window.addEventListener('resize', onResize)
   openFromQuery()
 })
 
 onBeforeUnmount(() => {
+  document.documentElement.classList.remove('overflow-hidden')
+  document.body.classList.remove('overflow-hidden')
   window.removeEventListener('keydown', onKeydown)
   window.removeEventListener('resize', onResize)
 })
 </script>
 
 <template>
-  <main class="relative flex h-dvh w-screen overflow-hidden bg-surface">
+  <main class="fixed inset-0 flex overflow-hidden bg-surface">
     <!-- Lista o detalle (escritorio). Con el formulario abierto se oculta salvo en pantallas muy anchas -->
     <TestimonySidebar
       ref="sidebarRef"
