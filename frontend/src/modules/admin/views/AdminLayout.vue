@@ -40,7 +40,7 @@ async function logout() {
       aria-label="Navegación del panel"
     >
       <div class="px-1 pt-1">
-        <BrandMark size="sm" subtitle="Panel del equipo" />
+        <BrandMark size="sm" label="Panel" />
       </div>
       <AdminNav @navigate="drawerOpen = false" />
       <div class="mt-auto space-y-1 px-2 text-sm">
@@ -51,7 +51,7 @@ async function logout() {
 
     <div class="flex min-w-0 flex-col">
       <header class="sticky top-0 z-10 flex items-center gap-3 border-b-2 border-ink bg-surface/95 px-4 py-3 backdrop-blur md:px-8">
-        <BrandMark v-if="mustChange" size="sm" subtitle="Panel del equipo" />
+        <BrandMark v-if="mustChange" size="sm" label="Panel" />
         <button
           v-else
           type="button"

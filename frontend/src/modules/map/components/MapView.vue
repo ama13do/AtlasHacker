@@ -86,7 +86,7 @@ function selectedStateData(code: string | null) {
 const mexico = mexicoGeo as FeatureCollection
 const { theme } = useTheme()
 
-// Colores de las capas propias según el tema. México se dibuja como en hxnf.vercel.app/capitulos:
+// Colores de las capas propias según el tema. México se dibuja como en hxnf.mx/capitulos:
 // contorno de tinta sobre un trazo verde grueso y una sombra dura desplazada
 const LAYER_COLORS: Record<
   Theme,
@@ -114,7 +114,7 @@ function simplifyBaseStyle(instance: MapLibreMap, detail: MapDetail) {
 
   const exists = (id: string) => !!instance.getLayer(id)
 
-  // Fondo de papel y agua apenas teñida (como el mapa de hxnf.vercel.app/capitulos)
+  // Fondo de papel y agua apenas teñida (como el mapa de hxnf.mx/capitulos)
   if (exists('background')) instance.setPaintProperty('background', 'background-color', colors.land)
   if (exists('water')) instance.setPaintProperty('water', 'fill-color', colors.water)
 

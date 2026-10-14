@@ -18,6 +18,7 @@ import StoryViewer from '@testimonies/components/StoryViewer.vue'
 import TestimonyCard from '@testimonies/components/TestimonyCard.vue'
 import TestimonySidebar from '@testimonies/components/TestimonySidebar.vue'
 import ThemeToggle from '@/shared/components/ThemeToggle.vue'
+import BrandMark from '@/shared/components/BrandMark.vue'
 
 const MD_BREAKPOINT = 768
 
@@ -121,17 +122,32 @@ watch(
 const isMobile = ref(window.innerWidth < MD_BREAKPOINT)
 const onResize = () => (isMobile.value = window.innerWidth < MD_BREAKPOINT)
 
-// Hoja del formulario en móvil: alta para escribir; baja mientras se marca el lugar (el mapa queda arriba)
+// Hoja del formulario en móvil: casi toda la pantalla para escribir; baja a ~60 % mientras se marca el lugar
+// (el mapa queda arriba, chico). Al escribir en un campo vuelve a crecer: con el teclado abierto no quedaba espacio
 const sheetExpanded = ref(true)
+function onSheetFocus(e: FocusEvent) {
+  const el = e.target as HTMLElement
+  if (isMobile.value && el.matches('input:not([type=checkbox]):not([type=radio]), textarea, select')) sheetExpanded.value = true
+}
 
 // El paso de ubicación pone el mapa en modo «marcar»: clic o arrastrar la chincheta
 const picker = provideMainMapPicker((coordinates, zoom) => mapView.value?.flyTo(coordinates, pickPadding(), zoom))
 const picking = picker.active
 const pickedPoint = picker.point
-watch(picking, (on) => (sheetExpanded.value = !on))
+// El paso 1 ya trae la ubicación: la hoja arranca grande para escribir y solo baja al marcar un punto o con «Ver mapa»
+watch(picking, (on) => {
+  if (!on) sheetExpanded.value = true
+})
+// Al marcar o elegir un lugar (en celular), la hoja baja para mostrar la chincheta en el mapa
+watch(pickedPoint, (point, before) => {
+  if (isMobile.value && picking.value && point && point !== before) {
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    sheetExpanded.value = false
+  }
+})
 
 function pickPadding() {
-  return isMobile.value ? { top: 80, bottom: window.innerHeight * 0.5, left: 0, right: 0 } : { top: 140, bottom: 40, left: 40, right: 40 }
+  return isMobile.value ? { top: 70, bottom: window.innerHeight * 0.62, left: 0, right: 0 } : { top: 140, bottom: 40, left: 40, right: 40 }
 }
 
 // --- Pines ---
@@ -298,11 +314,8 @@ onBeforeUnmount(() => {
               <path d="M19 12H5M11 18l-6-6 6-6" />
             </svg>
           </RouterLink>
-          <p class="min-w-0 flex-1">
-            <span class="hl-box text-sm font-black uppercase" :class="ACCENT_CLASSES[map.accent].hl" style="--hl-rot: -1deg">
-              <span class="block max-w-[52vw] truncate">{{ map.title }}</span>
-            </span>
-          </p>
+          <BrandMark variant="acronym" size="sm" :label="null" class="shrink-0" />
+          <p class="min-w-0 flex-1 truncate text-[13px] leading-tight font-black uppercase">{{ map.title }}</p>
           <button type="button" class="icon-btn size-9 text-base font-black" aria-label="¿Cómo funciona el mapa?" @click="openHelp">?</button>
           <RouterLink :to="{ name: 'my-folio' }" class="icon-btn size-9" aria-label="Mi folio">
             <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -373,16 +386,6 @@ onBeforeUnmount(() => {
         </section>
       </Transition>
 
-      <!-- Primera visita: invitación a la ayuda -->
-      <div
-        v-if="helpHint && !showIntro && !formOpen && !selected"
-        class="absolute bottom-40 left-4 z-20 flex max-w-xs items-center gap-2 rounded-2xl border-2 border-black bg-white p-2 pl-3 text-sm font-bold text-black shadow-[3px_3px_0_0_#000] md:bottom-24"
-      >
-        <button type="button" class="text-left underline decoration-2 underline-offset-2" @click="openHelp">¿Primera vez aquí? Mira cómo funciona el mapa</button>
-        <button type="button" class="grid size-7 shrink-0 place-items-center rounded-full bg-black text-white" aria-label="Cerrar sugerencia" @click="dismissHelpHint">
-          <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
-        </button>
-      </div>
 
       <!-- Marcando el lugar del formulario -->
       <p
@@ -427,39 +430,72 @@ onBeforeUnmount(() => {
       <FeedNotice
         v-if="notice && !formOpen"
         :kind="notice"
-        class="card-brut absolute inset-x-4 bottom-8 z-10 md:hidden"
+        class="card-brut absolute inset-x-4 bottom-24 z-10 md:hidden"
         @retry="store.load"
       />
 
-      <!-- Subir testimonio: al centro, abajo del mapa, siempre a la vista, grande y animado -->
-      <RouterLink
+
+      <!-- Barra inferior del mapa: centrada respecto a la SECCIÓN DEL MAPA (contenedor de ancho completo, sin
+           transformaciones que se peleen con las animaciones). Móvil: lista · Subir testimonio · ayuda -->
+      <div
         v-if="!formOpen"
-        :to="{ name: 'testimony-new', params: { mapa: map.slug } }"
-        class="group/cta btn-hxnf btn-lime absolute bottom-[calc(max(env(safe-area-inset-bottom),0.5rem)+2.6rem)] left-1/2 z-20 min-h-13 sm:min-h-14 -translate-x-1/2 px-8 sm:px-10 py-3.5 text-base sm:text-lg font-black tracking-wide uppercase whitespace-nowrap shadow-[6px_6px_0_0_#000] animate-cta-pulse motion-reduce:animate-none hover:scale-105 active:scale-95 transition-all md:bottom-6"
+        class="pointer-events-none absolute inset-x-0 bottom-[calc(max(env(safe-area-inset-bottom),0.5rem)+0.5rem)] z-20 flex items-center justify-center gap-2.5 px-3 md:bottom-6"
         :class="{ 'max-md:hidden': selected }"
       >
-        <span class="relative flex size-3">
-          <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-black opacity-75" />
-          <span class="relative inline-flex size-3 rounded-full bg-black" />
-        </span>
-        <svg viewBox="0 0 24 24" class="size-6 transition-transform group-hover/cta:rotate-90" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
-          <path d="M12 5v14M5 12h14" />
-        </svg>
-        <span>Subir testimonio</span>
-      </RouterLink>
-
-      <!-- Lista (móvil) -->
-      <div
-        v-if="!formOpen && !selected && notice !== 'empty'"
-        class="absolute bottom-[calc(max(env(safe-area-inset-bottom),0.5rem)+6.6rem)] left-4 z-10 md:hidden"
-      >
-        <button type="button" class="btn-hxnf btn-paper btn-sm" @click="mobileList = true">
-          <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+        <button
+          v-if="notice !== 'empty'"
+          type="button"
+          class="icon-btn pointer-events-auto relative size-12 md:hidden"
+          :aria-label="`Ver la lista (${filteredItems.length} testimonios)`"
+          @click="mobileList = true"
+        >
+          <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
             <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />
           </svg>
-          Lista · {{ filteredItems.length }}
+          <span class="absolute -top-1.5 -right-1.5 min-w-5 rounded-full border-2 border-black bg-black px-1 text-center text-[10px] leading-4 font-black text-neon-lime tabular-nums">{{ filteredItems.length }}</span>
+        </button>
+
+        <span class="pointer-events-auto animate-hover-bob motion-reduce:animate-none">
+          <RouterLink
+            :to="{ name: 'testimony-new', params: { mapa: map.slug } }"
+            class="tm-cta btn-hxnf btn-lime min-h-12 px-6 text-[15px] font-black whitespace-nowrap uppercase sm:min-h-14 sm:px-9 sm:text-lg"
+          >
+            <svg viewBox="0 0 24 24" class="size-5 transition-transform duration-300 sm:size-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Subir testimonio
+          </RouterLink>
+        </span>
+
+        <div class="pointer-events-auto relative md:hidden">
+          <button type="button" class="icon-btn relative size-12 text-lg font-black" aria-label="¿Cómo funciona el mapa?" @click="openHelp">
+            ?
+            <span v-if="helpHint" class="absolute inset-0 animate-ping rounded-full border-2 border-black" aria-hidden="true" />
+          </button>
+          <!-- Primera vez (móvil): globito sobre el botón de ayuda -->
+          <button
+            v-if="helpHint && !showIntro"
+            type="button"
+            class="absolute right-0 bottom-full mb-3 w-max rounded-2xl border-2 border-black bg-white px-3 py-1.5 text-xs font-black text-black shadow-[2px_2px_0_0_#000]"
+            @click="openHelp"
+          >
+            ¿Primera vez aquí?
+            <span class="absolute -bottom-1.5 right-4 size-2.5 rotate-45 border-r-2 border-b-2 border-black bg-white" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+
+      <!-- Primera vez (escritorio): a la izquierda, a la misma altura que «Subir testimonio» -->
+      <div
+        v-if="helpHint && !showIntro && !formOpen && !selected"
+        class="absolute bottom-6 left-6 z-20 hidden max-w-[16rem] items-center gap-2 rounded-2xl border-2 border-black bg-white py-1.5 pr-1.5 pl-3 text-sm font-bold text-black shadow-[3px_3px_0_0_#000] md:flex lg:max-w-xs"
+      >
+        <button type="button" class="text-left leading-tight underline decoration-2 underline-offset-2" @click="openHelp">¿Primera vez aquí? Mira cómo funciona</button>
+        <button type="button" class="grid size-8 shrink-0 place-items-center rounded-full bg-black text-white" aria-label="Cerrar sugerencia" @click="dismissHelpHint">
+          <svg viewBox="0 0 24 24" class="size-3.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
         </button>
       </div>
+
     </div>
 
     <!-- Lista (móvil): hoja inferior -->
@@ -507,18 +543,23 @@ onBeforeUnmount(() => {
         <section
           v-if="Component"
           class="fixed inset-x-0 bottom-0 z-40 flex flex-col overflow-hidden rounded-t-[28px] border-t-2 border-ink bg-surface shadow-[0_-5px_0_0_var(--shadow-c)] transition-[height] duration-300 md:static md:z-auto md:h-full! md:w-[30rem] md:shrink-0 md:rounded-none md:border-t-0 md:border-l-2 md:shadow-none xl:w-[34rem]"
-          :class="sheetExpanded ? 'h-[92dvh]' : 'h-[50dvh]'"
+          :class="sheetExpanded ? 'h-[calc(100dvh-env(safe-area-inset-top)-0.75rem)]' : 'h-[62dvh]'"
           aria-label="Subir testimonio"
+          @focusin="onSheetFocus"
         >
-          <button
-            type="button"
-            class="flex h-6 shrink-0 items-center justify-center md:hidden"
-            :aria-label="sheetExpanded ? 'Bajar el formulario para ver el mapa' : 'Subir el formulario'"
-            :aria-expanded="sheetExpanded"
-            @click="sheetExpanded = !sheetExpanded"
-          >
-            <span class="block h-1.5 w-12 rounded-full bg-fg/40" aria-hidden="true" />
-          </button>
+          <!-- Móvil: asa + botón claro para alternar entre el formulario y el mapa -->
+          <div class="flex shrink-0 items-center justify-between gap-2 px-4 pt-2 md:hidden">
+            <span class="block h-1.5 w-10 rounded-full bg-fg/30" aria-hidden="true" />
+            <button
+              type="button"
+              class="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-card px-3 py-1 text-xs font-black uppercase shadow-brut-sm"
+              :aria-expanded="sheetExpanded"
+              @click="sheetExpanded = !sheetExpanded"
+            >
+              <svg viewBox="0 0 24 24" class="size-3.5 transition-transform" :class="{ 'rotate-180': !sheetExpanded }" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+              {{ sheetExpanded ? 'Ver mapa' : 'Ver formulario' }}
+            </button>
+          </div>
           <component :is="Component" class="min-h-0 flex-1" />
         </section>
       </Transition>
@@ -570,6 +611,10 @@ onBeforeUnmount(() => {
 @media (width < 48rem) {
   :deep(.maplibregl-ctrl-bottom-right .maplibregl-ctrl-group) {
     display: none;
+  }
+  /* Créditos del mapa arriba de la barra inferior (no debajo del botón de ayuda) */
+  :deep(.maplibregl-ctrl-bottom-right) {
+    bottom: calc(max(env(safe-area-inset-bottom), 0.5rem) + 4.5rem);
   }
 }
 </style>

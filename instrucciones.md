@@ -71,16 +71,16 @@ npm run typecheck
 ## 5. AWS (despliegue serverless) — ya desplegado
 
 **Producción actual:** `https://rwxdsyv0c2.execute-api.us-west-2.amazonaws.com` (stage `prod`, región `us-west-2`, la misma de Supabase) · Swagger en `/docs`.
-Front permitido por CORS: `https://atlashacker.vercel.app`.
+Front oficial: `https://atlashacker.hxnf.mx` (sitio de HxNF: `https://hxnf.mx`). La API también acepta `atlashacker.vercel.app`, sus previews y localhost (`esOrigenPermitido` en `backend/src/config/env.ts`).
 
 1. Credenciales de despliegue: no uses `AdministratorAccess`. Usuario/rol con permisos para CloudFormation, Lambda, API Gateway, IAM (roles de la función), CloudWatch Logs, S3 (artefactos de Serverless), EventBridge y SSM. Configúralo con `aws configure`.
 2. Secretos a SSM (cifrados con KMS; la Lambda los lee en runtime). En producción el CORS lleva SOLO el dominio del front:
    ```bash
-   npm run secretos:subir -- --stage prod --set CORS_ORIGINS=https://atlashacker.vercel.app --set PUBLIC_API_URL=https://rwxdsyv0c2.execute-api.us-west-2.amazonaws.com
+   npm run secretos:subir -- --stage prod --set CORS_ORIGINS=https://atlashacker.hxnf.mx,https://atlashacker.vercel.app --set PUBLIC_API_URL=https://rwxdsyv0c2.execute-api.us-west-2.amazonaws.com
    ```
    `ENCRYPTION_KEY` y `HASH_PEPPER` deben ser **los mismos** que se usaron para crear los datos de esa base.
 3. Desplegar: `npm run deploy:prod` (≈1 min). Los cambios de SSM se toman en los arranques nuevos de la Lambda; para forzarlo, vuelve a desplegar.
-4. CORS del bucket R2 (para que el navegador suba evidencias): `npm run r2:cors -- https://atlashacker.vercel.app http://localhost:5173`.
+4. CORS del bucket R2 (para que el navegador suba evidencias): `npm run r2:cors -- https://atlashacker.hxnf.mx https://atlashacker.vercel.app http://localhost:5173`.
 5. Tarea diaria `mantenimiento`: purga auditoría vencida, sesiones y límites caducados.
 6. Logs: CloudWatch → `/aws/lambda/atlashacker-api-prod-api`.
 

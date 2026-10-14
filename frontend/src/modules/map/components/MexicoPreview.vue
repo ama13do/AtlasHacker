@@ -3,7 +3,7 @@ import type { FeatureCollection, MultiPolygon, Polygon, Position } from 'geojson
 import mexicoGeo from '@map/assets/mexico.json'
 import { STATE_FEATURES } from '@map/utils/geo'
 
-// Silueta de México en SVG (sin MapLibre) para portadas: como el mapa de hxnf.vercel.app/capitulos,
+// Silueta de México en SVG (sin MapLibre) para portadas: como el mapa de hxnf.mx/capitulos,
 // relleno de papel, trazo verde grueso, contorno de tinta y sombra dura desplazada.
 // Proyección equirectangular corregida por la latitud media; se calcula una sola vez por sesión.
 

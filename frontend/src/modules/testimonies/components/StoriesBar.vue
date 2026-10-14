@@ -31,10 +31,10 @@ function shortPlace(place: string) {
     </p>
     <ul
       v-if="!loading && stories.length"
-      class="flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 py-2 md:justify-center-safe [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      class="flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 py-2 md:justify-center-safe [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       aria-label="Testimonios más populares"
     >
-      <li v-for="(story, i) in stories" :key="story.id" class="shrink-0 snap-start">
+      <li v-for="(story, i) in stories" :key="story.id" class="tm-stagger shrink-0 snap-start" :style="{ '--i': i }">
         <button
           type="button"
           class="group flex w-18 flex-col items-center gap-1.5 focus-visible:outline-none"

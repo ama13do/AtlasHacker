@@ -8,6 +8,8 @@ import { testimoniesService } from '@testimonies/services/testimonies.service'
 import { useCategoriesStore } from '@testimonies/stores/categories'
 import { useTestimoniesStore } from '@testimonies/stores/testimonies'
 import type { Collaborator, PublicStats } from '@testimonies/types/testimony'
+import { MASCOTS, STICKERS } from '@/core/config/brand'
+import BrandMark from '@/shared/components/BrandMark.vue'
 import SiteHeader from '@/shared/components/SiteHeader.vue'
 
 // Portada: cuadrícula con los mapas. Hoy hay uno grande (FUTURO/001); cada expediente nuevo
@@ -43,9 +45,9 @@ const lastPublished = computed(() => {
 const statesCount = computed(() => stats.value?.byState.length ?? 0)
 
 const STEPS = [
-  { n: '01', title: 'Marca el lugar', text: 'Busca tu comunidad o arrastra la chincheta hasta el punto exacto del territorio.', color: 'bg-neon-green' },
-  { n: '02', title: 'Cuenta lo que pasa', text: 'El recibo dice, el territorio dice, la comunidad dice. Sube fotos o documentos si los tienes.', color: 'bg-brand-pink' },
-  { n: '03', title: 'El Tribunal pregunta', text: 'Tu testimonio se revisa y se suma al mapa como evidencia colectiva. Tú decides si apareces con nombre.', color: 'bg-brand-orange' },
+  { n: '01', title: 'Marca el lugar', text: 'Busca tu comunidad o arrastra la chincheta hasta el punto exacto del territorio.', color: 'bg-neon-green', mascot: MASCOTS.hidraulin },
+  { n: '02', title: 'Cuenta lo que pasa', text: 'El recibo dice, el territorio dice, la comunidad dice. Sube fotos o documentos si los tienes.', color: 'bg-brand-pink', mascot: MASCOTS.nubecin },
+  { n: '03', title: 'El Tribunal pregunta', text: 'Tu testimonio se revisa y se suma al mapa como evidencia colectiva. Tú decides si apareces con nombre.', color: 'bg-brand-orange', mascot: MASCOTS.panelin },
 ] as const
 
 onMounted(async () => {
@@ -135,7 +137,7 @@ onMounted(async () => {
               <MexicoPreview :points="previewPoints" />
             </div>
             <img :src="COVERS[featured.sticker]" alt="" class="cutout pointer-events-none absolute top-5 right-5 w-20 animate-sticker-float md:w-28 motion-reduce:animate-none" />
-            <span class="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border-2 border-black bg-white px-4 py-1.5 text-sm font-black text-black uppercase shadow-[3px_3px_0_0_#000] transition group-hover:bg-neon-lime">
+            <span class="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border-2 border-black bg-white px-4 py-1.5 text-xs font-black whitespace-nowrap text-black uppercase sm:text-sm shadow-[3px_3px_0_0_#000] transition group-hover:bg-neon-lime">
               {{ store.dossier === featured.code && store.status === 'ready' ? `${nf.format(store.items.length)} en el mapa · ` : '' }}Entrar →
             </span>
           </RouterLink>
@@ -167,7 +169,8 @@ onMounted(async () => {
           Tu testimonio <span class="hl-box hl-orange" style="--hl-rot: 1deg">es evidencia</span>
         </h2>
         <ol class="mt-6 grid gap-5 md:grid-cols-3">
-          <li v-for="s in STEPS" :key="s.n" class="card-brut p-5">
+          <li v-for="(s, i) in STEPS" :key="s.n" class="card-brut tm-stagger relative overflow-hidden p-5 pr-20" :style="{ '--i': i }">
+            <img :src="s.mascot" alt="" class="tm-mascot pointer-events-none absolute -right-3 -bottom-3 w-24 rotate-[-8deg] select-none" loading="lazy" aria-hidden="true" />
             <span class="font-wide inline-grid size-11 place-items-center rounded-full border-2 border-black text-base font-black text-black" :class="s.color">{{ s.n }}</span>
             <h3 class="mt-3 text-lg font-black uppercase">{{ s.title }}</h3>
             <p class="mt-1.5 text-sm leading-relaxed opacity-80">{{ s.text }}</p>
@@ -194,26 +197,28 @@ onMounted(async () => {
       </section>
 
       <!-- Proponer un mapa (al final) -->
-      <section class="mt-16 flex flex-wrap items-center justify-between gap-5 rounded-[28px] border-2 border-dashed border-ink/60 p-6 md:p-8" aria-labelledby="propose-title">
+      <section class="relative mt-16 flex flex-wrap items-center justify-between gap-5 rounded-[28px] border-2 border-dashed border-ink/60 p-6 md:p-8" aria-labelledby="propose-title">
+        <img :src="STICKERS.futuro.lima" alt="" class="pointer-events-none absolute -top-7 right-5 w-28 rotate-6 animate-sticker-float select-none md:w-36 motion-reduce:animate-none" loading="lazy" aria-hidden="true" />
         <div class="max-w-2xl">
           <h2 id="propose-title" class="font-wide text-2xl font-black uppercase">¿Tu colectivo documenta otra causa?</h2>
           <p class="mt-2 text-sm opacity-75">
             Cada juicio o territorio puede tener su propio mapa. Escríbenos desde el sitio de Hackers x Nuestro Futuro y lo armamos juntxs.
           </p>
         </div>
-        <a href="https://hxnf.vercel.app/es#contacto" target="_blank" rel="noopener" class="btn-hxnf btn-paper">Proponer un mapa ↗</a>
+        <a href="https://hxnf.mx/#contacto" target="_blank" rel="noopener" class="btn-hxnf btn-paper">Proponer un mapa ↗</a>
       </section>
     </main>
 
     <footer class="border-t-2 border-ink">
       <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-sm md:px-8">
+        <BrandMark variant="full" size="sm" :label="null" />
         <p class="font-bold uppercase">
           Escucha · Registra · Verifica · Folia · <span class="hl-box hl-lime text-sm" style="--hl-delay: 0.8s">Pregunta</span>
         </p>
         <nav class="flex flex-wrap gap-4 font-semibold" aria-label="Pie de página">
           <RouterLink :to="{ name: 'my-folio' }" class="hover:underline">Mi folio</RouterLink>
           <RouterLink :to="{ name: 'admin-home' }" class="hover:underline">Panel del equipo</RouterLink>
-          <a href="https://hxnf.vercel.app/es" target="_blank" rel="noopener" class="hover:underline">hxnf.vercel.app ↗</a>
+          <a href="https://hxnf.mx" target="_blank" rel="noopener" class="hover:underline">hxnf.mx ↗</a>
         </nav>
       </div>
     </footer>

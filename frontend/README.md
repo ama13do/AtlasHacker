@@ -187,7 +187,7 @@ Los tokens viven en `src/style.css` (`@theme`) y se usan como utilidades de Tail
 
 ### Identidad visual (Hackers x Nuestro Futuro)
 
-El diseño sigue a [hxnf.vercel.app](https://hxnf.vercel.app/es) (sección Identidad y `/capitulos`): **papel texturizado**, tinta negra, **bordes gruesos y sombras duras desplazadas** (neo-brutalismo), acentos neón y titulares en **Archivo** ancho. Las piezas están en `src/style.css`:
+El diseño sigue a [hxnf.mx](https://hxnf.mx) (sección Identidad y `/capitulos`): **papel texturizado**, tinta negra, **bordes gruesos y sombras duras desplazadas** (neo-brutalismo), acentos neón y titulares en **Archivo** ancho. Las piezas están en `src/style.css`:
 
 | Clase | Qué es |
 | --- | --- |
@@ -202,7 +202,7 @@ El diseño sigue a [hxnf.vercel.app](https://hxnf.vercel.app/es) (sección Ident
 
 ### Claro / oscuro
 
-La app arranca en **claro (papel)**, como hxnf.vercel.app. El botón sol/luna (`src/shared/components/ThemeToggle.vue`) cambia a oscuro y la elección se guarda (`useTheme` en `src/core/theme/`). Un script inline en `index.html` pone `data-theme` antes de pintar (siempre hay `light` o `dark`; existen las variantes `light:` y `dark:`).
+La app arranca en **claro (papel)**, como hxnf.mx. El botón sol/luna (`src/shared/components/ThemeToggle.vue`) cambia a oscuro y la elección se guarda (`useTheme` en `src/core/theme/`). Un script inline en `index.html` pone `data-theme` antes de pintar (siempre hay `light` o `dark`; existen las variantes `light:` y `dark:`).
 
 | Token | Claro | Oscuro | Uso |
 | --- | --- | --- | --- |

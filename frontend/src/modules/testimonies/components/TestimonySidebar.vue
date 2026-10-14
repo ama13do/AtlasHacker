@@ -9,6 +9,7 @@ import FeedNotice from '@testimonies/components/FeedNotice.vue'
 import TestimonyDetail from '@testimonies/components/TestimonyDetail.vue'
 import TestimonyListItem from '@testimonies/components/TestimonyListItem.vue'
 import ThemeToggle from '@/shared/components/ThemeToggle.vue'
+import BrandMark from '@/shared/components/BrandMark.vue'
 
 const props = defineProps<{
   map: MapInfo
@@ -80,8 +81,10 @@ defineExpose({
 
 <template>
   <aside class="flex h-full flex-col bg-surface" aria-label="Testimonios">
-    <header class="space-y-3 border-b-2 border-ink px-5 pt-4 pb-5">
-      <div class="flex items-center gap-2">
+    <header class="space-y-3 border-b-2 border-ink px-5 pt-2 pb-4 md:pt-4 md:pb-5">
+      <!-- En celular la lista va en una hoja bajo el encabezado del mapa, que ya trae estos enlaces -->
+      <div class="hidden items-center gap-2 md:flex">
+        <BrandMark variant="acronym" size="sm" :label="null" />
         <RouterLink
           :to="{ name: 'home' }"
           class="inline-flex items-center gap-1.5 rounded-full border-2 border-ink bg-card px-3 py-1 text-xs font-bold uppercase shadow-brut-sm transition hover:-translate-y-px hover:bg-neon-lime hover:text-black focus-visible:outline-3 focus-visible:outline-brand-blue"
@@ -118,7 +121,7 @@ defineExpose({
             <span class="text-fg">En vivo</span>
           </span>
         </p>
-        <h1 class="mt-3 text-2xl leading-[1.2] font-black uppercase">
+        <h1 class="mt-2 text-xl leading-[1.2] font-black uppercase md:mt-3 md:text-2xl">
           <span class="hl-box hl-wrap" :class="ACCENT_CLASSES[map.accent].hl" style="--hl-rot: -1deg">{{ map.title }}</span>
         </h1>
       </div>
@@ -226,7 +229,7 @@ defineExpose({
           </div>
           <p class="mb-3 text-xs opacity-60">Toca uno para abrirlo y verlo en el mapa.</p>
           <ul ref="list" class="space-y-3 pr-1.5 pb-2">
-            <li v-for="t in testimonies" :key="t.id" :data-id="t.id">
+            <li v-for="(t, i) in testimonies" :key="t.id" :data-id="t.id" class="tm-stagger" :style="{ '--i': i }">
               <TestimonyListItem :testimony="t" :active="hoveredId === t.id" @select="emit('select', $event)" @hover="hoveredId = $event" />
             </li>
           </ul>

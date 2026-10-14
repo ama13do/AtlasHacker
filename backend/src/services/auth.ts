@@ -82,7 +82,7 @@ function cookieOpciones() {
     httpOnly: true,
     secure: prod,
     sameSite: (prod ? 'None' : 'Lax') as 'None' | 'Lax',
-    // Front (vercel.app) y API (amazonaws.com) son sitios distintos: la cookie es "de terceros".
+    // Front (atlashacker.hxnf.mx) y API (amazonaws.com) son sitios distintos: la cookie es "de terceros".
     // Partitioned (CHIPS) permite que siga funcionando en navegadores que bloquean cookies de terceros sin particionar.
     partitioned: prod,
     path: '/api/auth',

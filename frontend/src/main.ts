@@ -1,7 +1,6 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import '@fontsource-variable/parkinsans'
-import '@fontsource-variable/archivo/wdth.css'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import './style.css'
 import App from './App.vue'

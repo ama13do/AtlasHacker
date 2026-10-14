@@ -54,7 +54,7 @@ async function submit() {
 
     <form class="card-brut-lg w-full max-w-sm space-y-6 p-6" @submit.prevent="submit">
       <div class="space-y-3 text-center">
-        <BrandMark subtitle="Hackers x Nuestro Futuro" />
+        <BrandMark label="Panel" />
         <h1 class="text-sm font-bold uppercase opacity-70">Panel del equipo · Tribunal Popular</h1>
       </div>
 

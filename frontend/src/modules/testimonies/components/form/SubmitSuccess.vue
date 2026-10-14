@@ -4,6 +4,7 @@ import type { EvidenceUpload } from '@testimonies/composables/useEvidenceUpload'
 import { useParticipantFolio } from '@testimonies/composables/useParticipantFolio'
 import type { CreateTestimonyResult } from '@testimonies/types/testimony'
 import UploadProgress from '@testimonies/components/UploadProgress.vue'
+import { MASCOTS } from '@/core/config/brand'
 
 const props = defineProps<{ result: CreateTestimonyResult; upload: EvidenceUpload }>()
 defineEmits<{ viewOnMap: []; home: [] }>()
@@ -36,14 +37,16 @@ async function copyFolio() {
 
 <template>
   <div class="flex flex-col items-center gap-6 py-10 text-center">
-    <span class="grid size-16 place-items-center rounded-full bg-neon-lime text-black">
-      <svg viewBox="0 0 24 24" class="size-8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="m5 12 5 5 9-10" />
-      </svg>
-    </span>
+    <!-- Panelín celebra; el sticker «¿Futuro?» firma el cierre -->
+    <div class="tm-pop-in relative" aria-hidden="true">
+      <img :src="MASCOTS.panelin" alt="" class="tm-mascot w-36 select-none" />
+      <span class="absolute -right-3 bottom-3 grid size-12 place-items-center rounded-full border-2 border-black bg-neon-lime text-black shadow-[3px_3px_0_0_#000]">
+        <svg viewBox="0 0 24 24" class="size-6" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10" /></svg>
+      </span>
+    </div>
 
     <div class="space-y-2">
-      <h2 class="text-2xl font-semibold">Gracias por tu testimonio</h2>
+      <h2 class="text-2xl font-black uppercase"><span class="hl-box hl-lime" style="--hl-rot: -1deg">Gracias por tu testimonio</span></h2>
       <p class="text-fg/70">{{ result.message }}</p>
     </div>
 

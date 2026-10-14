@@ -103,14 +103,20 @@ export function env(): Env {
   return cache;
 }
 
-/** Verifica si un origen HTTP está autorizado (lista blanca, preview de Vercel o localhost en dev). */
+/** Dominios oficiales (siempre permitidos, además de CORS_ORIGINS): el sitio de HxNF y el atlas. */
+const ORIGENES_OFICIALES = ['https://atlashacker.hxnf.mx', 'https://hxnf.mx', 'https://www.hxnf.mx'];
+
+/**
+ * ¿Origen autorizado para CORS y para la cookie de sesión?
+ * Solo los nuestros: lista blanca, dominios oficiales, despliegues de ESTE proyecto en Vercel
+ * (atlashacker.vercel.app y sus previews atlashacker-…vercel.app) y localhost (para entrar al panel desde la
+ * máquina de desarrollo contra producción; una página atacante tendría que servirse en el equipo de la víctima).
+ * Nunca cualquier *.vercel.app: cualquiera puede publicar ahí y usaría la sesión del panel (CSRF).
+ */
 export function esOrigenPermitido(origin: string | undefined): boolean {
   if (!origin) return false;
-  const lista = env().corsOrigins;
-  if (lista.includes(origin)) return true;
-  // Subdominios de Vercel (producción y preview branches)
-  if (/^https:\/\/[a-zA-Z0-9_.-]+\.vercel\.app$/.test(origin)) return true;
-  // Localhost en cualquier puerto (Vite, proxies locales, etc.)
+  if (env().corsOrigins.includes(origin) || ORIGENES_OFICIALES.includes(origin)) return true;
+  if (/^https:\/\/atlashacker(-[a-z0-9-]+)?\.vercel\.app$/.test(origin)) return true;
   if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
   return false;
 }

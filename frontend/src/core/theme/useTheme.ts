@@ -14,7 +14,7 @@ function readSaved(): Theme {
   }
 }
 
-// Estado compartido por toda la app; claro (papel) por defecto, como hxnf.vercel.app
+// Estado compartido por toda la app; claro (papel) por defecto, como hxnf.mx
 const theme = ref<Theme>(readSaved())
 
 watch(
