@@ -14,8 +14,10 @@ const props = defineProps<{
   detail: Detail | null
   detailStatus?: LoadStatus
   live?: boolean
+  // Estado elegido en el mapa (filtra la lista)
+  stateName?: string | null
 }>()
-const emit = defineEmits<{ select: [id: string | null]; retry: []; retryDetail: [] }>()
+const emit = defineEmits<{ select: [id: string | null]; retry: []; retryDetail: []; clearState: [] }>()
 
 const scroller = ref<HTMLElement | null>(null)
 const detailView = ref<InstanceType<typeof TestimonyDetail> | null>(null)
@@ -97,14 +99,33 @@ watch(
       </ul>
 
       <FeedNotice v-else-if="status === 'error'" kind="error" class="mt-8" @retry="emit('retry')" />
+      <div v-else-if="!testimonies.length && stateName" class="flex flex-col items-center gap-3 px-6 py-12 text-center" role="status">
+        <p class="font-semibold">Aún no hay testimonios publicados en {{ stateName }}</p>
+        <button
+          type="button"
+          class="rounded-full border border-fg/30 px-5 py-2 text-sm font-semibold hover:border-fg focus-visible:outline-2 focus-visible:outline-fg"
+          @click="emit('clearState')"
+        >
+          Ver todo México
+        </button>
+      </div>
       <FeedNotice v-else-if="!testimonies.length" kind="empty" class="mt-8" />
 
       <!-- Lista -->
       <div v-else class="px-3 py-4">
         <h2 class="mb-2 flex items-baseline justify-between px-2 text-sm font-semibold">
           Testimonios
-          <span class="text-xs font-normal text-fg/50">{{ testimonies.length }}</span>
+          <span class="text-xs font-normal text-fg/50">{{ testimonies.length }}<template v-if="stateName"> en {{ stateName }}</template></span>
         </h2>
+        <button
+          v-if="stateName"
+          type="button"
+          class="mx-2 mb-3 inline-flex items-center gap-2 rounded-full bg-fg px-3 py-1 text-sm font-semibold text-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg"
+          :aria-label="`Quitar filtro: ${stateName}`"
+          @click="emit('clearState')"
+        >
+          {{ stateName }} <span aria-hidden="true">×</span>
+        </button>
         <ul ref="list" class="space-y-1">
           <li v-for="t in testimonies" :key="t.id" :data-id="t.id">
             <TestimonyListItem :testimony="t" @select="emit('select', $event)" />

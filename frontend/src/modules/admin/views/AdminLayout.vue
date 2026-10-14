@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import ThemeToggle from '@/shared/components/ThemeToggle.vue'
 import { useAuthStore } from '@admin/stores/auth'
@@ -11,6 +11,8 @@ const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
 const drawerOpen = ref(false)
+// Contraseña temporal: solo se muestra «Crea tu contraseña», sin navegación (el guard no deja ir a otra vista)
+const mustChange = computed(() => !!auth.user?.debe_cambiar_password)
 
 // La sesión se perdió (refresh rechazado o logout): de vuelta al login
 watch(
@@ -28,9 +30,10 @@ async function logout() {
 </script>
 
 <template>
-  <div class="min-h-dvh bg-surface md:grid md:grid-cols-[15rem_1fr]">
+  <div class="min-h-dvh bg-surface" :class="{ 'md:grid md:grid-cols-[15rem_1fr]': !mustChange }">
     <!-- Lateral (escritorio) / cajón (móvil) -->
     <aside
+      v-if="!mustChange"
       class="fixed inset-y-0 left-0 z-30 flex w-64 -translate-x-full flex-col gap-6 border-r border-fg/10 bg-surface p-4 transition-transform md:sticky md:top-0 md:h-dvh md:w-auto md:translate-x-0"
       :class="{ 'translate-x-0': drawerOpen }"
       aria-label="Navegación del panel"
@@ -48,7 +51,11 @@ async function logout() {
 
     <div class="flex min-w-0 flex-col">
       <header class="sticky top-0 z-10 flex items-center gap-3 border-b border-fg/10 bg-surface/95 px-4 py-3 backdrop-blur md:px-8">
+        <p v-if="mustChange" class="text-lg font-semibold tracking-tight">
+          AtlasHacker<span class="text-neon-green light:text-fg">_</span>
+        </p>
         <button
+          v-else
           type="button"
           class="grid size-9 place-items-center rounded-full bg-fg/10 md:hidden"
           aria-label="Abrir navegación"
@@ -64,6 +71,7 @@ async function logout() {
           <p class="text-xs text-fg/50">{{ ROLE_LABELS[auth.user.rol] }}</p>
         </div>
         <RouterLink
+          v-if="!mustChange"
           :to="{ name: 'admin-account' }"
           class="rounded-full px-3 py-1.5 text-sm font-semibold whitespace-nowrap text-fg/70 hover:bg-fg/10 hover:text-fg focus-visible:outline-2 focus-visible:outline-fg"
         >

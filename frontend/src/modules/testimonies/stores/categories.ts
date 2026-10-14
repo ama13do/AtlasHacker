@@ -26,6 +26,12 @@ export const useCategoriesStore = defineStore('testimonies/categories', () => {
     return pending
   }
 
+  // Tras editar categorías en el dashboard: se vuelven a pedir
+  function reload() {
+    pending = null
+    return load()
+  }
+
   // Nombre de la API + estilo de marca; tolera slugs que aún no están cargados
   function bySlug(slug: CategorySlug): CategoryMeta {
     const category = categories.value.find((c) => c.slug === slug) ?? {
@@ -36,5 +42,5 @@ export const useCategoriesStore = defineStore('testimonies/categories', () => {
     return { ...category, ...categoryStyle(slug) }
   }
 
-  return { categories, config, load, bySlug }
+  return { categories, config, load, reload, bySlug }
 })

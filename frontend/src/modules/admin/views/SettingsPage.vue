@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import type { ApiError } from '@/core/http/client'
 import { settingsService } from '@admin/services/settings.service'
+import { systemService } from '@admin/services/system.service'
 import type { ApiConfiguracion, ModoPublicacion } from '@admin/types/api'
 
 const MB = 1024 * 1024
@@ -117,6 +118,20 @@ async function save() {
   }
 }
 
+// --- Mantenimiento: borra auditoría vencida, sesiones y límites expirados ---
+const purge = ref<{ confirming: boolean; busy: boolean; result: string | null }>({ confirming: false, busy: false, result: null })
+async function runPurge() {
+  purge.value.busy = true
+  try {
+    const r = await systemService.purge()
+    purge.value.result = `Se borraron ${r.auditoria} registros de auditoría vencidos y ${r.sesiones_y_limites} sesiones o límites expirados.`
+  } catch (e) {
+    purge.value.result = (e as Partial<ApiError>).message ?? 'No se pudo purgar.'
+  } finally {
+    Object.assign(purge.value, { busy: false, confirming: false })
+  }
+}
+
 function discard() {
   if (saved.value) reset(saved.value)
   confirming.value = false
@@ -223,6 +238,23 @@ onMounted(load)
           <input v-model="form.consentimiento_version_actual" type="text" maxlength="40" class="field-input w-32 text-sm md:py-1.5" />
         </label>
       </fieldset>
+
+      <!-- Mantenimiento -->
+      <section class="space-y-2 rounded-2xl border border-fg/15 p-5 text-sm" aria-labelledby="maint-title">
+        <h2 id="maint-title" class="font-semibold">Mantenimiento</h2>
+        <p class="text-fg/60">
+          Borra la auditoría cuya retención ya venció ({{ form.auditoria_retencion_dias }} días), sesiones caducadas y límites de uso expirados.
+        </p>
+        <div v-if="purge.confirming" class="flex flex-wrap items-center gap-3">
+          <span>No se puede deshacer. ¿Continuar?</span>
+          <button type="button" class="font-semibold text-danger hover:underline disabled:opacity-50" :disabled="purge.busy" @click="runPurge">Sí, purgar</button>
+          <button type="button" class="text-fg/60 hover:underline" @click="purge.confirming = false">Cancelar</button>
+        </div>
+        <button v-else type="button" class="rounded-full border border-fg/25 px-4 py-1.5 font-semibold hover:border-fg" @click="purge.confirming = true">
+          Purgar datos vencidos
+        </button>
+        <p v-if="purge.result" class="text-fg/70" role="status">{{ purge.result }}</p>
+      </section>
 
       <!-- Guardar -->
       <div class="sticky bottom-0 space-y-3 border-t border-fg/10 bg-surface/95 py-4 backdrop-blur">

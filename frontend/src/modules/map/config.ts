@@ -16,3 +16,35 @@ export const MEXICO_BOUNDS = [
 export const MEXICO_CENTER: LngLatLike = [-102.5, 23.6]
 export const MIN_ZOOM = 4
 export const MAX_ZOOM = 18
+
+// --- Mapa base simplificado ---
+// De los estilos de OpenFreeMap solo se conservan estas capas; el resto se oculta en `style.load`.
+// Si OpenFreeMap renombra una capa, simplemente se ignora (se comprueba con getLayer)
+
+export type MapDetail = 'states' | 'states+cities'
+
+interface BaseLayers {
+  base: string[] // fondo y agua
+  stateBoundaries: string[] // límites estatales (admin_level 4)
+  stateLabels: string[] // nombres de estado
+  cityLabels: string[] // ciudades y pueblos (solo en `states+cities`)
+}
+
+export const BASE_LAYERS: Record<Theme, BaseLayers> = {
+  dark: {
+    base: ['background', 'water'],
+    stateBoundaries: ['boundary_state'],
+    stateLabels: ['place_state'],
+    cityLabels: ['place_city_large', 'place_city', 'place_town'],
+  },
+  light: {
+    base: ['background', 'water'],
+    // boundary_3 incluye niveles 3–6: se filtra a estados en MapView
+    stateBoundaries: ['boundary_3'],
+    stateLabels: ['label_state'],
+    cityLabels: ['label_city_capital', 'label_city', 'label_town'],
+  },
+}
+
+// Las ciudades aparecen al acercarse, para ubicarse sin saturar la vista general
+export const CITY_LABELS_MIN_ZOOM = 7

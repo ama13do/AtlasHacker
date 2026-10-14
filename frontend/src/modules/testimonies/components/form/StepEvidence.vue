@@ -20,7 +20,7 @@ const evidenceOptions = (Object.entries(EVIDENCE_LABELS) as [EvidenceType, strin
 </script>
 
 <template>
-  <div class="grid gap-8 lg:grid-cols-2 lg:gap-10">
+  <div class="grid gap-8 @3xl:grid-cols-2 @3xl:gap-10">
     <section class="space-y-5">
       <h3 class="form-group-title">El documento</h3>
       <ChoiceGroup

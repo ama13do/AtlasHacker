@@ -60,7 +60,7 @@ async function copyFolio() {
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <code class="min-w-0 flex-1 rounded-xl bg-surface px-2 py-2 text-center font-mono text-sm font-semibold whitespace-nowrap select-all sm:px-3 sm:text-base sm:tracking-wide">
+        <code class="min-w-0 flex-1 rounded-xl bg-surface px-2 py-2 text-center font-mono text-sm font-semibold whitespace-nowrap select-all @xl:px-3 @xl:text-base @xl:tracking-wide">
           {{ participantFolio }}
         </code>
         <button

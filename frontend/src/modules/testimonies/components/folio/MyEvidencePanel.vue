@@ -71,7 +71,7 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="@container space-y-4">
     <p v-if="status === 'loading'" class="text-sm text-fg/60" role="status">Cargando evidencias…</p>
     <div v-else-if="status === 'error'" class="flex items-center gap-3 text-sm" role="alert">
       <span class="text-fg/70">No pudimos cargar tus evidencias.</span>

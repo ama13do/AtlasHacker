@@ -25,10 +25,13 @@ import { participantService } from '@testimonies/services/participant.service'
 import UploadProgress from '@testimonies/components/UploadProgress.vue'
 
 // Sin `edit`: subir un testimonio nuevo. Con `edit`: editar uno propio (desde Mi folio)
+// `panel`: dentro del inicio (barra lateral en escritorio, pantalla completa en móvil), en una sola columna
 const props = defineProps<{
   edit?: { id: string; testimonyFolio: string; participantFolio: string; draft: TestimonyDraft }
+  variant?: 'page' | 'panel'
 }>()
 const editing = !!props.edit
+const panel = props.variant === 'panel'
 
 const STEP_COMPONENTS: Component[] = [
   StepGeneral,
@@ -101,7 +104,7 @@ onMounted(async () => {
 
 // Al cambiar de paso: arriba y foco en el título para lectores de pantalla
 watch(step, async () => {
-  window.scrollTo({ top: 0 })
+  if (!panel) window.scrollTo({ top: 0 })
   scroller.value?.scrollTo({ top: 0 })
   await nextTick()
   heading.value?.focus()
@@ -214,12 +217,16 @@ function viewOnMap() {
 </script>
 
 <template>
-  <main class="min-h-dvh bg-surface md:h-dvh md:p-6">
+  <main :class="panel ? 'flex h-full flex-col bg-surface' : 'min-h-dvh bg-surface md:h-dvh md:p-6'">
     <div
-      class="mx-auto flex min-h-dvh flex-col md:grid md:h-full md:min-h-0 md:max-w-6xl md:grid-cols-[17rem_1fr] md:overflow-hidden md:rounded-3xl md:border md:border-fg/15"
+      :class="
+        panel
+          ? 'flex min-h-0 flex-1 flex-col'
+          : 'mx-auto flex min-h-dvh flex-col md:grid md:h-full md:min-h-0 md:max-w-6xl md:grid-cols-[17rem_1fr] md:overflow-hidden md:rounded-3xl md:border md:border-fg/15'
+      "
     >
       <!-- Lateral (escritorio): marca, pasos y salida -->
-      <aside class="hidden flex-col gap-8 border-r border-fg/10 bg-fg/[0.03] p-6 md:flex">
+      <aside v-if="!panel" class="hidden flex-col gap-8 border-r border-fg/10 bg-fg/[0.03] p-6 md:flex">
         <div>
           <p class="text-xs text-fg/50">{{ edit ? edit.testimonyFolio : 'Tribunal Popular · FUTURO/001' }}</p>
           <p class="text-lg font-semibold">{{ title }}</p>
@@ -246,9 +253,12 @@ function viewOnMap() {
         </div>
       </aside>
 
-      <section class="flex flex-1 flex-col md:min-h-0">
-        <!-- Header (móvil) -->
-        <header class="sticky top-0 z-10 border-b border-fg/10 bg-surface/95 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur md:hidden">
+      <section class="flex flex-1 flex-col" :class="panel ? 'min-h-0' : 'md:min-h-0'">
+        <!-- Header (móvil; en panel, siempre) -->
+        <header
+          class="z-10 border-b border-fg/10 bg-surface/95 px-4 pt-[max(env(safe-area-inset-top),0.75rem)] pb-3 backdrop-blur"
+          :class="panel ? 'md:pt-4' : 'sticky top-0 md:hidden'"
+        >
           <div class="flex items-center justify-between gap-3">
             <div class="min-w-0">
               <p class="text-xs text-fg/50">{{ edit ? edit.testimonyFolio : 'Tribunal Popular · FUTURO/001' }}</p>
@@ -277,7 +287,11 @@ function viewOnMap() {
         </header>
 
         <!-- Contenido (en escritorio con scroll interno) -->
-        <div ref="scroller" class="flex-1 px-4 py-6 md:overflow-y-auto md:px-10 md:py-8">
+        <div
+          ref="scroller"
+          class="@container flex-1 px-4 py-6"
+          :class="panel ? 'min-h-0 overflow-y-auto md:px-5' : 'md:overflow-y-auto md:px-10 md:py-8'"
+        >
           <SubmitSuccess
             v-if="result"
             :result="result"
@@ -330,7 +344,7 @@ function viewOnMap() {
               <p class="text-xs font-semibold tracking-wider text-accent-ink uppercase">
                 Paso {{ step + 1 }} de {{ STEPS.length }}
               </p>
-              <h2 ref="heading" tabindex="-1" class="text-2xl font-semibold focus:outline-none md:text-3xl">
+              <h2 ref="heading" tabindex="-1" class="text-2xl font-semibold focus:outline-none @3xl:text-3xl">
                 {{ STEPS[step].title }}
               </h2>
               <p class="text-sm text-fg/60">{{ STEPS[step].description }}</p>
@@ -365,7 +379,8 @@ function viewOnMap() {
         <!-- Acciones (fijas abajo) -->
         <footer
           v-if="!result && !saved"
-          class="sticky bottom-0 border-t border-fg/10 bg-surface/95 px-4 pt-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] backdrop-blur md:static md:px-10 md:py-4"
+          class="border-t border-fg/10 bg-surface/95 px-4 pt-3 pb-[max(env(safe-area-inset-bottom),0.75rem)] backdrop-blur"
+          :class="panel ? 'md:px-5' : 'sticky bottom-0 md:static md:px-10 md:py-4'"
         >
           <p v-if="submitError" role="alert" class="mb-3 text-sm text-danger">{{ submitError }}</p>
           <div class="flex gap-3 md:justify-end">

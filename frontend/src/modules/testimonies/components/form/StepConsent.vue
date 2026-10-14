@@ -90,7 +90,7 @@ function toggleTyping(on: boolean) {
 
     <section class="space-y-4">
       <h3 class="form-group-title">Uso del testimonio</h3>
-      <div class="grid gap-8 lg:grid-cols-[3fr_2fr]">
+      <div class="grid gap-8 @3xl:grid-cols-[3fr_2fr]">
         <ChoiceGroup v-model="draft.consent" label="Autorizo" required :options="consentOptions" :error="errors.consent" />
         <ChoiceGroup
           v-model="draft.mediaConsent"
@@ -108,7 +108,7 @@ function toggleTyping(on: boolean) {
 
     <section class="space-y-4">
       <h3 class="form-group-title">Protección</h3>
-      <div class="grid gap-8 lg:grid-cols-[2fr_3fr]">
+      <div class="grid gap-8 @3xl:grid-cols-[2fr_3fr]">
         <ChoiceGroup
           v-model="draft.sensitive"
           label="¿Existe información que pueda poner a alguien en riesgo?"
@@ -168,7 +168,7 @@ function toggleTyping(on: boolean) {
             :id="field.id"
             v-model="draft.folio"
             type="text"
-            class="field-input font-mono uppercase sm:max-w-sm"
+            class="field-input font-mono uppercase @xl:max-w-sm"
             placeholder="P-XXXX-XXXX-XXXX-XXXX"
             autocomplete="off"
             spellcheck="false"
@@ -178,7 +178,7 @@ function toggleTyping(on: boolean) {
         </FormField>
       </template>
 
-      <div class="grid gap-5 sm:grid-cols-2">
+      <div class="grid gap-5 @xl:grid-cols-2">
         <FormField id="email" v-slot="field" label="Correo" optional :error="errors.email">
           <input
             :id="field.id"

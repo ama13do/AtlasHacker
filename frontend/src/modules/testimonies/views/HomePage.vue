@@ -3,7 +3,9 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { MapView, type MapPoint } from '@/modules/map'
+import { BRAND } from '@/core/config/theme'
 import { categoryStyle } from '@testimonies/data/categories'
+import { provideMainMapPicker } from '@testimonies/composables/useMainMapPicker'
 import { useMapRealtime } from '@testimonies/composables/useMapRealtime'
 import { useTestimoniesStore } from '@testimonies/stores/testimonies'
 import FeedNotice from '@testimonies/components/FeedNotice.vue'
@@ -18,8 +20,22 @@ const MD_BREAKPOINT = 768
 const route = useRoute()
 const router = useRouter()
 const store = useTestimoniesStore()
-const { items, status, popular, stories, recent, selected, selectedId, selectedDetail, details, detailStatus, storyIndex } =
-  storeToRefs(store)
+const {
+  items,
+  filteredItems,
+  status,
+  popular,
+  stories,
+  recent,
+  selected,
+  selectedId,
+  selectedDetail,
+  details,
+  detailStatus,
+  storyIndex,
+  selectedState,
+  selectedStateName,
+} = storeToRefs(store)
 
 const loading = computed(() => status.value === 'idle' || status.value === 'loading')
 // Aviso flotante en móvil (en escritorio va en la barra lateral)
@@ -31,9 +47,31 @@ const storyDetail = computed(() => (currentStory.value ? (details.value[currentS
 
 const mapView = ref<InstanceType<typeof MapView> | null>(null)
 
-const points = computed<MapPoint[]>(() =>
-  items.value.map((t) => ({ id: t.id, coordinates: t.coordinates, color: categoryStyle(t.category).color })),
+// Formulario abierto (ruta hija): en escritorio ocupa la barra lateral; en móvil, toda la pantalla
+const formOpen = computed(() => route.name === 'testimony-new')
+watch(
+  formOpen,
+  (open) => {
+    if (!open) return
+    store.select(null)
+    store.closeStory()
+  },
+  { immediate: true },
 )
+
+// El paso de ubicación del formulario pone el mapa grande en modo «marcar»
+const picker = provideMainMapPicker((coordinates) =>
+  mapView.value?.flyTo(coordinates, { top: 150, bottom: 0, left: 0, right: 0 }),
+)
+const picking = picker.active
+const pickedPoint = picker.point
+
+const points = computed<MapPoint[]>(() => {
+  if (picking.value) {
+    return pickedPoint.value ? [{ id: 'pick', coordinates: pickedPoint.value, color: BRAND.neonLime }] : []
+  }
+  return filteredItems.value.map((t) => ({ id: t.id, coordinates: t.coordinates, color: categoryStyle(t.category).color }))
+})
 
 function focusTestimony(id: string) {
   store.select(id)
@@ -52,10 +90,23 @@ function onSidebarSelect(id: string | null) {
   else store.select(null)
 }
 
-// Esc cierra el testimonio abierto (el visor de historias maneja su propio Esc)
+// Esc cierra el testimonio abierto y, después, el estado elegido (el visor de historias maneja su propio Esc)
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && selectedId.value && storyIndex.value === null) store.select(null)
+  if (e.key !== 'Escape' || storyIndex.value !== null || formOpen.value) return
+  if (selectedId.value) store.select(null)
+  else if (selectedState.value) setState(null)
 }
+
+// Estado elegido en el mapa ↔ ?estado=MX-JAL (para compartir y para el botón atrás)
+function setState(code: string | null) {
+  store.select(null)
+  router.replace({ query: { ...route.query, estado: code ?? undefined } })
+}
+watch(
+  () => route.query.estado,
+  (code) => store.selectState(typeof code === 'string' ? code : null),
+  { immediate: true },
+)
 
 // Pines en vivo (Supabase Realtime); avisa si se retira el testimonio abierto
 const { live, removedNotice } = useMapRealtime()
@@ -70,16 +121,20 @@ function viewOnMap(id: string) {
   focusTestimony(id)
 }
 
+// ?t=<id>: abrir un testimonio concreto (p. ej. tras crearlo) y limpiar la URL.
+// Se vigila porque el inicio sigue montado mientras el formulario está abierto
+function openFromQuery() {
+  const id = route.query.t
+  if (typeof id !== 'string' || status.value !== 'ready') return
+  focusTestimony(id)
+  router.replace({ query: { ...route.query, t: undefined } })
+}
+watch(() => route.query.t, openFromQuery)
+
 onMounted(async () => {
   window.addEventListener('keydown', onKeydown)
   if (status.value !== 'ready') await store.load()
-
-  // ?t=<id>: abrir un testimonio concreto (p. ej. tras crearlo) y limpiar la URL
-  const id = route.query.t
-  if (typeof id === 'string') {
-    focusTestimony(id)
-    router.replace({ query: {} })
-  }
+  openFromQuery()
 })
 
 onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
@@ -89,8 +144,10 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
   <main class="relative h-dvh w-screen overflow-hidden bg-surface md:flex">
     <!-- Barra lateral (escritorio): lista o detalle del testimonio -->
     <TestimonySidebar
-      class="hidden w-[26rem] shrink-0 border-r border-fg/10 md:flex"
+      class="hidden w-[26rem] shrink-0 border-r border-fg/10"
+      :class="{ 'md:flex': !formOpen }"
       :testimonies="recent"
+      :state-name="selectedStateName"
       :status="status"
       :selected="selected"
       :detail="selectedDetail"
@@ -99,7 +156,18 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       @select="onSidebarSelect"
       @retry="store.load"
       @retry-detail="selectedId && store.loadDetail(selectedId)"
+      @clear-state="setState(null)"
     />
+
+    <!-- Subir testimonio: en el lugar de la barra (escritorio) o a pantalla completa (móvil) -->
+    <RouterView v-slot="{ Component }">
+      <div
+        v-if="Component"
+        class="fixed inset-0 z-40 bg-surface md:static md:z-auto md:w-[26rem] md:shrink-0 md:border-r md:border-fg/10"
+      >
+        <component :is="Component" />
+      </div>
+    </RouterView>
 
     <!-- Región del mapa -->
     <div class="relative h-full flex-1">
@@ -107,7 +175,12 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
         ref="mapView"
         class="absolute inset-0"
         :points="points"
-        :selected-id="selectedId"
+        selectable-states
+        :selected-state="selectedState"
+        @select-state="setState"
+        :selected-id="picking ? 'pick' : selectedId"
+        :pickable="picking"
+        @pick="picker.pick"
         navigation-position="bottom-left"
         :fit-padding="{ top: 150, bottom: 20, left: 20, right: 20 }"
         @select="focusTestimony"
@@ -138,6 +211,18 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
           </div>
         </div>
         <StoriesBar class="pointer-events-auto" :stories="popular" :loading="loading" @open="store.openStory" />
+        <!-- Estado elegido (móvil; en escritorio va en la barra lateral) -->
+        <div v-if="selectedStateName" class="pointer-events-auto flex justify-center px-4 pt-2 md:hidden">
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-full bg-fg px-3 py-1.5 text-sm font-semibold text-surface shadow-lg"
+            :aria-label="`Quitar filtro: ${selectedStateName}`"
+            @click="setState(null)"
+          >
+            {{ selectedStateName }} · {{ filteredItems.length }}
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
       </header>
 
       <!-- Testimonio seleccionado (móvil: bottom sheet) -->
@@ -158,6 +243,14 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
           @retry="store.loadDetail(selected.id)"
         />
       </Transition>
+
+      <!-- Paso de ubicación del formulario (escritorio) -->
+      <p
+        v-if="picking && !pickedPoint"
+        class="pointer-events-none absolute top-36 left-1/2 z-20 -translate-x-1/2 rounded-full bg-fg px-4 py-2 text-sm font-semibold text-surface shadow-lg"
+      >
+        Toca el mapa para marcar el lugar
+      </p>
 
       <!-- Aviso: el testimonio abierto dejó de ser público -->
       <p

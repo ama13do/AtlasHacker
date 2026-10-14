@@ -13,6 +13,7 @@ const next = ref('')
 const confirm = ref('')
 const sending = ref(false)
 const error = ref<string | null>(null)
+const done = ref(false)
 
 // Misma regla que la API: 12+ caracteres con mayúsculas, minúsculas y números
 const rules = computed(() => [
@@ -28,17 +29,30 @@ async function submit() {
   if (!valid.value) return
   sending.value = true
   error.value = null
+  const wasMandatory = mandatory.value
   try {
-    await auth.changePassword(current.value, next.value)
-    // La API cerró todas las sesiones: se vuelve a entrar con la nueva
-    await router.replace({ name: 'admin-login', query: { cambio: '1' } })
-    auth.endSession()
+    // La API cierra todas las sesiones; el store vuelve a entrar con la nueva
+    const renewed = await auth.changePasswordAndRelogin(current.value, next.value)
+    current.value = next.value = confirm.value = ''
+    if (renewed) {
+      done.value = true
+      // Primera vez: ya puede usar el panel
+      if (wasMandatory) await router.replace({ name: 'admin-home' })
+    } else {
+      // Cambio hecho, pero no se pudo renovar la sesión: entrar a mano
+      await router.replace({ name: 'admin-login', query: { cambio: '1' } })
+      auth.endSession()
+    }
   } catch (e) {
     const err = e as Partial<ApiError>
     error.value =
-      err.status === 401 || err.status === 400
-        ? (err.message ?? 'La contraseña actual no es correcta.')
-        : 'No pudimos cambiar la contraseña. Intenta de nuevo.'
+      err.status === 401
+        ? 'La contraseña actual no es correcta.'
+        : err.status === 400
+          ? (err.message ?? 'La nueva contraseña no cumple las reglas.')
+          : err.status === 429 || err.status === 423
+            ? 'Demasiados intentos. Espera unos minutos antes de volver a intentar.'
+            : 'No pudimos cambiar la contraseña. Intenta de nuevo.'
   } finally {
     sending.value = false
   }
@@ -46,20 +60,23 @@ async function submit() {
 </script>
 
 <template>
-  <div class="max-w-md space-y-6">
+  <div class="max-w-md space-y-6" :class="{ 'mx-auto md:pt-6': mandatory }">
     <div>
-      <h1 class="text-2xl font-semibold">Mi cuenta</h1>
+      <h1 class="text-2xl font-semibold">{{ mandatory ? 'Crea tu contraseña' : 'Mi cuenta' }}</h1>
       <p v-if="auth.user" class="text-sm text-fg/60">{{ auth.user.email }}</p>
     </div>
 
     <p v-if="mandatory" class="rounded-xl bg-neon-lime/15 px-4 py-3 text-sm light:bg-neon-lime/40" role="status">
-      Tu contraseña es temporal. Cámbiala para continuar.
+      Entraste con una contraseña temporal. Elige una nueva para usar el panel.
+    </p>
+    <p v-else-if="done" class="rounded-xl bg-neon-green/15 px-4 py-3 text-sm light:bg-neon-green/30" role="status">
+      Contraseña actualizada. Se cerraron tus otras sesiones.
     </p>
 
     <form class="space-y-4 rounded-2xl border border-fg/15 p-5" @submit.prevent="submit">
-      <h2 class="font-semibold">Cambiar contraseña</h2>
+      <h2 v-if="!mandatory" class="font-semibold">Cambiar contraseña</h2>
       <div class="space-y-1.5">
-        <label :for="ids.current" class="text-sm font-semibold">Contraseña actual</label>
+        <label :for="ids.current" class="text-sm font-semibold">{{ mandatory ? 'Contraseña temporal' : 'Contraseña actual' }}</label>
         <input :id="ids.current" v-model="current" type="password" class="field-input" autocomplete="current-password" required />
       </div>
       <div class="space-y-1.5">
@@ -87,14 +104,14 @@ async function submit() {
       </div>
 
       <p v-if="error" class="text-sm text-danger" role="alert">{{ error }}</p>
-      <p class="text-xs text-fg/50">Al cambiarla se cerrarán todas tus sesiones y tendrás que volver a entrar.</p>
+      <p class="text-xs text-fg/50">Al cambiarla se cierran tus sesiones en otros dispositivos.</p>
 
       <button
         type="submit"
         class="w-full rounded-full bg-fg py-2.5 font-semibold text-surface transition hover:bg-neon-lime hover:text-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-fg disabled:opacity-50 disabled:hover:bg-fg disabled:hover:text-surface"
         :disabled="!valid || sending"
       >
-        {{ sending ? 'Guardando…' : 'Cambiar contraseña' }}
+        {{ sending ? 'Guardando…' : mandatory ? 'Guardar y entrar al panel' : 'Cambiar contraseña' }}
       </button>
     </form>
   </div>

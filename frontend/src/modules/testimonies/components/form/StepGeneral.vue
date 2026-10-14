@@ -42,7 +42,7 @@ const visibility = computed({
 </script>
 
 <template>
-  <div class="grid gap-8 lg:grid-cols-[3fr_2fr] lg:gap-10">
+  <div class="grid gap-8 @3xl:grid-cols-[3fr_2fr] @3xl:gap-10">
     <!-- Columna principal -->
     <div class="space-y-8">
       <section class="space-y-5">
@@ -53,10 +53,10 @@ const visibility = computed({
             <span>No pudimos cargar las categorías.</span>
             <button type="button" class="font-semibold text-accent-ink hover:underline" @click="loadCategories">Reintentar</button>
           </div>
-          <div v-else-if="!categories.length" class="grid grid-cols-1 gap-2 sm:grid-cols-3" aria-hidden="true">
+          <div v-else-if="!categories.length" class="grid grid-cols-1 gap-2 @xl:grid-cols-3" aria-hidden="true">
             <span v-for="n in 3" :key="n" class="h-16 animate-pulse rounded-xl bg-fg/10" />
           </div>
-          <div v-else class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div v-else class="grid grid-cols-1 gap-2 @xl:grid-cols-3">
             <label
               v-for="meta in categories"
               :key="meta.slug"
@@ -101,7 +101,7 @@ const visibility = computed({
       <section class="space-y-5">
         <h3 class="form-group-title">Identificación</h3>
         <ChoiceGroup v-model="visibility" label="¿Cómo deseas aparecer?" :options="visibilityOptions" :columns="2" />
-        <div class="grid gap-5 sm:grid-cols-3 sm:items-end">
+        <div class="grid gap-5 @xl:grid-cols-3 @xl:items-end">
           <FormField id="date" v-slot="field" label="Fecha" required :error="errors.date">
             <input
               :id="field.id"
@@ -140,7 +140,7 @@ const visibility = computed({
     </div>
 
     <!-- Ubicación -->
-    <section class="space-y-5 lg:sticky lg:top-0 lg:self-start">
+    <section class="space-y-5 @3xl:sticky @3xl:top-0 @3xl:self-start">
       <h3 class="form-group-title">Ubicación</h3>
       <FormField id="place" v-slot="field" label="Lugar / territorio" required :error="errors.place">
         <input

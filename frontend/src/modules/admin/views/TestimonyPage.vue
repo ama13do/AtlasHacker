@@ -265,6 +265,9 @@ const SECTIONS = computed(() =>
             <RouterLink v-if="canModerate" :to="{ name: 'admin-person', params: { id: t.participante_id } }" class="font-semibold text-accent-ink hover:underline">
               Persona que lo aportó
             </RouterLink>
+            <RouterLink v-if="auth.can('admin')" :to="{ name: 'admin-log', query: { entidad_id: t.id } }" class="font-semibold text-accent-ink hover:underline">
+              Historial
+            </RouterLink>
           </div>
           <p class="text-xs text-fg/50">
             {{ t.reacciones_total }} reacciones · {{ t.comentarios_conteo }} comentarios

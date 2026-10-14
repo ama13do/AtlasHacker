@@ -114,12 +114,12 @@ const sections = computed(() => [
       </p>
     </div>
 
-    <div class="grid gap-4 lg:grid-cols-2">
+    <div class="grid gap-4 @3xl:grid-cols-2">
       <section
         v-for="section in sections"
         :key="section.step"
         class="rounded-2xl border border-fg/15 p-4"
-        :class="{ 'lg:col-span-2': 'wide' in section && section.wide }"
+        :class="{ '@3xl:col-span-2': 'wide' in section && section.wide }"
       >
         <header class="mb-3 flex items-center justify-between gap-3">
           <h3 class="text-sm font-semibold">{{ section.title }}</h3>

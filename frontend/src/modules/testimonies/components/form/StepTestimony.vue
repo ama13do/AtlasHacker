@@ -6,7 +6,7 @@ const { draft, errors } = useTestimonyFormContext()
 </script>
 
 <template>
-  <div class="grid gap-8 lg:grid-cols-[1fr_16rem]">
+  <div class="grid gap-8 @3xl:grid-cols-[1fr_16rem]">
     <FormField
       id="testimony"
       v-slot="field"

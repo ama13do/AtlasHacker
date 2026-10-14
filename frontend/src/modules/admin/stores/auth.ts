@@ -83,6 +83,20 @@ export const useAuthStore = defineStore('admin/auth', () => {
     await authService.changePassword(token.value, current, next)
   }
 
+  // Cambia la contraseña y vuelve a entrar con la nueva (la API cerró todas las sesiones).
+  // true: sesión renovada; false: el cambio se hizo pero hay que entrar a mano
+  async function changePasswordAndRelogin(current: string, next: string): Promise<boolean> {
+    const email = user.value?.email
+    await changePassword(current, next)
+    if (!email) return false
+    try {
+      await login(email, next)
+      return true
+    } catch {
+      return false
+    }
+  }
+
   // Cierra la sesión local sin avisar de expiración (p. ej. tras cambiar la contraseña)
   function endSession() {
     clear()
@@ -93,5 +107,5 @@ export const useAuthStore = defineStore('admin/auth', () => {
     return !!user.value && roles.includes(user.value.rol)
   }
 
-  return { token, user, status, expired, isAuthenticated, login, refresh, restore, logout, changePassword, endSession, can }
+  return { token, user, status, expired, isAuthenticated, login, refresh, restore, logout, changePassword, changePasswordAndRelogin, endSession, can }
 })

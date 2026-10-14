@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { ApiError } from '@/core/http/client'
+import { MEXICO_STATES, stateAt } from '@/modules/map'
 import { socialService } from '@testimonies/services/social.service'
 import { testimoniesService } from '@testimonies/services/testimonies.service'
 import { useCategoriesStore } from '@testimonies/stores/categories'
@@ -36,7 +37,24 @@ export const useTestimoniesStore = defineStore('testimonies', () => {
       .sort((a, b) => b.reactions - a.reactions || b.date.localeCompare(a.date))
       .slice(0, POPULAR_LIMIT),
   )
-  const recent = computed(() => [...items.value].sort((a, b) => b.date.localeCompare(a.date)))
+  // Estado elegido en el mapa (ISO 3166-2, p. ej. MX-JAL); null = todo México
+  const selectedState = ref<string | null>(null)
+  const selectedStateName = computed(() => MEXICO_STATES.find((s) => s.code === selectedState.value)?.name ?? null)
+  // Estado de cada testimonio (se calcula una vez por id)
+  const stateById = new Map<string, string | null>()
+  const stateOf = (t: TestimonySummary) => {
+    if (!stateById.has(t.id)) stateById.set(t.id, stateAt(t.coordinates)?.code ?? null)
+    return stateById.get(t.id)
+  }
+  const filteredItems = computed(() =>
+    selectedState.value ? items.value.filter((t) => stateOf(t) === selectedState.value) : items.value,
+  )
+
+  function selectState(code: string | null) {
+    selectedState.value = code && MEXICO_STATES.some((s) => s.code === code) ? code : null
+  }
+
+  const recent = computed(() => [...filteredItems.value].sort((a, b) => b.date.localeCompare(a.date)))
   const selected = computed(() => items.value.find((t) => t.id === selectedId.value) ?? null)
   const selectedDetail = computed(() => (selectedId.value ? (details.value[selectedId.value] ?? null) : null))
 
@@ -162,6 +180,10 @@ export const useTestimoniesStore = defineStore('testimonies', () => {
     selectedId,
     storyIndex,
     stories,
+    selectedState,
+    selectedStateName,
+    filteredItems,
+    selectState,
     popular,
     recent,
     selected,

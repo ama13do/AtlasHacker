@@ -10,7 +10,8 @@
     "icons:optimize": "node scripts/optimize-icons.mjs",
     "dev:local": "vite --mode localapi",
     "api:local": "node scripts/local-api.mjs",
-    "api:local:admin": "node scripts/local-api.mjs admin"
+    "api:local:admin": "node scripts/local-api.mjs admin",
+    "map:states": "node scripts/build-mexico-states.mjs"
   },
   "dependencies": {
     "@fontsource-variable/parkinsans": "^5.3.0",

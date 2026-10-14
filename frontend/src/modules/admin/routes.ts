@@ -64,6 +64,23 @@ export const adminRoutes: RouteRecordRaw[] = [
         meta: { roles: ['admin'] },
       },
       {
+        path: 'usuarios',
+        name: 'admin-users',
+        component: () => import('@admin/views/UsersPage.vue'),
+        meta: { roles: ['admin'] },
+      },
+      {
+        path: 'catalogos',
+        name: 'admin-catalogs',
+        component: () => import('@admin/views/CatalogsPage.vue'),
+      },
+      {
+        path: 'bitacora',
+        name: 'admin-log',
+        component: () => import('@admin/views/LogPage.vue'),
+        meta: { roles: ['admin'] },
+      },
+      {
         path: 'cuenta',
         name: 'admin-account',
         component: () => import('@admin/views/AccountPage.vue'),

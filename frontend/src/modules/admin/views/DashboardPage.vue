@@ -7,6 +7,9 @@ import { useAuthStore } from '@admin/stores/auth'
 import type { ApiResumen } from '@admin/types/api'
 import BarChart30d from '@admin/components/BarChart30d.vue'
 import CategoryBars from '@admin/components/CategoryBars.vue'
+import EntityBars from '@admin/components/EntityBars.vue'
+import { systemService } from '@admin/services/system.service'
+import type { ApiGeografia } from '@admin/types/api'
 import KpiTile from '@admin/components/KpiTile.vue'
 
 const ORIGIN_LABELS: Record<string, string> = { web: 'Sitio web', facilitador: 'Facilitación (papel)', importacion: 'Importación' }
@@ -34,6 +37,16 @@ async function load() {
 }
 
 const t = computed(() => data.value?.testimonios)
+
+// Distribución por entidad (ubicación exacta: solo personal)
+const geo = ref<ApiGeografia | null>(null)
+onMounted(async () => {
+  try {
+    geo.value = await systemService.geography()
+  } catch {
+    // Sin tarjeta
+  }
+})
 
 // Admin: si todo pasa por revisión, se avisa junto a los pendientes (y cómo cambiarlo)
 const auth = useAuthStore()
@@ -135,7 +148,10 @@ onMounted(load)
         </section>
       </div>
 
-      <div class="grid gap-4 md:grid-cols-2">
+      <div class="grid gap-4 md:grid-cols-3">
+        <section v-if="geo" class="min-w-0 rounded-2xl border border-fg/15 p-4 md:p-5">
+          <EntityBars :rows="geo.por_entidad" />
+        </section>
         <section class="min-w-0 rounded-2xl border border-fg/15 p-4 md:p-5">
           <h2 class="mb-3 text-sm font-semibold">Por origen</h2>
           <p v-if="!data.por_origen.length" class="text-sm text-fg/50">Sin datos.</p>

@@ -105,7 +105,7 @@ Backend en `../backend` (Hono; **no se modifica desde aquí**). Guía: `../docs/
   - `POST /api/auth/login` devuelve un access token de 15 min, que se guarda **solo en memoria**, y deja una cookie `httpOnly` de refresh (`path=/api/auth`);
   - `stores/auth.ts` lo renueva un minuto antes de que expire y, al recargar, intenta recuperar la sesión con la cookie;
   - `services/adminHttp.ts` agrega `Authorization: Bearer`; ante un 401 renueva una vez y reintenta. Si no puede, la sesión se cierra y vuelve al login con «Tu sesión expiró».
-- **Roles:** admin, moderador, facilitador y lector. La navegación se filtra por rol y el guard (`adminGuard`) redirige si falta permiso. Con una contraseña temporal (`debe_cambiar_password`) se fuerza `/admin/cuenta`.
+- **Roles:** admin, moderador, facilitador y lector. La navegación se filtra por rol y el guard (`adminGuard`) redirige si falta permiso. Con una contraseña temporal (`debe_cambiar_password`; la tienen las cuentas creadas o restablecidas, también desde Swagger), el guard lleva a `/admin/cuenta`, que se muestra como «Crea tu contraseña», sin navegación. Al guardarla, la API cierra todas las sesiones y el front vuelve a entrar solo con la nueva (`changePasswordAndRelogin`) y abre el panel.
 - **Login en local:** el back solo acepta login desde los orígenes de `CORS_ORIGINS` (protege la cookie). Hay que agregar `http://localhost:5173` en el stage de pruebas; si no, el login responde 403 y la pantalla lo explica.
 - **Safari:** en producción, con front y API en dominios distintos, puede bloquear la cookie de refresh. Entonces la sesión dura 15 min y luego pide volver a entrar.
 - **Testimonios (`/admin/testimonios`):** cola de moderación con pestañas (por revisar, aprobados, rechazados, dados de baja, todos), filtros (texto o folio exacto, categoría, origen, sensibles, fechas) que viven en la URL y paginación.
@@ -135,10 +135,21 @@ Backend en `../backend` (Hono; **no se modifica desde aquí**). Guía: `../docs/
     - **Automática:** se publica al instante todo lo que tenga autorización pública.
   - En cualquier modo, «solo documentación interna», «no autorizo» y lo sensible con revisión o uso interno nunca se publican solos.
   - Al publicarse, el back avisa por Supabase Realtime y el mapa lo agrega sin recargar.
+- **Usuarios (`/admin/usuarios`, solo admin):** crear cuentas con su rol. La contraseña temporal la genera el back, se muestra una sola vez y se pide cambiarla al entrar. También editar nombre, correo y rol, desactivar, restablecer contraseña y cerrar sesiones. Tu propia cuenta no se puede desactivar ni cambiar de rol, y el back exige que siempre quede un admin activo.
+- **Catálogos (`/admin/catalogos`):** categorías y expedientes; todo el equipo los ve y solo admin los edita. El mapa usa los colores de marca por identificador (slug); una categoría nueva recibe uno automático. Al guardar se recargan las categorías del sitio público.
+- **Bitácora (`/admin/bitacora`, solo admin):** quién hizo qué, con filtros por tipo de acción, usuario y fechas. «Ver cambios» muestra antes y después, IP y navegador. Desde un testimonio o una persona, «Historial» filtra sus eventos.
+- **Exportar:** en Testimonios, «Exportar GeoJSON» (admin y moderador) descarga los testimonios de los filtros actuales con ubicación exacta y sin datos personales. El máximo es 10 000 y la exportación queda en la bitácora.
+- **Mantenimiento:** en Configuración, «Purgar datos vencidos» borra la auditoría vencida y las sesiones y límites expirados.
+- **Resumen:** incluye «Por entidad», con la ubicación exacta, solo para el equipo.
 - **Gráficas:** SVG propias, sin dependencias. Los colores `--chart-1` y `--chart-2` en `style.css` están validados para daltonismo y contraste en ambos temas. Cada gráfica trae tooltip y una tabla oculta para lectores de pantalla.
 
 ### Subir testimonios
 
+- **Dónde se abre:** `/testimonios/nuevo` es ruta hija del inicio (`HomePage` la pinta con `<RouterView>`).
+  - **Escritorio:** el formulario ocupa la barra lateral, en el lugar de la lista, y el mapa sigue a la vista. La ubicación se marca **en el mapa grande**: mientras el paso está a la vista, el mapa entra en modo «marcar», con cursor en cruz y solo el pin elegido. El puente es `composables/useMainMapPicker.ts`.
+  - **Móvil:** pantalla completa, con el mini-mapa dentro del formulario.
+  - **Editar desde Mi folio:** sigue siendo página completa (`variant="page"`).
+  - Los pasos usan *container queries* (`@xl:`, `@3xl:`) y no breakpoints de viewport, para quedar en una columna dentro de la barra.
 - **Captcha:** `VITE_TURNSTILE_SITE_KEY` (site key pública de Cloudflare Turnstile). El widget solo funciona en los dominios dados de alta en Cloudflare (Turnstile → widget → Hostnames). Si `localhost` no está, el paso de Revisión avisa que no se puede enviar (error `110200`) y el borrador se conserva.
   - Para probar en local se puede usar la site key de prueba de Cloudflare (`1x00000000000000000000AA`, acepta cualquier dominio y siempre pasa) **solo si** el back usa el secreto de prueba `1x0000000000000000000000000000000AA`; si no, la API responde `CAPTCHA_INVALIDO`. Volver a la site key real antes de desplegar.
 - **Folio de participante:** la API lo devuelve **una sola vez**, en el primer envío. Se muestra con botón de copiar y la persona decide si recordarlo en el dispositivo (`localStorage` `atlashacker:folio`, se manda en `X-Folio`). El folio, el correo y el teléfono no se guardan en el borrador.
@@ -184,6 +195,11 @@ Para que los componentes respondan al tema, no usar `white`/`black` para fondo y
 - La variante `light:` permite ajustes puntuales, p. ej. `bg-neon-lime/10 light:bg-neon-lime/35`.
 - `text-black` sobre fondos de acento (botones lima, badges) se mantiene en ambos temas.
 - El mapa usa el estilo `dark` u OpenFreeMap `positron` según el tema (`MAP_STYLES` en `src/modules/map/config.ts`).
+- El mapa base está **simplificado**: del estilo solo quedan el fondo, el agua, el contorno de cada estado y los nombres de los estados (en español si existe `name:es`). Todo lo demás (calles, edificios, ciudades, etc.) se oculta en `MapView` (`simplifyBaseStyle`). Las capas que se conservan, por tema, están en `BASE_LAYERS` (`src/modules/map/config.ts`).
+- Con `detail="states+cities"` (lo usa el selector de ubicación del formulario), las ciudades y pueblos aparecen a partir de zoom 7 (`CITY_LABELS_MIN_ZOOM`).
+- **Clic en un estado** (mapa principal, `selectable-states`): el mapa se acerca al estado, oscurece el resto y la lista muestra solo sus testimonios, con el chip «Estado ×» y `?estado=MX-JAL` en la URL. Se vuelve a todo México con el chip, con `Esc` o con un clic fuera del estado. Un clic sobre un pin sigue abriendo el testimonio.
+  - Las líneas municipales salen de las teselas de OpenFreeMap (`boundary`, `admin_level = 6`), que **solo las traen desde zoom 9**. En estados grandes se ven al acercarse; en los pequeños (CDMX, Tlaxcala, Morelos…) se ven desde el encuadre.
+  - Los polígonos de los 32 estados (para el clic, el resalte, el encuadre y el filtro) están en `src/modules/map/assets/mexico-states.json`. Vienen de Natural Earth 10m admin-1 (dominio público), simplificados. Se regeneran con `npm run map:states`.
 
 ### Tipografía
 

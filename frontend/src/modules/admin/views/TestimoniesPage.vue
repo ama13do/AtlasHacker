@@ -4,6 +4,7 @@ import { useRoute, useRouter, type LocationQuery } from 'vue-router'
 import type { ApiError } from '@/core/http/client'
 import { categoryStyle, useCategoriesStore } from '@/modules/testimonies'
 import { adminTestimoniesService, type StaffFilters } from '@admin/services/testimonies.service'
+import { EXPORT_LIMIT, systemService } from '@admin/services/system.service'
 import { useAuthStore } from '@admin/stores/auth'
 import type { AccionModeracion, ApiTestimonioStaffFila, PaginaMeta } from '@admin/types/api'
 import { ORIGEN_LABELS, fmtDate } from '@admin/data/labels'
@@ -56,14 +57,13 @@ const selected = ref<string[]>([])
 const meta = ref<PaginaMeta | null>(null)
 const status = ref<'loading' | 'ready' | 'error'>('loading')
 
-async function load() {
-  status.value = 'loading'
-  selected.value = []
+// Filtros actuales (pestaña + URL): los usa la lista y la exportación
+function currentFilters(): StaffFilters {
   const tabFilters = TABS.find((t) => t.key === tab.value)!.filters
   // Un folio de testimonio se busca exacto; el resto, como texto completo
   const search = q('q').trim()
   const isFolio = /^[A-Z]+\/\d+-T[0-9A-Z]+$/i.test(search)
-  const filters: StaffFilters = {
+  return {
     ...tabFilters,
     q: !isFolio ? search || undefined : undefined,
     folio: isFolio ? search : undefined,
@@ -75,8 +75,13 @@ async function load() {
     pagina: page.value,
     por_pagina: PAGE_SIZE,
   }
+}
+
+async function load() {
+  status.value = 'loading'
+  selected.value = []
   try {
-    const result = await adminTestimoniesService.list(filters)
+    const result = await adminTestimoniesService.list(currentFilters())
     rows.value = result.rows
     meta.value = result.meta
     status.value = 'ready'
@@ -143,6 +148,32 @@ async function runBatch() {
   }
 }
 
+// --- Exportar GeoJSON (ubicación exacta, sin datos personales; queda en la bitácora) ---
+const exporting = ref(false)
+const exportMessage = ref<string | null>(null)
+async function exportGeoJson() {
+  exporting.value = true
+  exportMessage.value = null
+  try {
+    const fc = await systemService.exportGeoJson(currentFilters())
+    const blob = new Blob([JSON.stringify(fc)], { type: 'application/geo+json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `testimonios-${new Date().toLocaleDateString('en-CA')}.geojson`
+    a.click()
+    URL.revokeObjectURL(url)
+    exportMessage.value =
+      fc.features.length >= EXPORT_LIMIT
+        ? `Se exportaron ${EXPORT_LIMIT} testimonios (el máximo): afina los filtros para obtener el resto.`
+        : `Se exportaron ${fc.features.length} testimonios.`
+  } catch (e) {
+    exportMessage.value = (e as Partial<ApiError>).message ?? 'No se pudo exportar.'
+  } finally {
+    exporting.value = false
+  }
+}
+
 const rangeText = computed(() => {
   if (!meta.value || !meta.value.total) return ''
   const from = (meta.value.pagina - 1) * meta.value.por_pagina + 1
@@ -153,12 +184,27 @@ const rangeText = computed(() => {
 
 <template>
   <div class="space-y-6">
-    <div>
-      <h1 class="text-2xl font-semibold">Testimonios</h1>
-      <p class="text-sm text-fg/60">
-        {{ auth.user?.rol === 'facilitador' ? 'Los testimonios que capturaste.' : 'Cola de moderación y consulta.' }}
-      </p>
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 class="text-2xl font-semibold">Testimonios</h1>
+        <p class="text-sm text-fg/60">
+          {{ auth.user?.rol === 'facilitador' ? 'Los testimonios que capturaste.' : 'Cola de moderación y consulta.' }}
+        </p>
+      </div>
+      <button
+        v-if="canModerate"
+        type="button"
+        class="rounded-full border border-fg/25 px-4 py-1.5 text-sm font-semibold hover:border-fg disabled:opacity-50"
+        :disabled="exporting"
+        title="Con los filtros actuales. Incluye ubicaciones exactas; queda en la bitácora."
+        @click="exportGeoJson"
+      >
+        {{ exporting ? 'Exportando…' : 'Exportar GeoJSON' }}
+      </button>
     </div>
+    <p v-if="exportMessage" class="text-sm text-fg/70" role="status">
+      {{ exportMessage }} El archivo incluye ubicaciones exactas: compártelo solo con el equipo.
+    </p>
 
     <!-- Pestañas -->
     <nav class="flex gap-1 overflow-x-auto border-b border-fg/10 [scrollbar-width:none]" aria-label="Estado">

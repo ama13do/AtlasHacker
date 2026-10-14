@@ -145,7 +145,12 @@ const btn = 'rounded-full px-4 py-2 text-sm font-semibold transition disabled:op
     </RouterLink>
 
     <header class="space-y-1">
-      <h1 class="font-mono text-2xl font-semibold">{{ hint ? `P-…-${hint}` : 'Persona' }}</h1>
+      <div class="flex flex-wrap items-baseline justify-between gap-3">
+        <h1 class="font-mono text-2xl font-semibold">{{ hint ? `P-…-${hint}` : 'Persona' }}</h1>
+        <RouterLink v-if="auth.can('admin')" :to="{ name: 'admin-log', query: { entidad_id: id } }" class="text-sm font-semibold text-accent-ink hover:underline">
+          Historial
+        </RouterLink>
+      </div>
       <p v-if="summary" class="text-sm text-fg/60">
         {{ summary.testimonios }} testimonios · {{ summary.aprobados }} publicados · alta {{ fmtDate(summary.created_at) }}
         <template v-if="!summary.activo"> · <span class="font-semibold">folio desactivado</span></template>

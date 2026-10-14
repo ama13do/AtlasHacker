@@ -113,7 +113,7 @@ function setType(id: string, type: EvidenceType) {
       </p>
     </div>
 
-    <ul v-if="items.length" class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+    <ul v-if="items.length" class="grid grid-cols-2 gap-2 @xl:grid-cols-3">
       <li
         v-for="item in items"
         :key="item.attachment.id"
@@ -154,7 +154,7 @@ function setType(id: string, type: EvidenceType) {
 
     <label
       v-if="model.length < limits.maxFiles"
-      class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-fg/30 px-4 py-4 text-sm lg:flex-col lg:py-10 font-semibold transition hover:border-neon-lime hover:text-accent-ink has-focus-visible:outline-2 has-focus-visible:outline-fg"
+      class="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-fg/30 px-4 py-4 text-sm @3xl:flex-col @3xl:py-10 font-semibold transition hover:border-neon-lime hover:text-accent-ink has-focus-visible:outline-2 has-focus-visible:outline-fg"
     >
       <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />

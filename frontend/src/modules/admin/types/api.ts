@@ -238,3 +238,65 @@ export interface ApiConfiguracion {
   mapa_tiempo_real: boolean
   consentimiento_version_actual: string
 }
+
+// --- Usuarios del dashboard (solo admin) ---
+
+export interface ApiUsuarioStaff {
+  id: string
+  email: string
+  nombre: string | null
+  rol: Rol
+  activo: boolean
+  debe_cambiar_password: boolean
+  ultimo_login_at: string | null
+  bloqueado_hasta: string | null
+  created_at: string
+}
+
+// --- Catálogos ---
+
+export interface ApiCategoriaStaff {
+  id: string
+  slug: string
+  nombre: string
+  descripcion: string | null
+  color: string | null
+  icono: string | null
+  orden: number
+  activo: boolean
+}
+
+export interface ApiExpedienteStaff {
+  id: string
+  codigo: string
+  titulo: string
+  materia: string | null
+  descripcion: string | null
+  activo: boolean
+}
+
+// --- Bitácora (solo admin) ---
+
+export interface ApiEventoBitacora {
+  id: string | number
+  created_at: string
+  actor_tipo: 'usuario' | 'participante' | 'anonimo' | 'sistema'
+  usuario_id: string | null
+  usuario_email: string | null
+  participante_id: string | null
+  accion: string
+  entidad: string | null
+  entidad_id: string | null
+  antes: unknown
+  despues: unknown
+  detalle: unknown
+  ip: string | null
+  user_agent: string | null
+  request_id: string | null
+}
+
+// GET /api/admin/estadisticas/geografia
+export interface ApiGeografia {
+  por_entidad: { entidad: string; total: number; publicos: number }[]
+  celdas: { lng: number; lat: number; total: number }[]
+}

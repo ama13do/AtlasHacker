@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { isInsideMexico, MapView, type MapPoint } from '@/modules/map'
 import { BRAND } from '@/core/config/theme'
+import { useMainMapPicker } from '@testimonies/composables/useMainMapPicker'
 
 import type { LocationSource } from '@testimonies/types/testimony'
 
@@ -11,6 +12,28 @@ const emit = defineEmits<{ located: [source: LocationSource, accuracy: number | 
 const model = defineModel<[number, number] | null>({ required: true })
 
 const mapView = ref<InstanceType<typeof MapView> | null>(null)
+
+// En escritorio, dentro del inicio, el lugar se marca en el mapa grande (no hay mini-mapa)
+const mainMap = useMainMapPicker()
+const desktop = window.matchMedia('(min-width: 48rem)')
+const isDesktop = ref(desktop.matches)
+const onMedia = (e: MediaQueryListEvent) => (isDesktop.value = e.matches)
+desktop.addEventListener('change', onMedia)
+const useMainMap = computed(() => !!mainMap && isDesktop.value)
+
+if (mainMap) {
+  mainMap.onPick((coordinates) => setPoint(coordinates))
+  watch(useMainMap, (on) => (mainMap.active.value = on), { immediate: true })
+  watch(model, (point) => (mainMap.point.value = point), { immediate: true })
+}
+
+onBeforeUnmount(() => {
+  desktop.removeEventListener('change', onMedia)
+  if (!mainMap) return
+  mainMap.active.value = false
+  mainMap.point.value = null
+  mainMap.onPick(null)
+})
 const locating = ref(false)
 const message = ref<string | null>(null)
 
@@ -44,7 +67,8 @@ function useMyLocation() {
         return
       }
       setPoint(point, 'gps', coords.accuracy)
-      mapView.value?.flyTo(point)
+      if (useMainMap.value) mainMap?.flyTo(point)
+      else mapView.value?.flyTo(point)
     },
     () => {
       locating.value = false
@@ -57,12 +81,26 @@ function useMyLocation() {
 
 <template>
   <div class="space-y-2">
+    <!-- Escritorio: el mapa grande, a la derecha, está en modo «marcar» -->
     <div
-      class="relative h-64 overflow-hidden rounded-2xl border sm:h-72 lg:h-88"
+      v-if="useMainMap"
+      class="flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm"
+      :class="error ? 'border-brand-orange' : model ? 'border-fg/20' : 'border-dashed border-fg/30'"
+    >
+      <svg viewBox="0 0 24 24" class="size-5 shrink-0 text-accent-ink" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Z" />
+        <circle cx="12" cy="10" r="2.5" />
+      </svg>
+      <span class="flex-1">{{ model ? 'Lugar marcado. Toca el mapa para moverlo.' : 'Toca el mapa de la derecha para marcar el lugar.' }}</span>
+    </div>
+    <div
+      v-else
+      class="relative h-64 overflow-hidden rounded-2xl border @xl:h-72 @3xl:h-88"
       :class="error ? 'border-brand-orange' : 'border-fg/20'"
     >
       <MapView
         ref="mapView"
+        detail="states+cities"
         class="absolute inset-0"
         pickable
         :points="points"
