@@ -100,7 +100,7 @@ const QUESTION_EXAMPLES = [
       </section>
 
       <!-- 05 · La pregunta del Tribunal -->
-      <section class="space-y-3 self-start rounded-[22px] border-2 border-black bg-neon-lime p-5 text-black shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]">
+      <section class="on-light space-y-3 self-start rounded-[22px] border-2 border-black bg-neon-lime p-5 text-black shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]">
         <FormField
           id="tribunalQuestion"
           v-slot="field"

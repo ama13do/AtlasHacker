@@ -85,7 +85,7 @@ const visibility = computed({
               v-for="meta in categories"
               :key="meta.slug"
               :title="meta.description ?? undefined"
-              class="flex cursor-pointer items-center gap-2.5 rounded-2xl border-2 px-3 py-2.5 transition-[translate,box-shadow,border-color] has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand-blue"
+              class="relative flex cursor-pointer items-center gap-2.5 rounded-2xl border-2 px-3 py-2.5 transition-[translate,box-shadow,border-color] has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-brand-blue"
               :class="draft.topic === meta.slug ? '-translate-y-px border-ink bg-card shadow-brut' : 'border-ink/30 bg-card hover:border-ink'"
             >
               <input v-model="draft.topic" type="radio" name="topic" :value="meta.slug" class="sr-only" />

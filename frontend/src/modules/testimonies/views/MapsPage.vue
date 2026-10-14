@@ -8,7 +8,7 @@ import { testimoniesService } from '@testimonies/services/testimonies.service'
 import { useCategoriesStore } from '@testimonies/stores/categories'
 import { useTestimoniesStore } from '@testimonies/stores/testimonies'
 import type { Collaborator, PublicStats } from '@testimonies/types/testimony'
-import { MASCOTS, STICKERS } from '@/core/config/brand'
+import { STICKERS } from '@/core/config/brand'
 import BrandMark from '@/shared/components/BrandMark.vue'
 import SiteHeader from '@/shared/components/SiteHeader.vue'
 
@@ -45,9 +45,9 @@ const lastPublished = computed(() => {
 const statesCount = computed(() => stats.value?.byState.length ?? 0)
 
 const STEPS = [
-  { n: '01', title: 'Marca el lugar', text: 'Busca tu comunidad o arrastra la chincheta hasta el punto exacto del territorio.', color: 'bg-neon-green', mascot: MASCOTS.hidraulin },
-  { n: '02', title: 'Cuenta lo que pasa', text: 'El recibo dice, el territorio dice, la comunidad dice. Sube fotos o documentos si los tienes.', color: 'bg-brand-pink', mascot: MASCOTS.nubecin },
-  { n: '03', title: 'El Tribunal pregunta', text: 'Tu testimonio se revisa y se suma al mapa como evidencia colectiva. Tú decides si apareces con nombre.', color: 'bg-brand-orange', mascot: MASCOTS.panelin },
+  { n: '01', title: 'Marca el lugar', text: 'Busca tu comunidad o arrastra la chincheta hasta el punto exacto del territorio.', color: 'bg-neon-green' },
+  { n: '02', title: 'Cuenta lo que pasa', text: 'El recibo dice, el territorio dice, la comunidad dice. Sube fotos o documentos si los tienes.', color: 'bg-brand-pink' },
+  { n: '03', title: 'El Tribunal pregunta', text: 'Tu testimonio se revisa y se suma al mapa como evidencia colectiva. Tú decides si apareces con nombre.', color: 'bg-brand-orange' },
 ] as const
 
 onMounted(async () => {
@@ -169,8 +169,7 @@ onMounted(async () => {
           Tu testimonio <span class="hl-box hl-orange" style="--hl-rot: 1deg">es evidencia</span>
         </h2>
         <ol class="mt-6 grid gap-5 md:grid-cols-3">
-          <li v-for="(s, i) in STEPS" :key="s.n" class="card-brut tm-stagger relative overflow-hidden p-5 pr-20" :style="{ '--i': i }">
-            <img :src="s.mascot" alt="" class="tm-mascot pointer-events-none absolute -right-3 -bottom-3 w-24 rotate-[-8deg] select-none" loading="lazy" aria-hidden="true" />
+          <li v-for="(s, i) in STEPS" :key="s.n" class="card-brut tm-stagger p-5" :style="{ '--i': i }">
             <span class="font-wide inline-grid size-11 place-items-center rounded-full border-2 border-black text-base font-black text-black" :class="s.color">{{ s.n }}</span>
             <h3 class="mt-3 text-lg font-black uppercase">{{ s.title }}</h3>
             <p class="mt-1.5 text-sm leading-relaxed opacity-80">{{ s.text }}</p>

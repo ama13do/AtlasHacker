@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { STICKERS, mascotFor } from '@/core/config/brand'
+import { STICKERS, phraseFor } from '@/core/config/brand'
 import { categoryStyle } from '@testimonies/data/categories'
 import { coverFor } from '@testimonies/data/covers'
 import { DEFAULT_MAP_SLUG } from '@testimonies/data/maps'
@@ -202,7 +202,7 @@ onBeforeUnmount(() => {
       <div class="flex h-full w-full flex-col items-center sm:h-auto sm:w-auto">
         <!-- Celular: pantalla completa. Escritorio: tarjeta 9:16 -->
         <article
-          class="tm-story relative flex h-dvh w-full flex-col overflow-hidden text-black sm:aspect-9/16 sm:h-[min(52rem,calc(100dvh-5.5rem))] sm:w-auto sm:rounded-[30px] sm:border-[3px] sm:border-black sm:shadow-[10px_10px_0_0_#e0fa49]"
+          class="tm-story on-light relative flex h-dvh w-full flex-col overflow-hidden text-black sm:aspect-9/16 sm:h-[min(52rem,calc(100dvh-5.5rem))] sm:w-auto sm:rounded-[30px] sm:border-[3px] sm:border-black sm:shadow-[10px_10px_0_0_#e0fa49]"
           :style="{ backgroundColor: meta.color }"
         >
           <!-- Semitono -->
@@ -286,15 +286,15 @@ onBeforeUnmount(() => {
               </div>
             </div>
 
-            <!-- Sin fotos: la mascota de la categoría con el sticker del testimonio -->
-            <div v-else class="tm-story-media relative grid min-h-0 flex-1 place-items-center">
-              <img :src="mascotFor(story.category)" alt="" class="tm-mascot max-h-full w-auto max-w-[70%] object-contain drop-shadow-[5px_5px_0_rgba(0,0,0,0.85)]" />
-              <img :src="coverFor(story)" alt="" class="cutout absolute top-[6%] right-[8%] w-20 animate-sticker-float motion-reduce:animate-none sm:w-24" />
+            <!-- Sin fotos: el ícono de la categoría y un sticker de frase (el relato tiene más espacio abajo) -->
+            <div v-else class="tm-story-media relative flex min-h-24 flex-1 items-center justify-center gap-4">
+              <img :src="coverFor(story)" alt="" class="cutout h-full max-h-44 w-auto max-w-[38%] -rotate-6 object-contain" />
+              <img :src="phraseFor(story.category)" alt="" class="h-full max-h-40 w-auto max-w-[55%] rotate-3 animate-sticker-float object-contain drop-shadow-[4px_4px_0_rgba(0,0,0,0.85)] motion-reduce:animate-none" />
             </div>
 
             <!-- Texto (zona táctil para navegar) -->
             <div
-              class="tm-story-text relative cursor-pointer touch-none space-y-2 rounded-[22px] border-[3px] border-black bg-white p-3.5 shadow-[5px_5px_0_0_#000] select-none"
+              class="tm-story-text relative cursor-pointer touch-none space-y-2 overflow-hidden rounded-[22px] border-[3px] border-black bg-white p-3.5 shadow-[5px_5px_0_0_#000] select-none"
               @pointerdown="onPointerDown"
               @pointerup="onPointerUp"
               @pointercancel="onPointerCancel"
@@ -308,12 +308,12 @@ onBeforeUnmount(() => {
                 <span class="font-semibold normal-case opacity-60">{{ date }}</span>
               </p>
               <h2 class="line-clamp-3 text-xl leading-[1.15] font-extrabold text-balance sm:text-[1.35rem]">{{ detail?.title ?? story.title }}</h2>
-              <p v-if="detail" class="line-clamp-4 text-[13px] leading-snug text-neutral-800 sm:text-sm">{{ detail.testimony }}</p>
+              <p v-if="detail" class="text-[13px] leading-snug text-neutral-800 sm:text-sm" :class="photos.length ? 'line-clamp-4' : 'line-clamp-[12] text-[15px] sm:text-base'">{{ detail.testimony }}</p>
               <div v-else-if="!detailFailed" class="space-y-1.5" aria-hidden="true">
                 <span class="block h-3 w-full animate-pulse rounded-full bg-black/15" />
                 <span class="block h-3 w-3/5 animate-pulse rounded-full bg-black/15" />
               </div>
-              <p v-if="detail?.tribunalQuestion" class="rounded-xl border-2 border-black bg-neon-lime px-2.5 py-1.5 text-xs leading-snug font-bold">
+              <p v-if="detail?.tribunalQuestion" class="rounded-xl border-2 border-black bg-neon-lime px-2.5 py-1.5 text-xs leading-snug font-bold text-black">
                 <span class="font-black uppercase">El Tribunal pregunta: </span>«{{ detail.tribunalQuestion }}»
               </p>
             </div>
@@ -323,7 +323,7 @@ onBeforeUnmount(() => {
           <footer class="relative z-20 shrink-0 space-y-3 border-t-[3px] border-black bg-white px-3.5 pt-3 pb-[max(0.85rem,env(safe-area-inset-bottom))]">
             <ReactionBar v-if="detail" :testimony-id="story.id" compact />
             <div class="grid grid-cols-2 gap-2.5">
-              <button type="button" class="btn-hxnf btn-paper btn-sm border-black text-black" @click="toMap(false)">
+              <button type="button" class="btn-hxnf btn-sm border-black bg-white text-black" @click="toMap(false)">
                 <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M12 21s-7-6.2-7-12a7 7 0 0 1 14 0c0 5.8-7 12-7 12Z" /><circle cx="12" cy="9" r="2.5" />
                 </svg>

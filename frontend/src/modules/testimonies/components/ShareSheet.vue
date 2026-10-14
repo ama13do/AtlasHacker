@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { STICKERS, SITE_HOST, SITE_URL, mascotFor } from '@/core/config/brand'
+import { STICKERS, SITE_HOST, SITE_URL, phraseFor } from '@/core/config/brand'
 import { coverFor } from '@testimonies/data/covers'
 import { useCategoriesStore } from '@testimonies/stores/categories'
 import { renderShareImage, type ShareFormat } from '@testimonies/utils/shareImage'
 import type { TestimonyDetail, TestimonySummary } from '@testimonies/types/testimony'
 
-// Compartir un testimonio: imagen lista para publicar (collage con sus fotos o la mascota de la categoría),
+// Compartir un testimonio: imagen lista para publicar (el relato, con collage de sus fotos o stickers de la marca),
 // en formato historia (9:16, Instagram/WhatsApp) o publicación (4:5), con la leyenda
 // «Este testimonio salió del sitio web atlashacker.hxnf.mx (comparte tu experiencia)» y el enlace al testimonio.
 // Los enlaces siempre usan el dominio oficial, no el de Vercel.
@@ -54,7 +54,7 @@ async function render(f: ShareFormat) {
         excerpt: props.detail?.testimony ?? '',
         question: props.detail?.tribunalQuestion,
         photoUrls: photos.value,
-        mascotUrl: mascotFor(props.testimony.category),
+        phraseUrl: phraseFor(props.testimony.category),
         coverUrl: coverFor(props.testimony),
         folio: props.testimony.folio,
       },
@@ -172,7 +172,7 @@ const NETWORKS = computed(() => [
           </div>
         </div>
         <p class="mt-2 text-center text-[11px] opacity-60">
-          {{ photos.length > 1 ? `Collage con ${Math.min(photos.length, 4)} fotos del testimonio` : photos.length ? 'Con la foto del testimonio' : 'Sin fotos: va la mascota de la categoría' }}
+          {{ photos.length > 1 ? `Collage con ${Math.min(photos.length, 4)} fotos del testimonio` : photos.length ? 'Con la foto del testimonio' : 'Sin fotos: el relato va más completo' }}
         </p>
 
         <div class="mt-4 grid gap-2">

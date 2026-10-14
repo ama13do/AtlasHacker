@@ -241,7 +241,33 @@ function openFromQuery() {
 watch(() => route.query.t, openFromQuery)
 watch(status, (s) => s === 'ready' && openFromQuery())
 
+// En celulares, al elegir una foto, marcar una casilla o cerrar el teclado, el navegador puede desplazar la página o
+// un contenedor con overflow oculto aunque no tengan scroll: el mapa se corría y quedaba una franja negra abajo.
+// En esta vista nada se desplaza salvo los paneles con scroll propio; mientras se escribe no se interviene
+// (el navegador sube el campo para que el teclado no lo tape) y al cerrar el teclado todo vuelve a su lugar.
+const isTextField = (el: Element | null) =>
+  !!el && (el.matches('textarea, select, [contenteditable="true"]') || (el.matches('input') && !el.matches('[type=checkbox], [type=radio], [type=file], [type=button], [type=submit], [type=range]')))
+const locked = (v: string) => v === 'hidden' || v === 'clip'
+function pinLayout(e: Event) {
+  if (isTextField(document.activeElement)) return
+  if (e.target === document || e.target === document.documentElement || e.target === document.body) {
+    if (window.scrollX || window.scrollY) window.scrollTo(0, 0)
+    return
+  }
+  const el = e.target as HTMLElement
+  if (!(el.scrollTop || el.scrollLeft)) return
+  const style = getComputedStyle(el)
+  if (locked(style.overflowX) && locked(style.overflowY)) el.scrollTo(0, 0)
+}
+function onFocusOut() {
+  setTimeout(() => {
+    if (!isTextField(document.activeElement) && (window.scrollX || window.scrollY)) window.scrollTo(0, 0)
+  }, 120)
+}
+
 onMounted(() => {
+  document.addEventListener('scroll', pinLayout, true)
+  document.addEventListener('focusout', onFocusOut)
   document.documentElement.classList.add('overflow-hidden')
   document.body.classList.add('overflow-hidden')
   window.addEventListener('keydown', onKeydown)
@@ -250,6 +276,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  document.removeEventListener('scroll', pinLayout, true)
+  document.removeEventListener('focusout', onFocusOut)
   document.documentElement.classList.remove('overflow-hidden')
   document.body.classList.remove('overflow-hidden')
   window.removeEventListener('keydown', onKeydown)

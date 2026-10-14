@@ -184,7 +184,7 @@ defineExpose({
 
       <section
         v-if="detail.tribunalQuestion"
-        class="rotate-[-0.6deg] rounded-[20px] border-2 border-black bg-neon-lime p-4 text-black shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]"
+        class="on-light rotate-[-0.6deg] rounded-[20px] border-2 border-black bg-neon-lime p-4 text-black shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]"
       >
         <h3 class="text-xs font-black tracking-wide uppercase">05 · La pregunta del Tribunal</h3>
         <p class="font-wide mt-1 text-lg leading-snug font-black">«{{ detail.tribunalQuestion }}»</p>

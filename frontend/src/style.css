@@ -38,6 +38,20 @@
   color-scheme: dark;
 }
 
+/* Zonas que siempre van sobre fondo claro o neón (pregunta del Tribunal, tarjeta de las historias):
+   conservan la tinta negra aunque la página esté en oscuro */
+.on-light {
+  --surface: #ffffff;
+  --fg: #000000;
+  --card: #ffffff;
+  --ink: #000000;
+  --shadow-c: #000000;
+  --accent-ink: #000000;
+  --danger-ink: #c2410c;
+  color: #000000;
+  color-scheme: light;
+}
+
 @theme {
   --font-sans: "Parkinsans Variable", ui-sans-serif, system-ui, sans-serif;
   --font-wide: "Parkinsans Variable", ui-sans-serif, system-ui, sans-serif; /* titulares: Parkinsans en peso alto */

@@ -36,14 +36,16 @@ export const STICKERS = {
   frases: { energiaJusta, somosCambio, colectivo, soluciones },
 } as const
 
-// Mascotas: Panelín (energía solar), Abaniquín (eólica), Hidraulín (agua), Nubecín (clima)
+// Mascotas: Panelín (energía solar), Abaniquín (eólica), Hidraulín (agua), Nubecín (clima). Solo en momentos
+// ligeros (p. ej. al enviar un testimonio), nunca dentro de un testimonio
 export const MASCOTS = { panelin, abaniquin, hidraulin, nubecin } as const
 export type MascotName = keyof typeof MASCOTS
 
-// Mascota que acompaña a cada categoría (historias sin foto, estados vacíos)
-export function mascotFor(category: string): string {
-  if (category === 'afectaciones-cambio-climatico') return MASCOTS.nubecin
-  if (category === 'megaproyectos') return MASCOTS.abaniquin
-  if (category === 'inseguridad-energetica') return MASCOTS.panelin
-  return MASCOTS.hidraulin
+// Sticker de frase por categoría (historias e imagen para compartir sin fotos). Las mascotas no van en los
+// testimonios: son relatos serios; Panelín solo celebra al enviar uno
+export function phraseFor(category: string): string {
+  if (category === 'inseguridad-energetica') return STICKERS.frases.energiaJusta
+  if (category === 'afectaciones-cambio-climatico') return STICKERS.frases.colectivo
+  if (category === 'megaproyectos') return STICKERS.frases.soluciones
+  return STICKERS.frases.somosCambio
 }
