@@ -102,3 +102,15 @@ export function env(): Env {
   if (!cache) throw new Error('initEnv() no se ha ejecutado todavía');
   return cache;
 }
+
+/** Verifica si un origen HTTP está autorizado (lista blanca, preview de Vercel o localhost en dev). */
+export function esOrigenPermitido(origin: string | undefined): boolean {
+  if (!origin) return false;
+  const lista = env().corsOrigins;
+  if (lista.includes(origin)) return true;
+  // Subdominios de Vercel (producción y preview branches)
+  if (/^https:\/\/[a-zA-Z0-9_.-]+\.vercel\.app$/.test(origin)) return true;
+  // Localhost en cualquier puerto (Vite, proxies locales, etc.)
+  if (/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) return true;
+  return false;
+}

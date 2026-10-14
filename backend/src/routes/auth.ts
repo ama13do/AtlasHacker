@@ -1,5 +1,5 @@
 import { createRoute, z } from '@hono/zod-openapi';
-import { env } from '../config/env.js';
+import { env, esOrigenPermitido } from '../config/env.js';
 import { E } from '../lib/errors.js';
 import { requiereUsuario } from '../middleware/seguridad.js';
 import { ERRORES, SEG_USUARIO, cuerpo, resp } from '../schemas/comunes.js';
@@ -14,7 +14,7 @@ const LoginSchema = z.object({ email: z.email().max(200), password: z.string().m
 
 /** El refresh token viaja en cookie httpOnly: solo se acepta desde los orígenes permitidos (defensa CSRF). */
 function exigirOrigenPermitido(origin: string | undefined) {
-  if (origin && !env().corsOrigins.includes(origin)) throw E.prohibido('Origen no permitido');
+  if (origin && !esOrigenPermitido(origin)) throw E.prohibido('Origen no permitido');
 }
 
 auth.openapi(

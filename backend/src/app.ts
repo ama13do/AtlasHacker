@@ -5,7 +5,7 @@ import { createMiddleware } from 'hono/factory';
 import { HTTPException } from 'hono/http-exception';
 import { secureHeaders } from 'hono/secure-headers';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
-import { env } from './config/env.js';
+import { env, esOrigenPermitido } from './config/env.js';
 import { AppError } from './lib/errors.js';
 import { contexto } from './middleware/seguridad.js';
 import { adminCatalogos } from './routes/admin/catalogos.js';
@@ -30,8 +30,8 @@ app.use('*', secureHeaders());
 app.use(
   '*',
   cors({
-    // Lista blanca de orígenes (CORS_ORIGINS). Nunca "*": la cookie de refresh requiere credentials.
-    origin: (origin) => (env().corsOrigins.includes(origin) ? origin : null),
+    // Lista blanca de orígenes (CORS_ORIGINS, subdominios de Vercel y localhost).
+    origin: (origin) => (esOrigenPermitido(origin) ? origin : null),
     allowMethods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     allowHeaders: ['Content-Type', 'Authorization', 'X-Folio', 'X-Captcha-Token', 'X-Device-Id'],
     exposeHeaders: ['X-Request-Id'],
