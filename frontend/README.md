@@ -162,6 +162,11 @@ Backend en `../backend` (Hono; **no se modifica desde aquí**). Guía: `../docs/
   - Fotos, video y audio se clasifican solos; los PDF tienen un selector de tipo.
   - El bucket de R2 necesita CORS para el origen del front (`npm run r2:cors -- <origen>` en el back); si falta, el `PUT` falla y el archivo queda con «Reintentar».
 
+## Despliegue (Vercel)
+
+- El proyecto de Vercel usa `frontend/` como *Root Directory*.
+- El router usa history mode (URLs sin `#`), así que `vercel.json` reescribe a `index.html` toda ruta que no sea un archivo. Sin eso, abrir o recargar `/admin`, `/mi-folio` o `/testimonios/nuevo` da 404.
+
 ## Back en local
 
 Para probar de punta a punta sin AWS ni tocar el back:
