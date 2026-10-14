@@ -128,6 +128,13 @@ Backend en `../backend` (Hono; **no se modifica desde aquí**). Guía: `../docs/
     - emitir un folio nuevo (el anterior deja de funcionar; el nuevo se muestra una sola vez) y desactivar o reactivar el folio;
     - **solo admin:** cancelar datos personales (ARCO), con confirmación escribiendo «CANCELAR».
   - **Nueva persona:** también el facilitador puede crearla para emitirle un folio antes de capturar su ficha.
+- **Configuración (`/admin/configuracion`, solo admin):** modo de publicación, participación (comentarios, reacciones, edición), seguridad (captcha, auditoría), límites de evidencias y versión del consentimiento. Envía solo lo que cambió y pide confirmación si se toca la publicación o el captcha. El back tarda hasta 15 s en aplicarlo.
+  - **Modos de publicación:**
+    - **Revisar todo** (el de fábrica): nada sale al mapa sin aprobación;
+    - **Automática salvo sensibles:** se publica al instante si la persona autorizó y no marcó información sensible;
+    - **Automática:** se publica al instante todo lo que tenga autorización pública.
+  - En cualquier modo, «solo documentación interna», «no autorizo» y lo sensible con revisión o uso interno nunca se publican solos.
+  - Al publicarse, el back avisa por Supabase Realtime y el mapa lo agrega sin recargar.
 - **Gráficas:** SVG propias, sin dependencias. Los colores `--chart-1` y `--chart-2` en `style.css` están validados para daltonismo y contraste en ambos temas. Cada gráfica trae tooltip y una tabla oculta para lectores de pantalla.
 
 ### Subir testimonios

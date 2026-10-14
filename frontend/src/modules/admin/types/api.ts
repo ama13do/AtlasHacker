@@ -215,3 +215,26 @@ export interface ApiEditarParticipante {
   nombre_publico?: string | null
   activo?: boolean
 }
+
+// --- Configuración (solo admin) ---
+
+export type ModoPublicacion = 'revisar_todo' | 'auto_si_no_sensible' | 'auto_todo'
+
+// GET/PATCH /api/admin/configuracion
+export interface ApiConfiguracion {
+  modo_publicacion: ModoPublicacion
+  max_archivos_por_testimonio: number
+  max_bytes_totales_por_testimonio: number
+  tipos_mime_permitidos: string[]
+  captcha_requerido: boolean
+  auditoria_envio_activa: boolean
+  auditoria_retencion_dias: number
+  comentarios_habilitados: boolean
+  comentarios_requieren_moderacion: boolean
+  reacciones_habilitadas: boolean
+  participantes_pueden_editar: boolean
+  participantes_pueden_eliminar: boolean
+  edicion_requiere_revision: boolean
+  mapa_tiempo_real: boolean
+  consentimiento_version_actual: string
+}

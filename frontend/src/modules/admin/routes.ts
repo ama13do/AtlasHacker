@@ -58,6 +58,12 @@ export const adminRoutes: RouteRecordRaw[] = [
         meta: { roles: ['admin', 'moderador'] },
       },
       {
+        path: 'configuracion',
+        name: 'admin-settings',
+        component: () => import('@admin/views/SettingsPage.vue'),
+        meta: { roles: ['admin'] },
+      },
+      {
         path: 'cuenta',
         name: 'admin-account',
         component: () => import('@admin/views/AccountPage.vue'),

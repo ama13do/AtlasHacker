@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import type { ApiError } from '@/core/http/client'
+import { settingsService } from '@admin/services/settings.service'
 import { statsService } from '@admin/services/stats.service'
+import { useAuthStore } from '@admin/stores/auth'
 import type { ApiResumen } from '@admin/types/api'
 import BarChart30d from '@admin/components/BarChart30d.vue'
 import CategoryBars from '@admin/components/CategoryBars.vue'
@@ -32,6 +34,18 @@ async function load() {
 }
 
 const t = computed(() => data.value?.testimonios)
+
+// Admin: si todo pasa por revisión, se avisa junto a los pendientes (y cómo cambiarlo)
+const auth = useAuthStore()
+const reviewAll = ref(false)
+onMounted(async () => {
+  if (!auth.can('admin')) return
+  try {
+    reviewAll.value = (await settingsService.get()).modo_publicacion === 'revisar_todo'
+  } catch {
+    // Sin dato: no se muestra el aviso
+  }
+})
 const empty = computed(() => status.value === 'ready' && !t.value?.total)
 
 onMounted(load)
@@ -68,6 +82,14 @@ onMounted(load)
     <template v-else-if="data && t">
       <p v-if="empty" class="rounded-2xl border border-dashed border-fg/20 px-4 py-3 text-sm text-fg/70" role="status">
         Aún no hay testimonios en la base. Los conteos aparecerán en cuanto lleguen los primeros.
+      </p>
+
+      <p v-if="reviewAll && t.pendientes" class="flex flex-wrap items-center gap-2 rounded-2xl bg-fg/5 px-4 py-3 text-sm">
+        Publicación: <span class="font-semibold">revisar todo</span>. Los testimonios nuevos no aparecen en el mapa hasta aprobarlos.
+        <RouterLink :to="{ name: 'admin-settings' }" class="font-semibold text-accent-ink hover:underline">Cambiar</RouterLink>
+        <RouterLink :to="{ name: 'admin-testimonies', query: { tab: 'pendientes' } }" class="font-semibold text-accent-ink hover:underline">
+          Revisar pendientes
+        </RouterLink>
       </p>
 
       <!-- KPIs -->
