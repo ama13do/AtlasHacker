@@ -9,15 +9,16 @@ export const MAP_STYLES: Record<Theme, string> = {
 
 // Rectángulo de México con margen; limita paneo y zoom
 export const MEXICO_BOUNDS = [
-  [-119.5, 13.5],
-  [-85.0, 35.5], // norte con holgura para el header superpuesto
+  [-119.5, 12.0], // sur con holgura: con el sur arriba, el header superpuesto queda encima
+  [-85.0, 33.5],
 ] satisfies LngLatBoundsLike as [[number, number], [number, number]]
 
 // Límite de paneo: más holgado que el encuadre, para que en pantallas altas o estrechas
-// se pueda ver México completo (un maxBounds justo obliga a acercar)
+// se pueda ver México completo (un maxBounds justo obliga a acercar). Con el sur arriba
+// el margen de pantalla cae hacia el sur, por eso llega más abajo
 export const PAN_BOUNDS = [
-  [-140, -15],
-  [-60, 60],
+  [-145, -35],
+  [-55, 62],
 ] satisfies LngLatBoundsLike as [[number, number], [number, number]]
 
 export const MEXICO_CENTER: LngLatLike = [-102.5, 23.6]

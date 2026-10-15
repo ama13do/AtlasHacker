@@ -20,6 +20,7 @@ import { BASE_LAYERS, CITY_LABELS_MIN_ZOOM, STREETS_MIN_ZOOM, MAP_STYLES, MAX_ZO
 import { buildOutsideMask } from '@map/utils/mask'
 import { STATE_FEATURES, stateBounds, stateFeature } from '@map/utils/geo'
 import type { MapPoint } from '@map/types/map'
+import MapCompass from '@map/components/MapCompass.vue'
 
 // MapLibre resuelve su worker relativo a su propio módulo; Vite lo reubica al pre-empaquetar
 setWorkerUrl(workerUrl)
@@ -71,6 +72,8 @@ const emit = defineEmits<{
 }>()
 
 const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
+// El mapa se muestra con el sur arriba (bearing 180); se puede girar con la rosa o con gestos
+const SOUTH_UP = 180
 // Zoom al que se abren los grupos como máximo (luego se ven los pines sueltos)
 const CLUSTER_MAX_ZOOM = 11
 
@@ -250,6 +253,25 @@ function initialBounds() {
   return (props.selectedState && stateBounds(props.selectedState)) || MEXICO_BOUNDS
 }
 
+// Orientación actual (la rosa la sigue) y el contenedor del control donde se monta la rosa
+const bearing = ref(SOUTH_UP)
+const compassHost = ref<HTMLDivElement | null>(null)
+
+// fitBounds vuelve al norte si no se le da bearing: siempre se conserva el giro actual
+function fit(instance: MapLibreMap, bounds: LngLatBoundsLike, options: FitBoundsOptions) {
+  instance.fitBounds(bounds, { ...options, bearing: instance.getBearing() })
+}
+
+function southUp() {
+  map?.easeTo({ bearing: SOUTH_UP, duration: 600 })
+}
+
+// Gira 90° hasta el siguiente punto cardinal (si se giró a mano, primero se alinea)
+function rotateMap() {
+  if (!map) return
+  map.easeTo({ bearing: (Math.floor(map.getBearing() / 90 + 0.01) + 1) * 90, duration: 500 })
+}
+
 // Pines visibles: `p:<id>` (sueltos) y `c:<cluster_id>` (grupos)
 const markers = new Map<string, Marker>()
 let selectedMarker: Marker | null = null
@@ -348,17 +370,27 @@ onMounted(() => {
     style: MAP_STYLES[theme.value],
     center: animateIntro ? [-99, 14] : MEXICO_CENTER,
     zoom: animateIntro ? MIN_ZOOM : 4.5,
+    // Con la entrada animada, el mapa se voltea mientras llega a México
+    bearing: animateIntro ? 0 : SOUTH_UP,
     minZoom: MIN_ZOOM,
     maxZoom: MAX_ZOOM,
     maxBounds: PAN_BOUNDS,
     // Atribución compacta (botón ⓘ) para no chocar con otros controles en móvil
     attributionControl: { compact: true },
-    dragRotate: false,
+    // Se puede girar (clic derecho o Ctrl + arrastrar; dos dedos en móvil), pero nunca inclinar
+    pitchWithRotate: false,
     touchPitch: false,
+    maxPitch: 0,
   })
 
-  instance.touchZoomRotate.disableRotation()
+  bearing.value = instance.getBearing()
   instance.addControl(new NavigationControl({ showCompass: false }), props.navigationPosition)
+  // Rosa de los vientos: control propio junto al zoom (la monta el Teleport de la plantilla)
+  const host = document.createElement('div')
+  host.className = 'maplibregl-ctrl tm-compass-ctrl'
+  instance.addControl({ onAdd: () => host, onRemove: () => host.remove() }, props.navigationPosition)
+  compassHost.value = host
+  instance.on('rotate', () => (bearing.value = instance.getBearing()))
 
   // style.load no espera a las teselas: las capas propias aparecen de inmediato
   // También se dispara tras setStyle (cambio de tema): las capas propias se vuelven a añadir
@@ -380,7 +412,8 @@ onMounted(() => {
       id: 'mexico-shadow',
       type: 'line',
       source: 'mexico',
-      paint: { 'line-color': colors.shadow, 'line-width': 2.5, 'line-translate': [5, 5], 'line-opacity': 0.9 },
+      // Anclada a la pantalla: la sombra dura cae abajo a la derecha aunque el mapa esté girado
+      paint: { 'line-color': colors.shadow, 'line-width': 2.5, 'line-translate': [5, 5], 'line-translate-anchor': 'viewport', 'line-opacity': 0.9 },
     })
     instance.addLayer({
       id: 'mexico-halo',
@@ -419,10 +452,10 @@ onMounted(() => {
           instance.setPaintProperty(id, 'line-opacity-transition', { duration: 1400, delay: 300 })
           requestAnimationFrame(() => instance.setPaintProperty(id, 'line-opacity', target as number))
         }
-        instance.fitBounds(initialBounds(), { padding: props.fitPadding, duration: 2200, easing: (t) => 1 - Math.pow(1 - t, 3) })
+        instance.fitBounds(initialBounds(), { padding: props.fitPadding, bearing: SOUTH_UP, duration: 2200, easing: (t) => 1 - Math.pow(1 - t, 3) })
         instance.once('moveend', () => setTimeout(() => (dropping = false), 1200))
       } else {
-        instance.fitBounds(initialBounds(), { padding: props.fitPadding, animate: false })
+        fit(instance, initialBounds(), { padding: props.fitPadding, animate: false })
       }
     }
     cameraRequested = true
@@ -448,7 +481,7 @@ onMounted(() => {
   })
   instance.on('resize', () => {
     if (!userMoved && !instance.isMoving() && !props.selectedId && !props.pickable && instance.isStyleLoaded()) {
-      instance.fitBounds(initialBounds(), { padding: props.fitPadding, animate: false })
+      fit(instance, initialBounds(), { padding: props.fitPadding, animate: false })
     }
   })
 
@@ -556,7 +589,7 @@ watch(
     map.getSource<GeoJSONSource>('state-selected')?.setData(selected.outline)
     if (map.getLayer('municipalities')) map.setLayoutProperty('municipalities', 'visibility', code ? 'visible' : 'none')
     cameraRequested = true
-    map.fitBounds((code && stateBounds(code)) || MEXICO_BOUNDS, { padding: props.fitPadding, duration: 800 })
+    fit(map, (code && stateBounds(code)) || MEXICO_BOUNDS, { padding: props.fitPadding, duration: 800 })
   },
 )
 
@@ -569,7 +602,7 @@ function flyTo(coordinates: [number, number], padding?: FlyToOptions['padding'],
 function fitTo(bounds: LngLatBoundsLike, padding?: FitBoundsOptions['padding']) {
   cameraRequested = true
   userMoved = true
-  map?.fitBounds(bounds, { padding: padding ?? props.fitPadding, duration: 800, maxZoom: 15 })
+  if (map) fit(map, bounds, { padding: padding ?? props.fitPadding, duration: 800, maxZoom: 15 })
 }
 
 defineExpose({ flyTo, fitTo })
@@ -584,7 +617,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="container" class="tm-map h-full w-full" :class="{ 'is-picking': pickable, 'has-selection': !!selectedId && !pickable }" />
+  <div class="h-full w-full">
+    <div ref="container" class="tm-map h-full w-full" :class="{ 'is-picking': pickable, 'has-selection': !!selectedId && !pickable }" />
+    <Teleport v-if="compassHost" :to="compassHost">
+      <MapCompass :bearing="bearing" @south-up="southUp" @rotate="rotateMap" />
+    </Teleport>
+  </div>
 </template>
 
 <style>

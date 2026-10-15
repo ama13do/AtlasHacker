@@ -323,7 +323,7 @@ onBeforeUnmount(() => {
         :pick-point="pickedPoint"
         detail="states+cities"
         navigation-position="bottom-right"
-        :fit-padding="{ top: 150, bottom: 30, left: 30, right: 30 }"
+        :fit-padding="isMobile ? { top: 150, bottom: 30, left: 30, right: 30 } : { top: 150, bottom: 90, left: 40, right: 100 }"
         :hovered-id="hoveredId"
         intro
         @hover="hoveredId = $event"

@@ -41,6 +41,11 @@ const ITEMS = [
     icon: 'filter',
   },
   {
+    title: 'El sur arriba',
+    text: 'El mapa se muestra con el sur arriba; la aguja verde de la rosa de los vientos siempre señala el sur. Gíralo con el botón de girar o con dos dedos (clic derecho y arrastrar en computadora). Toca la rosa para volver al sur arriba.',
+    icon: 'compass',
+  },
+  {
     title: 'Mi folio',
     text: 'Al enviar un testimonio recibes un folio: es tu llave para subir más, editar o retirar los tuyos.',
     icon: 'folio',
@@ -84,6 +89,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey, true))
                 <path v-else-if="item.icon === 'react'" d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8Z" />
                 <path v-else-if="item.icon === 'comment'" d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                 <path v-else-if="item.icon === 'filter'" d="M3 5h18l-7 8v6l-4 2v-8z" />
+                <template v-else-if="item.icon === 'compass'"><circle cx="12" cy="12" r="9" /><path d="m12 6 2.5 6L12 18l-2.5-6Z" /></template>
                 <template v-else><circle cx="12" cy="8" r="4" /><path d="M4 21a8 8 0 0 1 16 0" /></template>
               </svg>
             </span>
