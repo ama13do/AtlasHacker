@@ -1,6 +1,7 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import { TIPOS_REACCION } from '../db/schema.js';
 import { hmac } from '../lib/crypto.js';
+import { claveDe, enCache } from '../lib/cache.js';
 import { AppError } from '../lib/errors.js';
 import { limitar } from '../lib/rate-limit.js';
 import { aportePublico, huellaDispositivo, limite } from '../middleware/seguridad.js';
@@ -35,8 +36,11 @@ publico.openapi(
   }),
   async (c) => {
     cachePublico(c, 60);
-    const [cat, cfg] = await enSerie(() => catalogosPublicos(), () => obtenerConfiguracion());
-    return c.json(ok({ ...cat, configuracion: configuracionPublica(cfg) }), 200);
+    const datos = await enCache('config', 60, async () => {
+      const [cat, cfg] = await enSerie(() => catalogosPublicos(), () => obtenerConfiguracion());
+      return { ...cat, configuracion: configuracionPublica(cfg) };
+    });
+    return c.json(ok(datos), 200);
   },
 );
 
@@ -56,7 +60,7 @@ publico.openapi(
   }),
   async (c) => {
     cachePublico(c, 60);
-    return c.json(ok(await colaboradoresPublicos()), 200);
+    return c.json(ok(await enCache('colaboradores', 60, colaboradoresPublicos)), 200);
   },
 );
 
@@ -97,8 +101,9 @@ publico.openapi(
     responses: { 200: resp('GeoJSON FeatureCollection'), ...ERRORES },
   }),
   async (c) => {
-    cachePublico(c, 10);
-    const fc = await mapaPublico(c.req.valid('query'));
+    cachePublico(c, 15);
+    const q = c.req.valid('query');
+    const fc = await enCache(claveDe('mapa', q), 20, () => mapaPublico(q));
     return c.json({ success: true as const, data: fc }, 200);
   },
 );
@@ -113,9 +118,10 @@ publico.openapi(
     responses: { 200: resp('Página de testimonios'), ...ERRORES },
   }),
   async (c) => {
-    cachePublico(c, 10);
-    const { limite: lim, cursor, ...filtros } = c.req.valid('query');
-    const r = await listarPublicos(filtros, lim, cursor);
+    cachePublico(c, 15);
+    const q = c.req.valid('query');
+    const { limite: lim, cursor, ...filtros } = q;
+    const r = await enCache(claveDe('listado', q), 20, () => listarPublicos(filtros, lim, cursor));
     return c.json({ success: true as const, data: r.items, siguiente_cursor: r.siguiente_cursor }, 200);
   },
 );
@@ -128,7 +134,8 @@ publico.openapi(
   }),
   async (c) => {
     c.header('Cache-Control', 'private, max-age=30');
-    return c.json(ok(await detallePublico(c.req.valid('param').id)), 200);
+    const { id } = c.req.valid('param');
+    return c.json(ok(await enCache(`ficha:${id}`, 20, () => detallePublico(id))), 200);
   },
 );
 

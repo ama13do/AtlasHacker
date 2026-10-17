@@ -1,11 +1,14 @@
 import { swaggerUI } from '@hono/swagger-ui';
 import { bodyLimit } from 'hono/body-limit';
+import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';
+import { etag } from 'hono/etag';
 import { createMiddleware } from 'hono/factory';
 import { HTTPException } from 'hono/http-exception';
 import { secureHeaders } from 'hono/secure-headers';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 import { env, esOrigenPermitido } from './config/env.js';
+import { limpiarCache } from './lib/cache.js';
 import { AppError } from './lib/errors.js';
 import { contexto } from './middleware/seguridad.js';
 import { adminCatalogos } from './routes/admin/catalogos.js';
@@ -40,6 +43,15 @@ app.use(
     maxAge: 86400,
   }),
 );
+// gzip: el GeoJSON del mapa viaja ~8 veces más ligero. ETag: si nada cambió, el navegador recibe un 304 vacío
+app.use('*', compress());
+app.use('/api/*', etag({ weak: true }));
+// Una escritura vacía la caché de lecturas públicas de este contenedor (salvo el contador de /ir y las sesiones,
+// que no cambian nada público: con la lona escaneándose sin parar, la caché nunca serviría)
+app.use('/api/*', async (c, next) => {
+  await next();
+  if (c.req.method !== 'GET' && c.res.status < 400 && c.req.path !== '/api/ir' && !c.req.path.startsWith('/api/auth/')) limpiarCache();
+});
 app.use(
   '/api/*',
   bodyLimit({

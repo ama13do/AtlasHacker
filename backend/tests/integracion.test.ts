@@ -1026,6 +1026,41 @@ describe('enlace /ir (QR de la lona) y eventos', () => {
   });
 });
 
+describe('carga: caché, compresión y ETag en lo público', () => {
+  it('el mapa se responde de la caché (la base no se consulta en cada visita) y una escritura la vacía', async () => {
+    const antes = await llamar('GET', '/api/mapa');
+    const [t] = await db.execute<{ id: string; titulo: string }>(sql`select id, titulo from testimonios where es_publico limit 1`);
+    await db.execute(sql`update testimonios set titulo = 'Cambiado directo en la base' where id = ${t!.id}`);
+    const cacheado = await llamar('GET', '/api/mapa');
+    expect(cacheado.json).toEqual(antes.json); // sigue igual: no fue a la base
+    // cualquier escritura por la API vacía la caché de este contenedor
+    await llamar('POST', '/api/admin/expedientes', { token: tokens.admin, body: { codigo: 'CACHE/001', titulo: 'Prueba caché', materia: 'Pruebas' } });
+    const fresco = await llamar('GET', '/api/mapa');
+    expect(fresco.json.data.features.find((f: any) => f.id === t!.id).properties.titulo).toBe('Cambiado directo en la base');
+    await db.execute(sql`update testimonios set titulo = ${t!.titulo} where id = ${t!.id}`);
+  });
+
+  it('las respuestas grandes viajan comprimidas y, si no cambiaron, el navegador recibe un 304 vacío', async () => {
+    const r = await llamar('GET', '/api/mapa', { headers: { 'accept-encoding': 'gzip' } });
+    expect(r.status).toBe(200);
+    expect(r.headers.get('content-encoding')).toBe('gzip');
+    const etiqueta = r.headers.get('etag');
+    expect(etiqueta).toBeTruthy();
+    const otra = await llamar('GET', '/api/mapa', { headers: { 'if-none-match': etiqueta! } });
+    expect(otra.status).toBe(304);
+    expect(otra.texto).toBe('');
+  });
+
+  it('contar visitas de /ir no vacía la caché del mapa', async () => {
+    const antes = await llamar('GET', '/api/mapa');
+    const [t] = await db.execute<{ id: string; titulo: string }>(sql`select id, titulo from testimonios where es_publico limit 1`);
+    await db.execute(sql`update testimonios set titulo = 'Otro cambio directo' where id = ${t!.id}`);
+    await llamar('POST', '/api/ir', { headers: { 'user-agent': 'Mozilla/5.0 (Android 14) Mobile Safari/537.36', 'x-device-id': 'cache-test' } });
+    expect((await llamar('GET', '/api/mapa')).json).toEqual(antes.json);
+    await db.execute(sql`update testimonios set titulo = ${t!.titulo} where id = ${t!.id}`);
+  });
+});
+
 describe('endurecimiento', () => {
   it('los errores internos no filtran detalles; las rutas desconocidas y los cuerpos enormes se controlan', async () => {
     expect((await llamar('GET', '/api/no-existe')).json.error.codigo).toBe('RUTA_NO_ENCONTRADA');

@@ -40,6 +40,22 @@ export async function firmarLectura(key: string, nombre?: string | null, segundo
   });
 }
 
+/**
+ * URL firmada para el PÚBLICO que no cambia durante una hora: se firma con la hora en punto y vale 2 h (siempre
+ * le queda al menos 1 h). Como la URL es idéntica en cada visita y R2 responde con Cache-Control, el navegador
+ * reutiliza la foto en lugar de volver a descargarla cada vez que se abre el testimonio.
+ */
+export async function firmarLecturaPublica(key: string, nombre?: string | null): Promise<string> {
+  const { client, bucket } = r2();
+  const disposicion = nombre ? `inline; filename*=UTF-8''${encodeURIComponent(nombre)}` : undefined;
+  const hora = new Date(Math.floor(Date.now() / 3_600_000) * 3_600_000);
+  return getSignedUrl(
+    client,
+    new GetObjectCommand({ Bucket: bucket, Key: key, ResponseContentDisposition: disposicion, ResponseCacheControl: 'private, max-age=3600' }),
+    { expiresIn: 7200, signingDate: hora },
+  );
+}
+
 /** Datos reales del objeto en R2 (o null si no existe). */
 export async function inspeccionarObjeto(key: string): Promise<{ bytes: number; mime: string | undefined } | null> {
   const { client, bucket } = r2();

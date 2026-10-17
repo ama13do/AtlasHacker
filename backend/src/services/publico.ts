@@ -2,6 +2,7 @@ import { and, desc, eq, inArray, sql, type SQL } from 'drizzle-orm';
 import { enSerie, getDb } from '../db/client.js';
 import { bboxSql, colDe, featureCollection, geoJson, geoJsonSimple, puntoSql, tsPreciso } from '../db/geo.js';
 import { categorias, expedientes, participantes, testimonios, v_testimonios_publicos as v } from '../db/schema.js';
+import { enCache } from '../lib/cache.js';
 import { E } from '../lib/errors.js';
 import { codificarCursor, decodificarCursor } from '../lib/paginacion.js';
 import type { FiltrosPublicos } from '../schemas/testimonios.js';
@@ -106,11 +107,10 @@ export async function catalogosPublicos() {
   return { categorias: cats, expedientes: exps };
 }
 
-let cacheStats: { valor: unknown; hasta: number } | null = null;
-
 /** Contadores públicos para la portada del mapa (caché de 30 s). */
-export async function estadisticasPublicas() {
-  if (cacheStats && cacheStats.hasta > Date.now()) return cacheStats.valor;
+export const estadisticasPublicas = () => enCache('estadisticas', 30, calcularEstadisticas);
+
+async function calcularEstadisticas() {
   const db = getDb();
   const [[tot], porCategoria, porEntidad] = await enSerie(
     () => db.select({ testimonios: sql<number>`count(*)::int`, ultimo: sql<string | null>`max(${v.publicado_at})` }).from(v),
@@ -121,14 +121,12 @@ export async function estadisticasPublicas() {
     () => db.execute<{ entidad: string; total: number }>(sql`
       select entidad, count(*)::int as total from v_testimonios_publicos where entidad is not null group by entidad order by total desc limit 40`),
   );
-  const valor = {
+  return {
     testimonios: tot?.testimonios ?? 0,
     ultimo_publicado_at: tot?.ultimo ?? null,
     por_categoria: [...porCategoria],
     por_entidad: [...porEntidad],
   };
-  cacheStats = { valor, hasta: Date.now() + 30_000 };
-  return valor;
 }
 
 /** Personas que decidieron hacer público su perfil (con el nombre que quisieron mostrar) y cuántos testimonios tienen publicados. */

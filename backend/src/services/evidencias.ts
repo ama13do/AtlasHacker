@@ -5,7 +5,7 @@ import { getDb } from '../db/client.js';
 import { evidencias, expedientes, testimonios } from '../db/schema.js';
 import { E } from '../lib/errors.js';
 import { folioEvidencia } from '../lib/ids.js';
-import { borrarObjeto, firmarLectura, firmarSubida, inspeccionarObjeto } from '../lib/r2.js';
+import { borrarObjeto, firmarLectura, firmarLecturaPublica, firmarSubida, inspeccionarObjeto } from '../lib/r2.js';
 import type { PresignEvidenciasInput } from '../schemas/evidencias.js';
 import type { AppEnv } from '../types.js';
 import { registrarBitacora } from './bitacora.js';
@@ -182,7 +182,7 @@ export async function urlEvidenciaStaff(c: Ctx, evidenciaId: string) {
   return { url: await firmarLectura(ev.storage_key, ev.nombre_original, 300), expira_en_segundos: 300, mime: ev.mime, nombre: ev.nombre_original };
 }
 
-/** Evidencias visibles al público de un testimonio ya público, con URLs firmadas temporales (1 h). */
+/** Evidencias visibles al público de un testimonio ya público, con URLs firmadas temporales (1 a 2 h, estables por hora). */
 export async function evidenciasPublicas(testimonioId: string) {
   const filas = await getDb()
     .select({ id: evidencias.id, folio: evidencias.folio, tipo: evidencias.tipo, mime: evidencias.mime, nombre: evidencias.nombre_original, bytes: evidencias.bytes, descripcion: evidencias.descripcion, key: evidencias.storage_key })
@@ -191,7 +191,7 @@ export async function evidenciasPublicas(testimonioId: string) {
     .orderBy(asc(evidencias.created_at));
   try {
     // sin-bd: Promise.all solo firma URLs de R2 (no toca la base)
-    return await Promise.all(filas.map(async ({ key, ...f }) => ({ ...f, url: await firmarLectura(key, f.nombre, 3600) })));
+    return await Promise.all(filas.map(async ({ key, ...f }) => ({ ...f, url: await firmarLecturaPublica(key, f.nombre) })));
   } catch (err) {
     console.error('No se pudieron firmar las evidencias públicas', (err as Error).message);
     return [];
