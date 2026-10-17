@@ -5,6 +5,7 @@ import { MEXICO_STATES, stateAt } from '@map/utils/geo'
 import { socialService } from '@testimonies/services/social.service'
 import { testimoniesService } from '@testimonies/services/testimonies.service'
 import { useCategoriesStore } from '@testimonies/stores/categories'
+import { track } from '@/core/analytics/analytics'
 import type { ReactionType, TestimonyDetail, TestimonyDraft, TestimonySummary } from '@testimonies/types/testimony'
 
 const POPULAR_LIMIT = 8
@@ -223,7 +224,10 @@ export const useTestimoniesStore = defineStore('testimonies', () => {
 
   function select(id: string | null) {
     selectedId.value = id
-    if (id) loadDetail(id)
+    if (id) {
+      loadDetail(id)
+      track('ver_testimonio', { item_id: id, categoria: items.value.find((t) => t.id === id)?.category })
+    }
   }
 
   function openStory(index: number) {
@@ -233,7 +237,10 @@ export const useTestimoniesStore = defineStore('testimonies', () => {
     }
     storyIndex.value = index
     const story = stories.value[index]
-    if (story) loadDetail(story.id)
+    if (story) {
+      loadDetail(story.id)
+      track('ver_historia', { item_id: story.id, posicion: index + 1, categoria: story.category })
+    }
   }
 
   function closeStory() {

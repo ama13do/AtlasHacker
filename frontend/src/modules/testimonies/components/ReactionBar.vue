@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { track } from '@/core/analytics/analytics'
 import { computed, ref, watch } from 'vue'
 import { useCategoriesStore } from '@testimonies/stores/categories'
 import { useTestimoniesStore } from '@testimonies/stores/testimonies'
@@ -50,6 +51,7 @@ async function toggle(type: ReactionType) {
 
   try {
     await store.toggleReaction(props.testimonyId, type)
+    if (isAdding) track('reaccionar', { item_id: props.testimonyId, tipo: type })
   } catch {
     failed.value = true
   }

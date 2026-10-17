@@ -7,10 +7,11 @@ import { ACCENT_CLASSES, DEFAULT_MAP_CODE, FALLBACK_DOSSIER, mapInfo, type MapIn
 import { testimoniesService } from '@testimonies/services/testimonies.service'
 import { useCategoriesStore } from '@testimonies/stores/categories'
 import { useTestimoniesStore } from '@testimonies/stores/testimonies'
+import { track } from '@/core/analytics/analytics'
 import type { Collaborator, PublicStats } from '@testimonies/types/testimony'
 import { STICKERS } from '@/core/config/brand'
-import BrandMark from '@/shared/components/BrandMark.vue'
 import MapLogo from '@testimonies/components/MapLogo.vue'
+import SiteFooter from '@/shared/components/SiteFooter.vue'
 import SiteHeader from '@/shared/components/SiteHeader.vue'
 
 // Portada: cuadrícula con los mapas. Hoy hay uno grande (FUTURO/001); cada expediente nuevo
@@ -118,13 +119,21 @@ onMounted(async () => {
               </ul>
 
               <div class="mt-auto grid gap-3.5 pt-7">
-                <RouterLink :to="{ name: 'map', params: { mapa: featured.slug } }" class="btn-hxnf btn-ink min-h-15 w-full text-lg md:text-xl">
+                <RouterLink
+                :to="{ name: 'map', params: { mapa: featured.slug } }"
+                class="btn-hxnf btn-ink min-h-15 w-full text-lg md:text-xl"
+                @click="track('click_cta', { boton: 'entrar_mapa', ubicacion: 'portada' })"
+              >
                   Entrar al mapa
                   <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M5 12h14M13 6l6 6-6 6" />
                   </svg>
                 </RouterLink>
-                <RouterLink :to="{ name: 'testimony-new', params: { mapa: featured.slug } }" class="btn-hxnf btn-lime min-h-15 w-full text-lg md:text-xl">
+                <RouterLink
+                :to="{ name: 'testimony-new', params: { mapa: featured.slug } }"
+                class="btn-hxnf btn-lime min-h-15 w-full text-lg md:text-xl"
+                @click="track('click_cta', { boton: 'subir_testimonio', ubicacion: 'portada' })"
+              >
                   <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
                     <path d="M12 5v14M5 12h14" />
                   </svg>
@@ -141,6 +150,7 @@ onMounted(async () => {
                 :class="featured.logo ? 'pt-28 md:pt-36 lg:pt-10' : ''"
                 tabindex="-1"
                 aria-hidden="true"
+                @click="track('click_cta', { boton: 'entrar_mapa', ubicacion: 'portada_mapa' })"
               >
                 <div class="w-full transition-transform duration-500 group-hover:scale-[1.03] group-hover:-rotate-1">
                   <MexicoPreview :points="previewPoints" />
@@ -223,18 +233,6 @@ onMounted(async () => {
       </section>
     </main>
 
-    <footer class="border-t-2 border-ink">
-      <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-6 text-sm md:px-8">
-        <BrandMark variant="full" size="sm" :label="null" />
-        <p class="font-bold uppercase">
-          Escucha · Registra · Verifica · Folia · <span class="hl-box hl-lime text-sm" style="--hl-delay: 0.8s">Pregunta</span>
-        </p>
-        <nav class="flex flex-wrap gap-4 font-semibold" aria-label="Pie de página">
-          <RouterLink :to="{ name: 'my-folio' }" class="hover:underline">Mi folio</RouterLink>
-          <RouterLink :to="{ name: 'admin-home' }" class="hover:underline">Panel del equipo</RouterLink>
-          <a href="https://hxnf.mx" target="_blank" rel="noopener" class="hover:underline">hxnf.mx ↗</a>
-        </nav>
-      </div>
-    </footer>
+    <SiteFooter />
   </div>
 </template>

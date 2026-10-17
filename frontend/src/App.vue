@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onErrorCaptured, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import CookieBanner from '@/shared/components/CookieBanner.vue'
 
 // Red de seguridad: si una vista falla al dibujarse, Vue puede quedar a medias y dejar la pantalla en negro
 // o en blanco. En su lugar se muestra un aviso para recuperarse. Los errores de la API (objetos, no Error)
@@ -45,4 +46,5 @@ function recover(clearDrafts: boolean) {
     </section>
   </main>
   <RouterView v-else />
+  <CookieBanner />
 </template>

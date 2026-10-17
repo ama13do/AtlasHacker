@@ -2,6 +2,7 @@
 import { DEFAULT_MAP_SLUG } from '@testimonies/data/maps'
 import { computed, ref, watch } from 'vue'
 import type { ApiError } from '@/core/http/client'
+import SiteFooter from '@/shared/components/SiteFooter.vue'
 import SiteHeader from '@/shared/components/SiteHeader.vue'
 import { useParticipantFolio } from '@testimonies/composables/useParticipantFolio'
 import { participantService } from '@testimonies/services/participant.service'
@@ -122,4 +123,5 @@ function onWithdrawn(id: string) {
       </template>
     </div>
   </main>
+  <SiteFooter />
 </template>

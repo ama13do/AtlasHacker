@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { LIMITS, useTestimonyFormContext } from '@testimonies/composables/useTestimonyForm'
 import { useParticipantFolio } from '@testimonies/composables/useParticipantFolio'
 import type { Consent, MediaConsent, SensitiveHandling, VoiceImage } from '@testimonies/types/testimony'
+import { LEGAL, LEGAL_ROUTES } from '@/core/legal/legal'
 import { maskFolio } from '@testimonies/utils/folio'
 import ChoiceGroup, { type Choice } from '@testimonies/components/form/ChoiceGroup.vue'
 import FormField from '@testimonies/components/form/FormField.vue'
@@ -105,11 +106,29 @@ function toggleTyping(on: boolean) {
         />
         <span>
           <span class="block font-bold">Participo de forma voluntaria y entiendo el uso de mi testimonio.</span>
-          <span class="block text-xs opacity-75">Puedes no responder cualquier pregunta y retirar tu testimonio hasta el cierre de la relatoría (desde «Mi folio»).</span>
+          <span class="block text-xs opacity-75">
+            Acepto el
+            <RouterLink :to="{ name: LEGAL_ROUTES.privacy.name }" target="_blank" class="font-bold underline">aviso de privacidad</RouterLink>
+            (incluido el tratamiento de datos sensibles que comparta) y los
+            <RouterLink :to="{ name: LEGAL_ROUTES.terms.name }" target="_blank" class="font-bold underline">términos y condiciones</RouterLink>. Puedes no
+            responder cualquier pregunta y retirar tu testimonio hasta el cierre de la relatoría (desde «Mi folio»).
+          </span>
         </span>
       </label>
       <p v-if="errors.voluntary" id="voluntary-error" class="text-sm text-danger">{{ errors.voluntary }}</p>
     </div>
+
+    <!-- Aviso de privacidad simplificado (LFPDPPP): en el momento en que se recaban los datos -->
+    <details class="rounded-2xl border-2 border-ink/25 px-4 py-3 text-sm">
+      <summary class="cursor-pointer font-bold">Aviso de privacidad simplificado</summary>
+      <p class="mt-2 leading-relaxed opacity-80">
+        {{ LEGAL.responsable }} trata tus datos para registrar tu testimonio y darte un folio, revisarlo, publicarlo en el mapa solo en la medida que
+        autorices, documentar la evidencia para el Tribunal Popular por Nuestro Futuro y ayudarte a recuperar tu folio. Tu correo y teléfono son
+        opcionales y nunca se publican. Puedes ejercer tus derechos ARCO o revocar tu consentimiento en
+        <a :href="`mailto:${LEGAL.email}`" class="font-bold underline">{{ LEGAL.email }}</a>. Consulta el
+        <RouterLink :to="{ name: LEGAL_ROUTES.privacy.name }" target="_blank" class="font-bold underline">aviso de privacidad integral</RouterLink>.
+      </p>
+    </details>
 
     <section class="space-y-4">
       <h3 class="form-group-title">Uso del testimonio</h3>

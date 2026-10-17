@@ -607,6 +607,84 @@
     scrollbar-color: color-mix(in oklab, var(--fg) 30%, transparent) transparent;
   }
 
+  /* Documentos legales: jerarquía clara, líneas cómodas de leer y tablas que se deslizan en celular */
+  .legal-prose {
+    @apply leading-relaxed;
+  }
+  .legal-prose section {
+    scroll-margin-top: 6rem;
+  }
+  .legal-prose section + section {
+    @apply mt-10 border-t-2 border-dashed border-ink/20 pt-8;
+  }
+  .legal-prose h2 {
+    @apply text-xl leading-tight font-black uppercase md:text-2xl;
+  }
+  .legal-prose h3 {
+    @apply mt-5 text-sm font-black tracking-wide uppercase;
+  }
+  .legal-prose p,
+  .legal-prose ul,
+  .legal-prose ol {
+    @apply mt-3 max-w-[72ch] opacity-90;
+  }
+  .legal-prose ul {
+    @apply list-disc space-y-1.5 pl-5;
+  }
+  .legal-prose ol {
+    @apply list-decimal space-y-1.5 pl-5;
+  }
+  .legal-prose a {
+    @apply font-bold underline underline-offset-2 hover:text-accent-ink;
+  }
+  .legal-prose code {
+    @apply rounded bg-fg/10 px-1.5 py-0.5 text-[0.85em] whitespace-nowrap;
+  }
+  .legal-table {
+    @apply mt-4 overflow-x-auto rounded-2xl border-2 border-ink;
+  }
+  .legal-table table {
+    @apply w-full min-w-[34rem] border-collapse text-left text-sm;
+  }
+  .legal-table th {
+    @apply bg-fg px-3 py-2 text-xs font-black tracking-wide text-surface uppercase;
+  }
+  .legal-table td {
+    @apply border-t-2 border-ink/15 px-3 py-2.5 align-top;
+  }
+  /* En celular, cada fila es una tarjeta con la etiqueta de cada dato */
+  @media (max-width: 639px) {
+    .legal-table table,
+    .legal-table tbody,
+    .legal-table tr,
+    .legal-table td {
+      display: block;
+      min-width: 0;
+    }
+    .legal-table thead {
+      display: none;
+    }
+    .legal-table tr + tr {
+      @apply border-t-2 border-ink/30;
+    }
+    .legal-table td {
+      @apply border-0 py-1.5;
+    }
+    .legal-table td:first-child {
+      @apply pt-3;
+    }
+    .legal-table td:last-child {
+      @apply pb-3;
+    }
+    .legal-table td::before {
+      content: attr(data-label);
+      @apply block text-[10px] font-black tracking-widest uppercase opacity-55;
+    }
+    .legal-table code {
+      @apply whitespace-normal break-all;
+    }
+  }
+
   /* Sin barra de desplazamiento (carruseles que se deslizan con el dedo) */
   .no-scrollbar {
     scrollbar-width: none;

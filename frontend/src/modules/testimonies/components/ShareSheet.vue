@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { track as trackEvent } from '@/core/analytics/analytics'
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { STICKERS, SITE_HOST, SITE_URL, phraseFor } from '@/core/config/brand'
 import { coverFor } from '@testimonies/data/covers'
@@ -170,10 +171,14 @@ function flash(message: string) {
   setTimeout(() => (notice.value = null), 3200)
 }
 
+const shared = (method: string) =>
+  trackEvent('share', { method, content_type: 'testimonio', item_id: props.testimony.id, diseno: design.value, formato: format.value })
+
 async function shareNative() {
   if (!file.value) return
   try {
     await navigator.share({ files: [file.value], title: title.value, text: text.value })
+    shared('compartir_nativo')
   } catch (err) {
     if (err instanceof Error && err.name !== 'AbortError') console.warn('Compartir:', err)
   }
@@ -185,6 +190,7 @@ function download() {
   a.href = current.value.url
   a.download = file.value.name
   a.click()
+  shared('descargar')
 }
 
 async function copy(value: string, message: string) {
@@ -201,6 +207,7 @@ async function copy(value: string, message: string) {
 async function toInstagram() {
   if (format.value !== 'story') format.value = 'story'
   await render(design.value, 'story')
+  shared('historia_instagram')
   if (canShareFile.value) return shareNative()
   download()
   await copy(link.value, 'Imagen descargada y enlace copiado: súbela a tu historia y agrega el sticker «Enlace».')
@@ -298,7 +305,7 @@ async function toInstagram() {
           </button>
           <div class="grid grid-cols-2 gap-2">
             <button type="button" class="btn-hxnf btn-lime btn-sm" :disabled="!current" @click="download">Descargar</button>
-            <button type="button" class="btn-hxnf btn-paper btn-sm" @click="copy(text, 'Texto y enlace copiados.')">Copiar texto</button>
+            <button type="button" class="btn-hxnf btn-paper btn-sm" @click="copy(text, 'Texto y enlace copiados.').then(() => shared('copiar_texto'))">Copiar texto</button>
           </div>
           <p v-if="notice" class="rounded-xl border-2 border-black bg-neon-lime px-3 py-2 text-xs font-bold text-black" role="status">{{ notice }}</p>
           <p class="text-[11px] leading-relaxed opacity-60">El enlace lleva a este testimonio en <span class="font-bold">{{ SITE_HOST }}</span>.</p>

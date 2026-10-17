@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { track } from '@/core/analytics/analytics'
 import { computed, nextTick, onMounted, ref, useId } from 'vue'
 import type { ApiError } from '@/core/http/client'
 import TurnstileWidget from '@/shared/components/TurnstileWidget.vue'
@@ -85,6 +86,7 @@ async function send() {
       { captchaToken: captchaToken.value, folio: folio.value },
     )
     text.value = ''
+    track('comentar', { item_id: props.testimonyId })
     notice.value = visible
       ? { kind: 'ok', text: 'Tu comentario se publicó.' }
       : { kind: 'ok', text: 'Gracias. Tu comentario se publicará cuando lo revisemos.' }

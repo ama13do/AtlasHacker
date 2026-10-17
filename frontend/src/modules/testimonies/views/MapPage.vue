@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { track } from '@/core/analytics/analytics'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
@@ -495,6 +496,7 @@ onBeforeUnmount(() => {
         <span class="pointer-events-auto animate-hover-bob motion-reduce:animate-none">
           <RouterLink
             :to="{ name: 'testimony-new', params: { mapa: map.slug } }"
+            @click="track('click_cta', { boton: 'subir_testimonio', ubicacion: 'mapa' })"
             class="tm-cta btn-hxnf btn-lime min-h-12 px-6 text-[15px] font-black whitespace-nowrap uppercase sm:min-h-14 sm:px-9 sm:text-lg"
           >
             <svg viewBox="0 0 24 24" class="size-5 transition-transform duration-300 sm:size-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">

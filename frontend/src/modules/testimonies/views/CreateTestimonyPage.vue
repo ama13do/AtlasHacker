@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { track } from '@/core/analytics/analytics'
 import { stripAttachments } from '@testimonies/utils/stripMetadata'
 import { computed, nextTick, onMounted, ref, watch, type Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -151,6 +152,7 @@ async function onSubmit() {
   const folio = normalizeParticipantFolio(draft.folio) ?? rememberedFolio.value
   try {
     result.value = await store.create({ ...draft, files }, { captchaToken: captchaToken.value, folio })
+    track('generate_lead', { lead_source: 'testimonio', categoria: draft.topic ?? undefined, con_evidencias: files.length > 0, participante_nuevo: !folio })
     form.reset()
     const uploadFolio = result.value.participantFolio ?? folio
     if (files.length && uploadFolio) upload.start(result.value.id, uploadFolio, files)

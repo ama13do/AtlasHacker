@@ -5,5 +5,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import './style.css'
 import App from './App.vue'
 import router from '@/core/router'
+import { setupAnalytics } from '@/core/analytics/analytics'
 
 createApp(App).use(createPinia()).use(router).mount('#app')
+setupAnalytics(router)
