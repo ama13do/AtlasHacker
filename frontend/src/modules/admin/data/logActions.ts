@@ -1,6 +1,8 @@
 // Acciones de la bitácora del back → texto legible. Las desconocidas se muestran tal cual
 export const LOG_ACTIONS: Record<string, string> = {
   'auth.login': 'Inició sesión',
+  'auth.login_fallido': 'Intento fallido de inicio de sesión',
+  'auth.logout': 'Cerró sesión',
   'auth.cambiar_password': 'Cambió su contraseña',
   'testimonio.crear': 'Creó un testimonio',
   'testimonio.editar': 'Editó un testimonio',
@@ -29,6 +31,7 @@ export const LOG_ACTIONS: Record<string, string> = {
   'usuario.actualizar': 'Editó un usuario',
   'usuario.restablecer_password': 'Restableció una contraseña',
   'usuario.cerrar_sesiones': 'Cerró las sesiones de un usuario',
+  'usuario.eliminar': 'Eliminó una cuenta',
   'categoria.crear': 'Creó una categoría',
   'categoria.editar': 'Editó una categoría',
   'expediente.crear': 'Creó un expediente',
@@ -36,6 +39,7 @@ export const LOG_ACTIONS: Record<string, string> = {
   'configuracion.editar': 'Cambió la configuración',
   'exportar.geojson': 'Exportó testimonios (GeoJSON)',
   'mantenimiento.purgar': 'Purgó datos vencidos',
+  'mantenimiento.reiniciar_bitacora': 'Reinició la bitácora',
 }
 
 // Prefijos para el filtro de la bitácora

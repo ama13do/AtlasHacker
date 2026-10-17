@@ -7,6 +7,7 @@ export interface LogFilters {
   accion?: string
   entidad?: string
   entidad_id?: string
+  folio?: string
   desde?: string
   hasta?: string
   pagina: number
@@ -18,7 +19,7 @@ const clean = (o: object) => Object.fromEntries(Object.entries(o).filter(([, v])
 export const EXPORT_LIMIT = 10_000
 
 export const systemService = {
-  // Bitácora (solo admin): quién hizo qué, con antes y después
+  // Bitácora (solo superadmin): quién hizo qué, cuándo, desde dónde, con antes y después
   async log(filters: LogFilters): Promise<{ rows: ApiEventoBitacora[]; meta: PaginaMeta }> {
     const { data, meta } = await adminGet<ApiEventoBitacora[]>('/api/admin/bitacora', clean(filters))
     const total = Number(meta.total ?? 0)
@@ -31,7 +32,7 @@ export const systemService = {
     return (await adminGet<{ type: 'FeatureCollection'; features: unknown[] }>('/api/admin/exportar/testimonios.geojson', clean(rest))).data
   },
 
-  // Borra auditoría vencida, sesiones y límites expirados (solo admin)
+  // Borra auditoría vencida, sesiones y límites expirados (solo superadmin)
   async purge(): Promise<{ auditoria: number; sesiones_y_limites: number }> {
     return (await adminRequest<{ auditoria: number; sesiones_y_limites: number }>({ method: 'post', url: '/api/admin/mantenimiento/purgar' })).data
   },

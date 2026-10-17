@@ -1,6 +1,6 @@
 // Contratos crudos de /api/auth y /api/admin (ver ../backend/src/routes/auth.ts y routes/admin/*)
 
-export type Rol = 'admin' | 'moderador' | 'facilitador' | 'lector'
+export type Rol = 'superadmin' | 'admin' | 'moderador' | 'facilitador' | 'lector'
 
 export interface ApiUsuario {
   id: string
@@ -147,6 +147,8 @@ export interface ApiTestimonioStaff extends Omit<ApiTestimonioStaffFila, 'catego
   consentimiento_version: string | null
   consentimiento_at: string | null
   moderado_at: string | null
+  moderado_por_nombre: string | null
+  facilitador_id: string | null
   motivo_rechazo: string | null
   notas_internas: string | null
   publicado_at: string | null
@@ -305,10 +307,13 @@ export interface ApiEventoBitacora {
   actor_tipo: 'usuario' | 'participante' | 'anonimo' | 'sistema'
   usuario_id: string | null
   usuario_email: string | null
+  usuario_nombre: string | null
+  usuario_rol: Rol | null
   participante_id: string | null
   accion: string
   entidad: string | null
   entidad_id: string | null
+  folio: string | null
   antes: unknown
   despues: unknown
   detalle: unknown

@@ -27,7 +27,8 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const categories = useCategoriesStore()
-const canModerate = computed(() => auth.can('admin', 'moderador'))
+// Moderación solo aprueba o rechaza (por lote también); exportar, solo superadmin
+const canModerate = computed(() => auth.perms.approve)
 
 // El estado de los filtros vive en la URL (se puede compartir y volver atrás)
 const q = (key: string) => (typeof route.query[key] === 'string' ? (route.query[key] as string) : '')
@@ -109,7 +110,7 @@ function toggleAll() {
   selected.value = allSelected.value ? [] : rows.value.map((r) => r.id)
 }
 
-const BATCH_ACTIONS: Record<TabKey, { action: AccionModeracion; label: string }[]> = {
+const ALL_BATCH_ACTIONS: Record<TabKey, { action: AccionModeracion; label: string }[]> = {
   pendientes: [
     { action: 'aprobar', label: 'Aprobar' },
     { action: 'rechazar', label: 'Rechazar' },
@@ -125,6 +126,12 @@ const BATCH_ACTIONS: Record<TabKey, { action: AccionModeracion; label: string }[
     { action: 'desactivar', label: 'Dar de baja' },
   ],
 }
+
+const BATCH_ACTIONS = computed(() =>
+  Object.fromEntries(
+    Object.entries(ALL_BATCH_ACTIONS).map(([key, actions]) => [key, auth.perms.admin ? actions : actions.filter((a) => a.action === 'aprobar' || a.action === 'rechazar')]),
+  ) as Record<TabKey, { action: AccionModeracion; label: string }[]>,
+)
 
 const batch = reactive({ action: null as AccionModeracion | null, motivo: '', running: false, result: '' })
 function startBatch(action: AccionModeracion) {
@@ -192,7 +199,7 @@ const rangeText = computed(() => {
         </p>
       </div>
       <button
-        v-if="canModerate"
+        v-if="auth.perms.download"
         type="button"
         class="btn-hxnf btn-paper btn-sm"
         :disabled="exporting"

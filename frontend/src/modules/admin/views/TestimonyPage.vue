@@ -19,7 +19,8 @@ const props = defineProps<{ id: string }>()
 const router = useRouter()
 const auth = useAuthStore()
 const categories = useCategoriesStore()
-const canModerate = computed(() => auth.can('admin', 'moderador'))
+// Editar la ficha, la ubicación pública y las notas internas: administración
+const canEdit = computed(() => auth.perms.admin)
 
 const t = ref<ApiTestimonioStaff | null>(null)
 const status = ref<'loading' | 'ready' | 'error'>('loading')
@@ -158,7 +159,7 @@ const TERRITORY_SECTIONS = computed(() =>
           <section class="border-2 border-ink bg-card shadow-brut space-y-5 rounded-[22px] p-5">
             <div class="flex items-center justify-between gap-3">
               <h2 class="text-sm font-semibold">Ficha</h2>
-              <button v-if="canModerate && !editing" type="button" class="text-sm font-semibold text-accent-ink hover:underline" @click="editing = true">
+              <button v-if="canEdit && !editing" type="button" class="text-sm font-semibold text-accent-ink hover:underline" @click="editing = true">
                 Editar
               </button>
             </div>
@@ -213,7 +214,7 @@ const TERRITORY_SECTIONS = computed(() =>
             </template>
           </section>
 
-          <StaffEvidencePanel :testimony-id="t.id" :items="t.evidencias" @changed="t.evidencias = $event" />
+          <StaffEvidencePanel :testimony-id="t.id" :items="t.evidencias" :own-capture="t.facilitador_id === auth.user?.id" @changed="t.evidencias = $event" />
         </div>
 
         <!-- Lateral -->
@@ -255,7 +256,7 @@ const TERRITORY_SECTIONS = computed(() =>
             <p v-if="t.centroide" class="text-xs text-fg/60 tabular-nums">
               {{ t.centroide.coordinates[1].toFixed(5) }}, {{ t.centroide.coordinates[0].toFixed(5) }} · {{ t.origen_ubicacion }}
             </p>
-            <label v-if="canModerate" class="flex cursor-pointer items-start gap-2 pt-1">
+            <label v-if="canEdit" class="flex cursor-pointer items-start gap-2 pt-1">
               <input
                 type="checkbox"
                 class="mt-0.5 size-4 accent-neon-lime"
@@ -268,7 +269,7 @@ const TERRITORY_SECTIONS = computed(() =>
           </section>
 
           <!-- Notas internas -->
-          <section v-if="canModerate" class="border-2 border-ink bg-card shadow-brut space-y-2 rounded-[22px] p-4 text-sm" aria-labelledby="notes-title">
+          <section v-if="canEdit" class="border-2 border-ink bg-card shadow-brut space-y-2 rounded-[22px] p-4 text-sm" aria-labelledby="notes-title">
             <h2 id="notes-title" class="font-semibold">Notas internas</h2>
             <textarea v-model="notes" rows="3" maxlength="5000" class="field-input text-sm" placeholder="Solo las ve el equipo" aria-labelledby="notes-title" />
             <button
@@ -285,26 +286,26 @@ const TERRITORY_SECTIONS = computed(() =>
             <p class="whitespace-pre-line text-fg/80">{{ t.notas_internas }}</p>
           </section>
 
-          <AuditPanel v-if="auth.can('admin') && t.tiene_auditoria" :testimony-id="t.id" />
+          <AuditPanel v-if="auth.perms.admin && t.tiene_auditoria" :testimony-id="t.id" />
 
-          <div v-if="canModerate || auth.can('lector')" class="flex flex-wrap gap-4 text-sm">
+          <div class="flex flex-wrap gap-4 text-sm">
             <RouterLink
               :to="{ name: 'admin-comments', query: { tab: 'todos', testimonio: t.id } }"
               class="font-semibold text-accent-ink hover:underline"
             >
               Ver comentarios ({{ t.comentarios_conteo }})
             </RouterLink>
-            <RouterLink v-if="canModerate" :to="{ name: 'admin-person', params: { id: t.participante_id } }" class="font-semibold text-accent-ink hover:underline">
+            <RouterLink v-if="auth.perms.admin" :to="{ name: 'admin-person', params: { id: t.participante_id } }" class="font-semibold text-accent-ink hover:underline">
               Persona que lo aportó
             </RouterLink>
-            <RouterLink v-if="auth.can('admin')" :to="{ name: 'admin-log', query: { entidad_id: t.id } }" class="font-semibold text-accent-ink hover:underline">
+            <RouterLink v-if="auth.perms.log" :to="{ name: 'admin-log', query: { folio: t.folio } }" class="font-semibold text-accent-ink hover:underline">
               Historial
             </RouterLink>
           </div>
           <p class="text-xs text-fg/50">
             {{ t.reacciones_total }} reacciones · {{ t.comentarios_conteo }} comentarios
             <template v-if="t.publicado_at"> · publicado {{ fmtDate(t.publicado_at, true) }}</template>
-            <template v-if="t.moderado_at"> · moderado {{ fmtDate(t.moderado_at, true) }}</template>
+            <template v-if="t.moderado_at"> · moderado {{ fmtDate(t.moderado_at, true) }}<template v-if="t.moderado_por_nombre"> por {{ t.moderado_por_nombre }}</template></template>
           </p>
         </aside>
       </div>

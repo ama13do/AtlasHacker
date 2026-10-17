@@ -3,7 +3,11 @@ import { computed, onMounted, ref } from 'vue'
 import type { ApiError } from '@/core/http/client'
 import { settingsService } from '@admin/services/settings.service'
 import { systemService } from '@admin/services/system.service'
+import { useAuthStore } from '@admin/stores/auth'
 import type { ApiConfiguracion, ModoPublicacion } from '@admin/types/api'
+
+// Purgar borra datos: solo superadmin
+const auth = useAuthStore()
 
 const MB = 1024 * 1024
 
@@ -240,7 +244,7 @@ onMounted(load)
       </fieldset>
 
       <!-- Mantenimiento -->
-      <section class="border-2 border-ink bg-card shadow-brut space-y-2 rounded-[22px] p-5 text-sm" aria-labelledby="maint-title">
+      <section v-if="auth.perms.remove" class="border-2 border-ink bg-card shadow-brut space-y-2 rounded-[22px] p-5 text-sm" aria-labelledby="maint-title">
         <h2 id="maint-title" class="font-semibold">Mantenimiento</h2>
         <p class="text-fg/60">
           Borra la auditoría cuya retención ya venció ({{ form.auditoria_retencion_dias }} días), sesiones caducadas y límites de uso expirados.

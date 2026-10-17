@@ -5,13 +5,14 @@ import { adminTestimoniesService } from '@admin/services/testimonies.service'
 import { useAuthStore } from '@admin/stores/auth'
 import type { AccionModeracion, ApiTestimonioStaff } from '@admin/types/api'
 
-// Acciones de moderación según el estado del testimonio y el rol (admin/moderador; eliminar solo admin)
+// Acciones según el estado y el rol: moderación aprueba o rechaza; administración además regresa a revisión y da de baja; borrar, solo superadmin
 const props = defineProps<{ testimony: ApiTestimonioStaff }>()
 const emit = defineEmits<{ updated: [testimony: ApiTestimonioStaff]; deleted: [] }>()
 
 const auth = useAuthStore()
-const canModerate = computed(() => auth.can('admin', 'moderador'))
-const isAdmin = computed(() => auth.can('admin'))
+const canApprove = computed(() => auth.perms.approve)
+const isAdmin = computed(() => auth.perms.admin)
+const canRemove = computed(() => auth.perms.remove)
 
 type Panel = 'aprobar' | 'rechazar' | 'desaprobar' | 'eliminar' | null
 const panel = ref<Panel>(null)
@@ -67,18 +68,20 @@ const btn = 'rounded-full px-4 py-2 text-sm font-semibold transition focus-visib
 </script>
 
 <template>
-  <section v-if="canModerate" class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-4" aria-label="Moderación">
+  <section v-if="canApprove && (t.activo || isAdmin)" class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-4" aria-label="Moderación">
     <div class="flex flex-wrap gap-2">
       <template v-if="t.activo">
         <button v-if="t.estado !== 'aprobado'" type="button" :class="[btn, 'bg-neon-green text-black']" @click="open('aprobar')">Aprobar</button>
         <button v-if="t.estado !== 'rechazado'" type="button" :class="[btn, 'bg-brand-orange text-black']" @click="open('rechazar')">Rechazar</button>
-        <button v-if="t.estado !== 'pendiente'" type="button" :class="[btn, 'border border-fg/25 hover:border-fg']" @click="open('desaprobar')">
-          Regresar a revisión
-        </button>
-        <button type="button" :class="[btn, 'border border-fg/25 hover:border-fg']" :disabled="busy" @click="run('desactivar')">Dar de baja</button>
+        <template v-if="isAdmin">
+          <button v-if="t.estado !== 'pendiente'" type="button" :class="[btn, 'border border-fg/25 hover:border-fg']" @click="open('desaprobar')">
+            Regresar a revisión
+          </button>
+          <button type="button" :class="[btn, 'border border-fg/25 hover:border-fg']" :disabled="busy" @click="run('desactivar')">Dar de baja</button>
+        </template>
       </template>
       <button v-else type="button" :class="[btn, 'bg-fg text-surface']" :disabled="busy" @click="run('activar')">Reactivar</button>
-      <button v-if="isAdmin" type="button" :class="[btn, 'ml-auto text-danger hover:underline']" @click="open('eliminar')">
+      <button v-if="canRemove" type="button" :class="[btn, 'ml-auto text-danger hover:underline']" @click="open('eliminar')">
         Eliminar definitivamente
       </button>
     </div>

@@ -18,7 +18,7 @@ src/
   lib/                ← cifrado AES-GCM, folios, argon2id, R2, realtime, captcha
 drizzle/              ← migraciones SQL versionadas (0000 tablas · 0001 triggers, vistas, índices, RLS, semillas)
 scripts/              ← migrar · crear-admin · generar-secretos · subir-secretos-ssm · verificar-entorno
-tests/                ← 70 pruebas (unitarias + integración con Postgres/PostGIS embebido)
+tests/                ← 78 pruebas (unitarias + integración con Postgres/PostGIS embebido)
 ```
 
 Cambiar el modelo: edita `src/db/schema.ts` → `npm run db:generate` → revisa el SQL → `npm run db:migrate`.
@@ -63,13 +63,22 @@ Cambiar el modelo: edita `src/db/schema.ts` → `npm run db:generate` → revisa
 
 ## Roles del dashboard
 
-| | admin | moderador | facilitador | lector |
-|---|:-:|:-:|:-:|:-:|
-| Ver testimonios, resumen, estadísticas, comentarios | ✓ | ✓ | solo los suyos | ✓ |
-| Capturar testimonios (ficha en papel) y subir evidencias | ✓ | ✓ | ✓ | |
-| Aprobar / rechazar / desaprobar / activar / desactivar / **editar cualquier aspecto** | ✓ | ✓ | | |
-| Ver y rotar datos de personas (folios), moderar comentarios, exportar GeoJSON | ✓ | ✓ | | |
-| Borrar de la BD (testimonio con `confirmar=<folio>`, comentario), cancelar datos personales (ARCO), auditoría de envío (IP), configuración, usuarios, categorías/expedientes, bitácora, purga | ✓ | | | |
+| | superadmin | admin | moderador | facilitador | lector |
+|---|:-:|:-:|:-:|:-:|:-:|
+| Resumen y estadísticas | ✓ | ✓ | | | ✓ |
+| Ver testimonios y comentarios | ✓ | ✓ | sin sensibles | | sin sensibles |
+| Ver testimonios con información sensible o de menores | ✓ | ✓ | | | |
+| Capturar fichas (y subir evidencias a lo que capturó) | ✓ | ✓ | ✓ | ✓ | |
+| Aprobar / rechazar testimonios y comentarios | ✓ | ✓ | ✓ | | |
+| Editar, regresar a revisión, dar de baja / reactivar, ocultar comentarios, publicar evidencias | ✓ | ✓ | | | |
+| Personas y datos personales, rotar folios, auditoría de envío (IP), configuración, catálogos | ✓ | ✓ | | | |
+| Usuarios: moderación, facilitación y lectura | ✓ | ✓ | | | |
+| Usuarios: dar el rol admin y modificar cuentas admin | ✓ | | | | |
+| **Borrar** (testimonio con `confirmar=<folio>`, comentario, evidencia, cuenta, datos personales ARCO, purga) | ✓ | | | | |
+| **Descargar** (exportar GeoJSON) y **bitácora** | ✓ | | | | |
+
+El superadmin es uno solo y se da de alta por script (`npm run admin:crear -- --email … --rol superadmin`); el panel no asigna ese rol ni deja que nadie más modifique su cuenta.
+La bitácora guarda de cada acción quién la hizo (correo, nombre y rol de ese momento), el folio del testimonio, la hora, la IP (cifrada) y el navegador, y el antes/después; también los inicios de sesión fallidos sobre cuentas existentes y los cierres de sesión. Es de solo agregar.
 
 ## Seguridad
 

@@ -3,7 +3,7 @@ import type { ApiUsuarioStaff, Rol } from '@admin/types/api'
 
 const base = (id: string) => `/api/admin/usuarios/${encodeURIComponent(id)}`
 
-// Usuarios del dashboard (solo admin). Las contraseñas temporales se muestran una sola vez
+// Usuarios del dashboard (administración). Las contraseñas temporales se muestran una sola vez
 export const usersService = {
   async list(): Promise<ApiUsuarioStaff[]> {
     return (await adminGet<ApiUsuarioStaff[]>('/api/admin/usuarios')).data
@@ -25,5 +25,10 @@ export const usersService = {
 
   async closeSessions(id: string) {
     await adminRequest({ method: 'post', url: `${base(id)}/cerrar-sesiones` })
+  },
+
+  // Definitivo (solo superadmin); la bitácora conserva quién era
+  async remove(id: string) {
+    await adminRequest({ method: 'delete', url: base(id) })
   },
 }

@@ -150,14 +150,20 @@ export async function refrescarSesion(c: Ctx) {
   return { usuario, ...acceso };
 }
 
-export async function cerrarSesion(c: Ctx) {
+/** Cierra la sesión de la cookie (toda su familia de refresh tokens). Devuelve de quién era, si se supo. */
+export async function cerrarSesion(c: Ctx): Promise<string | null> {
   const plano = getCookie(c, COOKIE_REFRESH);
+  let usuarioId: string | null = null;
   if (plano) {
     const db = getDb();
-    const [s] = await db.select({ familia_id: sesiones.familia_id }).from(sesiones).where(eq(sesiones.token_hash, sha256(plano))).limit(1);
-    if (s) await db.update(sesiones).set({ revocada_at: new Date() }).where(and(eq(sesiones.familia_id, s.familia_id), isNull(sesiones.revocada_at)));
+    const [s] = await db.select({ familia_id: sesiones.familia_id, usuario_id: sesiones.usuario_id }).from(sesiones).where(eq(sesiones.token_hash, sha256(plano))).limit(1);
+    if (s) {
+      await db.update(sesiones).set({ revocada_at: new Date() }).where(and(eq(sesiones.familia_id, s.familia_id), isNull(sesiones.revocada_at)));
+      usuarioId = s.usuario_id;
+    }
   }
   deleteCookie(c, COOKIE_REFRESH, cookieOpciones());
+  return usuarioId;
 }
 
 /** Cierra todas las sesiones de un usuario: revoca refresh tokens e invalida los access tokens ya emitidos. */

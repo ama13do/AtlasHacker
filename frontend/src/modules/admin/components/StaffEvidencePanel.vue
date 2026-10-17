@@ -11,19 +11,20 @@ import { useAuthStore } from '@admin/stores/auth'
 import type { ApiEvidenciaStaff } from '@admin/types/api'
 import { EVIDENCIA_LABELS } from '@admin/data/labels'
 
-// Evidencias de un testimonio: ver (URL temporal), hacer pública/privada, ocultar y eliminar
-const props = defineProps<{ testimonyId: string; items: ApiEvidenciaStaff[] }>()
+// Evidencias de un testimonio: ver (URL temporal); administración las hace públicas/privadas u oculta; borrar, solo superadmin.
+// Subir: administración, o quien capturó la ficha (ownCapture)
+const props = defineProps<{ testimonyId: string; items: ApiEvidenciaStaff[]; ownCapture?: boolean }>()
 const emit = defineEmits<{ changed: [items: ApiEvidenciaStaff[]] }>()
 
 const auth = useAuthStore()
-const canModerate = computed(() => auth.can('admin', 'moderador'))
+const canModerate = computed(() => auth.perms.admin)
 
 const busy = ref<string | null>(null)
 const confirming = ref<string | null>(null)
 const error = ref<string | null>(null)
 
-// --- Subir archivos (admin, moderación y facilitación) ---
-const canUpload = computed(() => auth.can('admin', 'moderador', 'facilitador'))
+// --- Subir archivos ---
+const canUpload = computed(() => auth.perms.admin || (!!props.ownCapture && auth.perms.capture))
 const categoriesStore = useCategoriesStore()
 categoriesStore.load().catch(() => {})
 const limits = computed(() => categoriesStore.config?.limits)
@@ -154,11 +155,13 @@ async function remove(e: ApiEvidenciaStaff) {
               <button type="button" class="hover:underline disabled:opacity-50" :disabled="busy === e.id" @click="update(e, { activo: !e.activo })">
                 {{ e.activo ? 'Ocultar' : 'Mostrar' }}
               </button>
-              <template v-if="confirming === e.id">
-                <button type="button" class="font-semibold text-danger hover:underline" :disabled="busy === e.id" @click="remove(e)">Sí, eliminar</button>
-                <button type="button" class="text-fg/60 hover:underline" @click="confirming = null">Cancelar</button>
+              <template v-if="auth.perms.remove">
+                <template v-if="confirming === e.id">
+                  <button type="button" class="font-semibold text-danger hover:underline" :disabled="busy === e.id" @click="remove(e)">Sí, eliminar</button>
+                  <button type="button" class="text-fg/60 hover:underline" @click="confirming = null">Cancelar</button>
+                </template>
+                <button v-else type="button" class="text-danger hover:underline" @click="confirming = e.id">Eliminar</button>
               </template>
-              <button v-else type="button" class="text-danger hover:underline" @click="confirming = e.id">Eliminar</button>
             </template>
           </span>
         </div>

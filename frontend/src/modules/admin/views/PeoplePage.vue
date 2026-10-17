@@ -14,7 +14,7 @@ const PAGE_SIZE = 25
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
-const canManage = computed(() => auth.can('admin', 'moderador'))
+const canManage = computed(() => auth.perms.admin)
 
 const q = (key: string) => (typeof route.query[key] === 'string' ? (route.query[key] as string) : '')
 const page = computed(() => Math.max(1, Number(q('pagina')) || 1))

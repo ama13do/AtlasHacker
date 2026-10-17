@@ -18,7 +18,8 @@
     "deploy:prod": "serverless deploy --stage prod",
     "entorno:verificar": "tsx scripts/verificar-entorno.ts",
     "r2:cors": "tsx scripts/configurar-cors-r2.ts",
-    "datos:purgar": "tsx scripts/purgar-testimonios.ts"
+    "datos:purgar": "tsx scripts/purgar-testimonios.ts",
+    "produccion:preparar": "tsx scripts/salida-produccion.ts"
   },
   "keywords": [
     "serverless",

@@ -1,21 +1,25 @@
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import type { ApiError } from '@/core/http/client'
 import { usersService } from '@admin/services/users.service'
 import { useAuthStore } from '@admin/stores/auth'
 import type { ApiUsuarioStaff, Rol } from '@admin/types/api'
-import { fmtDate } from '@admin/data/labels'
+import { ROLE_LABELS, fmtDate } from '@admin/data/labels'
 import OneTimeSecret from '@admin/components/OneTimeSecret.vue'
 
+// El rol de superadmin no se asigna desde aquí; el de administración solo lo da el superadmin
 const ROLES: { value: Rol; label: string; description: string }[] = [
-  { value: 'admin', label: 'Administración', description: 'Todo, incluidos usuarios, configuración y bitácora.' },
-  { value: 'moderador', label: 'Moderación', description: 'Aprobar, rechazar y editar testimonios, comentarios y personas.' },
-  { value: 'facilitador', label: 'Facilitación', description: 'Captura fichas en papel y ve solo lo que capturó.' },
-  { value: 'lector', label: 'Lectura', description: 'Solo consulta.' },
+  { value: 'admin', label: ROLE_LABELS.admin, description: 'Todo, incluidos datos sensibles, personas, usuarios y configuración. No borra ni descarga.' },
+  { value: 'moderador', label: ROLE_LABELS.moderador, description: 'Captura fichas y aprueba o rechaza testimonios y comentarios. Sin datos sensibles.' },
+  { value: 'facilitador', label: ROLE_LABELS.facilitador, description: 'Solo captura fichas.' },
+  { value: 'lector', label: ROLE_LABELS.lector, description: 'Ve el resumen, los testimonios y los comentarios, sin modificar nada.' },
 ]
-const ROLE_LABEL = Object.fromEntries(ROLES.map((r) => [r.value, r.label])) as Record<Rol, string>
 
 const auth = useAuthStore()
+const assignable = computed(() => ROLES.filter((r) => r.value !== 'admin' || auth.perms.superadmin))
+// Administración gestiona moderación, facilitación y lectura; las cuentas de administración, el superadmin; al superadmin, nadie más
+const manageable = (u: ApiUsuarioStaff) =>
+  u.rol === 'superadmin' ? u.id === auth.user?.id : u.rol === 'admin' ? auth.perms.superadmin : auth.perms.admin
 const users = ref<ApiUsuarioStaff[]>([])
 const status = ref<'loading' | 'ready' | 'error'>('loading')
 const message = ref<{ kind: 'ok' | 'error'; text: string } | null>(null)
@@ -57,7 +61,7 @@ async function create() {
 // --- Edición y acciones por fila ---
 const editing = ref<string | null>(null)
 const edit = reactive({ nombre: '', email: '', rol: 'lector' as Rol })
-const confirming = ref<{ id: string; action: 'reset' | 'sessions' } | null>(null)
+const confirming = ref<{ id: string; action: 'reset' | 'sessions' | 'delete' } | null>(null)
 const busy = ref<string | null>(null)
 
 function startEdit(u: ApiUsuarioStaff) {
@@ -112,6 +116,26 @@ const closeSessions = (u: ApiUsuarioStaff) =>
     message.value = { kind: 'ok', text: `Se cerraron las sesiones de ${u.email}.` }
   })
 
+const removeUser = (u: ApiUsuarioStaff) =>
+  run(u.id, async () => {
+    await usersService.remove(u.id)
+    users.value = users.value.filter((x) => x.id !== u.id)
+    confirming.value = null
+    message.value = { kind: 'ok', text: `Se eliminó la cuenta de ${u.email}. Lo que hizo sigue en la bitácora.` }
+  })
+
+const CONFIRM_TEXT = {
+  reset: 'Se generará una contraseña temporal y se cerrarán sus sesiones.',
+  sessions: 'Se cerrarán todas sus sesiones.',
+  delete: 'Se eliminará la cuenta para siempre. Lo que hizo sigue en la bitácora.',
+} as const
+function confirmAction(u: ApiUsuarioStaff) {
+  const action = confirming.value?.action
+  if (action === 'reset') resetPassword(u)
+  else if (action === 'sessions') closeSessions(u)
+  else if (action === 'delete') removeUser(u)
+}
+
 const blocked = (u: ApiUsuarioStaff) => !!u.bloqueado_hasta && new Date(u.bloqueado_hasta) > new Date()
 const link = 'text-xs font-semibold hover:underline disabled:opacity-50'
 
@@ -149,7 +173,7 @@ onMounted(load)
       <fieldset class="grid gap-2 sm:grid-cols-2">
         <legend class="mb-1 text-sm font-semibold">Rol</legend>
         <label
-          v-for="r in ROLES"
+          v-for="r in assignable"
           :key="r.value"
           class="flex cursor-pointer items-start gap-2 rounded-xl border px-3 py-2 text-sm"
           :class="form.rol === r.value ? 'border-fg bg-fg/5' : 'border-fg/15'"
@@ -180,7 +204,8 @@ onMounted(load)
             <input v-model="edit.nombre" type="text" minlength="2" maxlength="120" class="field-input text-sm md:py-1.5" aria-label="Nombre" />
             <input v-model="edit.email" type="email" class="field-input text-sm md:py-1.5" aria-label="Correo" />
             <select v-model="edit.rol" class="field-input text-sm md:py-1.5" aria-label="Rol" :disabled="u.id === auth.user?.id">
-              <option v-for="r in ROLES" :key="r.value" :value="r.value">{{ r.label }}</option>
+              <option v-if="u.rol === 'superadmin'" value="superadmin">{{ ROLE_LABELS.superadmin }}</option>
+              <option v-for="r in assignable" :key="r.value" :value="r.value">{{ r.label }}</option>
             </select>
           </div>
           <div class="flex gap-3">
@@ -193,7 +218,7 @@ onMounted(load)
           <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
             <span class="font-semibold">{{ u.nombre || u.email }}</span>
             <span class="text-fg/60">{{ u.email }}</span>
-            <span class="chip bg-card">{{ ROLE_LABEL[u.rol] }}</span>
+            <span class="chip" :class="u.rol === 'superadmin' ? 'bg-neon-lime text-black' : 'bg-card'">{{ ROLE_LABELS[u.rol] }}</span>
             <span v-if="u.id === auth.user?.id" class="text-xs text-fg/50">(tú)</span>
             <span v-if="!u.activo" class="chip bg-card">Desactivado</span>
             <span v-if="blocked(u)" class="rounded-full bg-brand-orange px-2 py-0.5 text-xs font-semibold text-black">
@@ -204,24 +229,32 @@ onMounted(load)
           </div>
 
           <div v-if="confirming?.id === u.id" class="flex flex-wrap items-center gap-3 rounded-xl bg-fg/5 px-3 py-2 text-xs">
-            <span>{{ confirming.action === 'reset' ? 'Se generará una contraseña temporal y se cerrarán sus sesiones.' : 'Se cerrarán todas sus sesiones.' }}</span>
+            <span>{{ CONFIRM_TEXT[confirming.action] }}</span>
             <button
               type="button"
-              :class="[link, 'text-accent-ink']"
+              :class="[link, confirming.action === 'delete' ? 'text-danger' : 'text-accent-ink']"
               :disabled="busy === u.id"
-              @click="confirming.action === 'reset' ? resetPassword(u) : closeSessions(u)"
+              @click="confirmAction(u)"
             >
-              Confirmar
+              {{ confirming.action === 'delete' ? 'Sí, eliminar' : 'Confirmar' }}
             </button>
             <button type="button" :class="[link, 'text-fg/60']" @click="confirming = null">Cancelar</button>
           </div>
-          <div v-else class="flex flex-wrap gap-4">
+          <div v-else-if="manageable(u)" class="flex flex-wrap gap-4">
             <button type="button" :class="link" @click="startEdit(u)">Editar</button>
             <button v-if="u.id !== auth.user?.id" type="button" :class="link" :disabled="busy === u.id" @click="toggleActive(u)">
               {{ u.activo ? 'Desactivar' : 'Reactivar' }}
             </button>
             <button type="button" :class="link" @click="confirming = { id: u.id, action: 'reset' }">Restablecer contraseña</button>
             <button type="button" :class="link" @click="confirming = { id: u.id, action: 'sessions' }">Cerrar sesiones</button>
+            <button
+              v-if="auth.perms.remove && u.id !== auth.user?.id"
+              type="button"
+              :class="[link, 'ml-auto text-danger']"
+              @click="confirming = { id: u.id, action: 'delete' }"
+            >
+              Eliminar cuenta
+            </button>
           </div>
         </template>
       </li>

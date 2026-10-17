@@ -1,9 +1,10 @@
-import { and, desc, eq, ne, sql } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
 import type { Context } from 'hono';
 import { getDb } from '../db/client.js';
 import { usuarios, type Rol } from '../db/schema.js';
 import { E, esViolacionUnica } from '../lib/errors.js';
 import { generarPasswordTemporal, hashPassword } from '../lib/passwords.js';
+import { esSuperadmin } from '../middleware/seguridad.js';
 import type { AppEnv, UsuarioAuth } from '../types.js';
 import { buscarUsuarioPorEmail, normalizarEmail, revocarSesionesDeUsuario } from './auth.js';
 import { registrarBitacora } from './bitacora.js';
@@ -18,13 +19,26 @@ const columnas = {
 
 export const listarUsuarios = () => getDb().select(columnas).from(usuarios).orderBy(desc(usuarios.created_at));
 
-/** Siempre debe quedar al menos un admin activo. */
-async function exigirOtroAdmin(idExcluido: string) {
-  const [r] = await getDb().select({ n: sql<number>`count(*)::int` }).from(usuarios).where(and(eq(usuarios.rol, 'admin'), eq(usuarios.activo, true), ne(usuarios.id, idExcluido)));
-  if (!r || r.n < 1) throw E.conflicto('Debe existir al menos un administrador activo', 'ULTIMO_ADMIN');
+/** El rol superadmin no se asigna desde el panel (es uno solo, alta por script); el de admin solo lo da el superadmin. */
+function exigirPuedeAsignar(actor: UsuarioAuth, rol: Rol) {
+  if (rol === 'superadmin') throw E.prohibido('El rol de superadmin no se asigna desde el panel');
+  if (rol === 'admin' && !esSuperadmin(actor)) throw E.prohibido('Solo el superadmin puede dar el rol de administración');
 }
 
-export async function crearUsuario(c: Ctx, d: { email: string; nombre: string; rol: Rol; password?: string }) {
+/** Admin gestiona moderación, facilitación y lectura; las cuentas de administración, solo el superadmin; al superadmin, nadie más. */
+function exigirGestionable(actor: UsuarioAuth, objetivo: { id: string; rol: Rol }) {
+  if (objetivo.rol === 'superadmin' && objetivo.id !== actor.id) throw E.prohibido('Nadie más puede modificar la cuenta del superadmin');
+  if (objetivo.rol === 'admin' && !esSuperadmin(actor)) throw E.prohibido('Solo el superadmin puede modificar cuentas de administración');
+}
+
+async function obtener(id: string) {
+  const [u] = await getDb().select(columnas).from(usuarios).where(eq(usuarios.id, id)).limit(1);
+  if (!u) throw E.noEncontrado('Usuario');
+  return u;
+}
+
+export async function crearUsuario(c: Ctx, actor: UsuarioAuth, d: { email: string; nombre: string; rol: Rol; password?: string }) {
+  exigirPuedeAsignar(actor, d.rol);
   if (await buscarUsuarioPorEmail(d.email)) throw E.conflicto('Ya existe un usuario con ese correo', 'EMAIL_DUPLICADO');
   const temporal = d.password ? null : generarPasswordTemporal();
   try {
@@ -32,7 +46,7 @@ export async function crearUsuario(c: Ctx, d: { email: string; nombre: string; r
       .insert(usuarios)
       .values({ email: normalizarEmail(d.email), nombre: d.nombre.trim(), rol: d.rol, password_hash: await hashPassword(d.password ?? temporal!), debe_cambiar_password: true })
       .returning(columnas);
-    await registrarBitacora(c, { accion: 'usuario.crear', entidad: 'usuario', entidadId: u!.id, despues: { email: u!.email, rol: u!.rol } });
+    await registrarBitacora(c, { accion: 'usuario.crear', entidad: 'usuario', entidadId: u!.id, despues: { email: u!.email, nombre: u!.nombre, rol: u!.rol } });
     return { usuario: u!, password_temporal: temporal };
   } catch (err) {
     if (esViolacionUnica(err)) throw E.conflicto('Ya existe un usuario con ese correo', 'EMAIL_DUPLICADO');
@@ -41,13 +55,12 @@ export async function crearUsuario(c: Ctx, d: { email: string; nombre: string; r
 }
 
 export async function actualizarUsuario(c: Ctx, actor: UsuarioAuth, id: string, cambios: { nombre?: string; rol?: Rol; activo?: boolean; email?: string }) {
-  const [actual] = await getDb().select(columnas).from(usuarios).where(eq(usuarios.id, id)).limit(1);
-  if (!actual) throw E.noEncontrado('Usuario');
-  const pierdeAdmin = actual.rol === 'admin' && ((cambios.rol && cambios.rol !== 'admin') || cambios.activo === false);
-  if (pierdeAdmin) await exigirOtroAdmin(id);
+  const actual = await obtener(id);
   if (id === actor.id && (cambios.activo === false || (cambios.rol && cambios.rol !== actor.rol))) {
     throw E.conflicto('No puedes desactivarte ni cambiar tu propio rol', 'AUTO_MODIFICACION');
   }
+  exigirGestionable(actor, actual);
+  if (cambios.rol !== undefined && cambios.rol !== actual.rol) exigirPuedeAsignar(actor, cambios.rol);
   const set: Partial<typeof usuarios.$inferInsert> = {};
   if (cambios.nombre !== undefined) set.nombre = cambios.nombre.trim();
   if (cambios.rol !== undefined) set.rol = cambios.rol;
@@ -58,7 +71,8 @@ export async function actualizarUsuario(c: Ctx, actor: UsuarioAuth, id: string, 
     const [u] = await getDb().update(usuarios).set(set).where(eq(usuarios.id, id)).returning(columnas);
     // Un cambio de rol o una baja deben surtir efecto de inmediato: se cierran sus sesiones
     if (cambios.rol !== undefined || cambios.activo === false) await revocarSesionesDeUsuario(id);
-    await registrarBitacora(c, { accion: 'usuario.actualizar', entidad: 'usuario', entidadId: id, antes: { rol: actual.rol, activo: actual.activo }, despues: cambios });
+    const antes = Object.fromEntries(Object.keys(set).map((k) => [k, actual[k as keyof typeof actual]]));
+    await registrarBitacora(c, { accion: 'usuario.actualizar', entidad: 'usuario', entidadId: id, antes, despues: set, detalle: { email: actual.email } });
     return u!;
   } catch (err) {
     if (esViolacionUnica(err)) throw E.conflicto('Ya existe un usuario con ese correo', 'EMAIL_DUPLICADO');
@@ -66,15 +80,30 @@ export async function actualizarUsuario(c: Ctx, actor: UsuarioAuth, id: string, 
   }
 }
 
-export async function restablecerPassword(c: Ctx, id: string) {
+export async function restablecerPassword(c: Ctx, actor: UsuarioAuth, id: string) {
+  const objetivo = await obtener(id);
+  exigirGestionable(actor, objetivo);
   const temporal = generarPasswordTemporal();
-  const [u] = await getDb()
+  await getDb()
     .update(usuarios)
     .set({ password_hash: await hashPassword(temporal), debe_cambiar_password: true, intentos_fallidos: 0, bloqueado_hasta: null, password_cambiada_at: new Date() })
-    .where(eq(usuarios.id, id))
-    .returning({ id: usuarios.id });
-  if (!u) throw E.noEncontrado('Usuario');
+    .where(eq(usuarios.id, id));
   await revocarSesionesDeUsuario(id);
-  await registrarBitacora(c, { accion: 'usuario.restablecer_password', entidad: 'usuario', entidadId: id });
+  await registrarBitacora(c, { accion: 'usuario.restablecer_password', entidad: 'usuario', entidadId: id, detalle: { email: objetivo.email } });
   return { password_temporal: temporal };
+}
+
+export async function cerrarSesionesUsuario(c: Ctx, actor: UsuarioAuth, id: string) {
+  const objetivo = await obtener(id);
+  exigirGestionable(actor, objetivo);
+  await revocarSesionesDeUsuario(id);
+  await registrarBitacora(c, { accion: 'usuario.cerrar_sesiones', entidad: 'usuario', entidadId: id, detalle: { email: objetivo.email } });
+}
+
+/** Borrado definitivo de una cuenta (solo superadmin). La bitácora conserva su correo, nombre y rol de cada acción. */
+export async function eliminarUsuario(c: Ctx, actor: UsuarioAuth, id: string) {
+  const objetivo = await obtener(id);
+  if (id === actor.id || objetivo.rol === 'superadmin') throw E.conflicto('No puedes eliminar la cuenta del superadmin', 'AUTO_MODIFICACION');
+  await getDb().delete(usuarios).where(eq(usuarios.id, id)); // cascada: sesiones; en lo demás queda en null
+  await registrarBitacora(c, { accion: 'usuario.eliminar', entidad: 'usuario', entidadId: id, antes: { email: objetivo.email, nombre: objetivo.nombre, rol: objetivo.rol } });
 }

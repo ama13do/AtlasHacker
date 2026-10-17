@@ -12,8 +12,9 @@ import { nuevoRouter, ok, sinCache } from '../base.js';
 
 export const adminParticipantes = nuevoRouter();
 const TAG = ['Dashboard · Personas (folios)'];
-const GESTION = { tags: TAG, security: SEG_USUARIO, middleware: [requiereUsuario('admin', 'moderador')] };
-const SOLO_ADMIN = { tags: TAG, security: SEG_USUARIO, middleware: [requiereUsuario('admin')] };
+// Los datos personales son solo de administración; dar de alta a alguien (emitir su folio) también es de captura
+const GESTION = { tags: TAG, security: SEG_USUARIO, middleware: [requiereUsuario('admin')] };
+const SUPERADMIN = { tags: TAG, security: SEG_USUARIO, middleware: [requiereUsuario('superadmin')] };
 const CAPTURA = { tags: TAG, security: SEG_USUARIO, middleware: [requiereUsuario('admin', 'moderador', 'facilitador')] };
 
 adminParticipantes.openapi(
@@ -117,8 +118,8 @@ adminParticipantes.openapi(
 
 adminParticipantes.openapi(
   createRoute({
-    ...SOLO_ADMIN, method: 'delete', path: '/api/admin/participantes/{id}/datos-personales', summary: 'Cancelar datos personales (derecho de cancelación)',
-    description: 'Borra nombre, correo, teléfono y sus índices. Con `anonimizar_testimonios=true` también oculta el nombre público de sus testimonios y generaliza su ubicación. Los testimonios NO se eliminan.',
+    ...SUPERADMIN, method: 'delete', path: '/api/admin/participantes/{id}/datos-personales', summary: 'Cancelar datos personales (derecho de cancelación)',
+    description: 'Solo superadmin. Borra nombre, correo, teléfono y sus índices. Con `anonimizar_testimonios=true` también oculta el nombre público de sus testimonios y generaliza su ubicación. Los testimonios NO se eliminan.',
     request: { params: IdParam, query: z.object({ anonimizar_testimonios: z.enum(['true', 'false']).default('true').transform((v) => v === 'true') }) },
     responses: { 200: resp('Datos cancelados'), ...ERRORES },
   }),

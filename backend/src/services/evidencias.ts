@@ -163,11 +163,15 @@ export async function actualizarEvidencia(c: Ctx, testimonioId: string, evidenci
 /** Elimina la evidencia: el objeto de R2 y la fila. (Para solo ocultarla, usar actualizarEvidencia({ activo: false }).) */
 export async function eliminarEvidencia(c: Ctx, testimonioId: string, evidenciaId: string) {
   const db = getDb();
-  const [ev] = await db.select({ key: evidencias.storage_key }).from(evidencias).where(and(eq(evidencias.id, evidenciaId), eq(evidencias.testimonio_id, testimonioId))).limit(1);
+  const [ev] = await db
+    .select({ key: evidencias.storage_key, folio: evidencias.folio, nombre: evidencias.nombre_original, testimonio_folio: sql<string>`(select folio from testimonios where id = ${testimonioId})` })
+    .from(evidencias)
+    .where(and(eq(evidencias.id, evidenciaId), eq(evidencias.testimonio_id, testimonioId)))
+    .limit(1);
   if (!ev) throw E.noEncontrado('Evidencia');
   await borrarObjeto(ev.key).catch((err) => console.error('R2: no se pudo borrar', ev.key, (err as Error).message));
   await db.delete(evidencias).where(eq(evidencias.id, evidenciaId));
-  await registrarBitacora(c, { accion: 'evidencia.eliminar', entidad: 'evidencia', entidadId: evidenciaId, detalle: { testimonio_id: testimonioId } });
+  await registrarBitacora(c, { accion: 'evidencia.eliminar', entidad: 'evidencia', entidadId: evidenciaId, folio: ev.testimonio_folio, antes: { folio: ev.folio, archivo: ev.nombre }, detalle: { testimonio_id: testimonioId } });
 }
 
 /** URL temporal (5 min) para que el personal vea/descargue una evidencia. */

@@ -1,5 +1,13 @@
 import { EVIDENCE_LABELS } from '@testimonies/data/categories'
-import type { Autorizacion, OrigenTestimonio } from '@admin/types/api'
+import type { Autorizacion, OrigenTestimonio, Rol } from '@admin/types/api'
+
+export const ROLE_LABELS: Record<Rol, string> = {
+  superadmin: 'Superadmin',
+  admin: 'Administración',
+  moderador: 'Moderación',
+  facilitador: 'Facilitación',
+  lector: 'Lectura',
+}
 
 export const AUTORIZACION_LABELS: Record<Autorizacion, string> = {
   publico_con_nombre: 'Público con nombre',

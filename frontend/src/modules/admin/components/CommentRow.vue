@@ -11,7 +11,8 @@ const props = defineProps<{ comment: ApiComentarioStaff }>()
 const emit = defineEmits<{ removed: [id: string] }>()
 
 const auth = useAuthStore()
-const canModerate = computed(() => auth.can('admin', 'moderador'))
+// Moderación aprueba o rechaza; ocultar y editar es de administración; borrar, solo superadmin
+const canApprove = computed(() => auth.perms.approve)
 const c = computed(() => props.comment)
 
 const busy = ref(false)
@@ -90,7 +91,7 @@ const link = 'text-xs font-semibold hover:underline disabled:opacity-50'
     </div>
     <p v-else class="text-sm whitespace-pre-line text-fg/85">{{ c.contenido }}</p>
 
-    <footer v-if="canModerate && !editing" class="flex flex-wrap items-center gap-4">
+    <footer v-if="canApprove && !editing" class="flex flex-wrap items-center gap-4">
       <template v-if="c.estado === 'pendiente'">
         <button type="button" :class="[link, 'text-accent-ink']" :disabled="busy" @click="apply({ estado: 'aprobado' })">Aprobar</button>
         <button type="button" :class="[link, 'text-danger']" :disabled="busy" @click="apply({ estado: 'rechazado' })">Rechazar</button>
@@ -98,9 +99,11 @@ const link = 'text-xs font-semibold hover:underline disabled:opacity-50'
       <button v-else-if="c.estado === 'rechazado'" type="button" :class="link" :disabled="busy" @click="apply({ estado: 'aprobado' })">
         Aprobar
       </button>
-      <button type="button" :class="link" :disabled="busy" @click="apply({ activo: !c.activo })">{{ c.activo ? 'Ocultar' : 'Mostrar' }}</button>
-      <button type="button" :class="link" :disabled="busy" @click="startEdit">Editar</button>
-      <template v-if="auth.can('admin')">
+      <template v-if="auth.perms.admin">
+        <button type="button" :class="link" :disabled="busy" @click="apply({ activo: !c.activo })">{{ c.activo ? 'Ocultar' : 'Mostrar' }}</button>
+        <button type="button" :class="link" :disabled="busy" @click="startEdit">Editar</button>
+      </template>
+      <template v-if="auth.perms.remove">
         <span v-if="confirmingDelete" class="ml-auto flex gap-3 text-xs">
           <span class="text-fg/70">¿Eliminar para siempre?</span>
           <button type="button" :class="[link, 'text-danger']" :disabled="busy" @click="remove">Sí, eliminar</button>

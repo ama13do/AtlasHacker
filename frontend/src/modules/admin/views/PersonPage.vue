@@ -147,7 +147,7 @@ const btn = 'rounded-full px-4 py-2 text-sm font-semibold transition disabled:op
     <header class="space-y-1">
       <div class="flex flex-wrap items-baseline justify-between gap-3">
         <h1 class="font-mono text-2xl font-semibold">{{ hint ? `P-…-${hint}` : 'Persona' }}</h1>
-        <RouterLink v-if="auth.can('admin')" :to="{ name: 'admin-log', query: { entidad_id: id } }" class="text-sm font-semibold text-accent-ink hover:underline">
+        <RouterLink v-if="auth.perms.log" :to="{ name: 'admin-log', query: { entidad_id: id } }" class="text-sm font-semibold text-accent-ink hover:underline">
           Historial
         </RouterLink>
         <RouterLink :to="{ name: 'admin-capture', query: { participante: id } }" class="btn-hxnf btn-lime btn-sm ml-auto">
@@ -231,7 +231,7 @@ const btn = 'rounded-full px-4 py-2 text-sm font-semibold transition disabled:op
           </div>
         </section>
 
-        <section v-if="auth.can('admin')" class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-4 text-sm" aria-labelledby="arco-title">
+        <section v-if="auth.perms.remove" class="border-2 border-ink bg-card shadow-brut space-y-3 rounded-[22px] p-4 text-sm" aria-labelledby="arco-title">
           <h2 id="arco-title" class="font-semibold">Cancelar datos personales</h2>
           <p class="text-fg/60">Derecho de cancelación: borra nombre, correo y teléfono. Los testimonios no se eliminan.</p>
           <button v-if="!cancel.open" type="button" :class="[btn, 'text-danger hover:underline']" @click="cancel.open = true">

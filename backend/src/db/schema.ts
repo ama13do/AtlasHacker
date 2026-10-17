@@ -62,7 +62,8 @@ const tsvector = customType<{ data: string }>({ dataType: () => 'tsvector' });
 
 /* ─────────────────────────────────── Enums ───────────────────────────────── */
 
-export const ROLES = ['admin', 'moderador', 'facilitador', 'lector'] as const;
+/** superadmin: una sola persona (alta por script); es la única que borra definitivamente, exporta y ve la bitácora. */
+export const ROLES = ['superadmin', 'admin', 'moderador', 'facilitador', 'lector'] as const;
 export const ESTADOS_MODERACION = ['pendiente', 'aprobado', 'rechazado'] as const;
 export const AUTORIZACIONES = ['publico_con_nombre', 'publico_anonimo', 'solo_documentacion_interna', 'no_autoriza'] as const;
 export const APARECER_COMO = ['nombre', 'anonimo'] as const;
@@ -421,10 +422,13 @@ export const bitacora = pgTable(
     actor_tipo: actorTipo('actor_tipo').notNull(),
     usuario_id: uuid('usuario_id').references(() => usuarios.id, { onDelete: 'set null' }),
     usuario_email: text('usuario_email'), // instantánea: se conserva aunque el usuario se elimine
+    usuario_nombre: text('usuario_nombre'), // instantánea
+    usuario_rol: text('usuario_rol'), // instantánea (el rol que tenía al actuar)
     participante_id: uuid('participante_id'),
     accion: text('accion').notNull(), // p. ej. testimonio.aprobar
     entidad: text('entidad').notNull(),
     entidad_id: text('entidad_id'),
+    folio: text('folio'), // folio del testimonio afectado, para buscar y leer sin cruzar tablas
     antes: jsonb('antes'),
     despues: jsonb('despues'),
     detalle: jsonb('detalle'),
@@ -437,6 +441,7 @@ export const bitacora = pgTable(
     index('idx_bitacora_usuario').on(t.usuario_id, t.created_at.desc()),
     index('idx_bitacora_entidad').on(t.entidad, t.entidad_id),
     index('idx_bitacora_accion').on(t.accion),
+    index('idx_bitacora_folio').on(t.folio),
   ],
 );
 

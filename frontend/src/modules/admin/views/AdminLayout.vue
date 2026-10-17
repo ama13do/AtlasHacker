@@ -5,8 +5,8 @@ import ThemeToggle from '@/shared/components/ThemeToggle.vue'
 import { useAuthStore } from '@admin/stores/auth'
 import AdminNav from '@admin/components/AdminNav.vue'
 import BrandMark from '@/shared/components/BrandMark.vue'
+import { ROLE_LABELS } from '@admin/data/labels'
 
-const ROLE_LABELS = { admin: 'Administración', moderador: 'Moderación', facilitador: 'Facilitación', lector: 'Lectura' } as const
 
 const auth = useAuthStore()
 const route = useRoute()

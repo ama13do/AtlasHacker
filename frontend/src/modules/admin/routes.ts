@@ -24,18 +24,20 @@ export const adminRoutes: RouteRecordRaw[] = [
         path: '',
         name: 'admin-home',
         component: () => import('@admin/views/DashboardPage.vue'),
-        meta: { roles: ['admin', 'moderador', 'lector'] },
+        meta: { roles: ['admin', 'lector'] },
       },
       {
         path: 'testimonios',
         name: 'admin-testimonies',
         component: () => import('@admin/views/TestimoniesPage.vue'),
+        meta: { roles: ['admin', 'moderador', 'lector'] },
       },
       {
         path: 'testimonios/:id',
         name: 'admin-testimony',
         component: () => import('@admin/views/TestimonyPage.vue'),
         props: true,
+        meta: { roles: ['admin', 'moderador', 'lector'] },
       },
       {
         // Ficha en papel (facilitación, moderación y administración)
@@ -51,18 +53,18 @@ export const adminRoutes: RouteRecordRaw[] = [
         meta: { roles: ['admin', 'moderador', 'lector'] },
       },
       {
-        // El facilitador solo puede dar de alta personas (emitir folio); la búsqueda es de admin y moderador
+        // Datos personales: solo administración
         path: 'personas',
         name: 'admin-people',
         component: () => import('@admin/views/PeoplePage.vue'),
-        meta: { roles: ['admin', 'moderador', 'facilitador'] },
+        meta: { roles: ['admin'] },
       },
       {
         path: 'personas/:id',
         name: 'admin-person',
         component: () => import('@admin/views/PersonPage.vue'),
         props: true,
-        meta: { roles: ['admin', 'moderador'] },
+        meta: { roles: ['admin'] },
       },
       {
         path: 'configuracion',
@@ -80,12 +82,13 @@ export const adminRoutes: RouteRecordRaw[] = [
         path: 'catalogos',
         name: 'admin-catalogs',
         component: () => import('@admin/views/CatalogsPage.vue'),
+        meta: { roles: ['admin'] },
       },
       {
         path: 'bitacora',
         name: 'admin-log',
         component: () => import('@admin/views/LogPage.vue'),
-        meta: { roles: ['admin'] },
+        meta: { roles: ['superadmin'] },
       },
       {
         path: 'cuenta',
@@ -96,14 +99,13 @@ export const adminRoutes: RouteRecordRaw[] = [
   },
 ]
 
-// Sin sesión → login (con regreso). Contraseña temporal → cambiarla primero. Sin rol → Testimonios
+// Sin sesión → login (con regreso). Contraseña temporal → cambiarla primero. Sin rol → la primera vista de su rol
 export const adminGuard: NavigationGuard = async (to) => {
   if (!to.matched.some((r) => r.meta.requiresAuth)) return true
   const auth = useAuthStore()
   if (!(await auth.restore())) return { name: 'admin-login', query: { next: to.fullPath } }
   if (auth.user?.debe_cambiar_password && to.name !== 'admin-account') return { name: 'admin-account' }
   const roles = to.matched.flatMap((r) => r.meta.roles ?? [])
-  // Sin permiso para esta vista: a Testimonios, que cualquier rol puede ver
-  if (roles.length && !auth.can(...roles)) return { name: 'admin-testimonies' }
+  if (roles.length && !auth.can(...roles)) return auth.home
   return true
 }

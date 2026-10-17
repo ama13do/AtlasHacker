@@ -1,16 +1,23 @@
 import { createRoute, z } from '@hono/zod-openapi';
+import { eq } from 'drizzle-orm';
+import type { Context } from 'hono';
 import { env, esOrigenPermitido } from '../config/env.js';
-import { E } from '../lib/errors.js';
+import { getDb } from '../db/client.js';
+import { usuarios, type Usuario } from '../db/schema.js';
+import { AppError, E } from '../lib/errors.js';
 import { requiereUsuario } from '../middleware/seguridad.js';
 import { ERRORES, SEG_USUARIO, cuerpo, resp } from '../schemas/comunes.js';
-import { PasswordSchema, cambiarPassword, cerrarSesion, datosUsuarioPublico, iniciarSesion, refrescarSesion } from '../services/auth.js';
+import { PasswordSchema, buscarUsuarioPorEmail, cambiarPassword, cerrarSesion, datosUsuarioPublico, iniciarSesion, refrescarSesion } from '../services/auth.js';
 import { registrarBitacora } from '../services/bitacora.js';
+import type { AppEnv } from '../types.js';
 import { nuevoRouter, ok, sinCache } from './base.js';
 
 export const auth = nuevoRouter();
 const TAG = ['Autenticación (dashboard)'];
 
 const LoginSchema = z.object({ email: z.email().max(200), password: z.string().min(1).max(200) }).openapi('Login');
+
+const comoActor = (c: Context<AppEnv>, u: Pick<Usuario, 'id' | 'email' | 'nombre' | 'rol'>) => c.set('usuario', { id: u.id, email: u.email, nombre: u.nombre, rol: u.rol });
 
 /** El refresh token viaja en cookie httpOnly: solo se acepta desde los orígenes permitidos (defensa CSRF). */
 function exigirOrigenPermitido(origin: string | undefined) {
@@ -30,8 +37,18 @@ auth.openapi(
     sinCache(c);
     exigirOrigenPermitido(c.req.header('origin'));
     const { email, password } = c.req.valid('json');
-    const r = await iniciarSesion(c, email, password);
-    c.set('usuario', { id: r.usuario.id, email: r.usuario.email, nombre: r.usuario.nombre, rol: r.usuario.rol });
+    let r: Awaited<ReturnType<typeof iniciarSesion>>;
+    try {
+      r = await iniciarSesion(c, email, password);
+    } catch (err) {
+      // Intento fallido sobre una cuenta que existe: queda en la bitácora (sin la contraseña). Si el correo no existe no se guarda nada.
+      if (err instanceof AppError && err.status !== 429) {
+        const u = await buscarUsuarioPorEmail(email);
+        if (u) await registrarBitacora(c, { accion: 'auth.login_fallido', entidad: 'usuario', entidadId: u.id, detalle: { email: u.email, motivo: err.codigo } });
+      }
+      throw err;
+    }
+    comoActor(c, r.usuario);
     await registrarBitacora(c, { accion: 'auth.login', entidad: 'usuario', entidadId: r.usuario.id });
     return c.json(ok({ access_token: r.token, token_type: 'Bearer' as const, expira_en_segundos: r.expira_en, usuario: datosUsuarioPublico(r.usuario) }), 200);
   },
@@ -55,7 +72,12 @@ auth.openapi(
   createRoute({ method: 'post', path: '/api/auth/logout', tags: TAG, summary: 'Cerrar sesión', responses: { 200: resp('Sesión cerrada'), ...ERRORES } }),
   async (c) => {
     exigirOrigenPermitido(c.req.header('origin'));
-    await cerrarSesion(c);
+    const usuarioId = await cerrarSesion(c);
+    const [u] = usuarioId ? await getDb().select().from(usuarios).where(eq(usuarios.id, usuarioId)).limit(1) : [];
+    if (u) {
+      comoActor(c, u);
+      await registrarBitacora(c, { accion: 'auth.logout', entidad: 'usuario', entidadId: u.id });
+    }
     return c.json(ok({ cerrada: true }), 200);
   },
 );

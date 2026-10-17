@@ -17,15 +17,16 @@ export const adminSistema = nuevoRouter();
 const TAG_DASH = ['Dashboard · Estadísticas'];
 const TAG_CFG = ['Dashboard · Configuración'];
 const TAG_BIT = ['Dashboard · Bitácora'];
-const STAFF = { security: SEG_USUARIO, middleware: [requiereUsuario('admin', 'moderador', 'lector')] };
-const MODERAR = { security: SEG_USUARIO, middleware: [requiereUsuario('admin', 'moderador')] };
+// Resumen: administración y lectura. Exportar, purgar y la bitácora: solo superadmin (el superadmin pasa siempre)
+const RESUMEN = { security: SEG_USUARIO, middleware: [requiereUsuario('admin', 'lector')] };
 const ADMIN = { security: SEG_USUARIO, middleware: [requiereUsuario('admin')] };
+const SUPERADMIN = { security: SEG_USUARIO, middleware: [requiereUsuario('superadmin')] };
 
 /* ───────────────────────────────────────────── Estadísticas ───────────────────────────────────────────── */
 
 adminSistema.openapi(
   createRoute({
-    ...STAFF, tags: TAG_DASH, method: 'get', path: '/api/admin/resumen', summary: 'Resumen general del dashboard',
+    ...RESUMEN, tags: TAG_DASH, method: 'get', path: '/api/admin/resumen', summary: 'Resumen general del dashboard',
     description: 'Totales por estado, categoría, expediente y origen; personas; comentarios; evidencias; y la serie de los últimos 30 días. Todo en una sola llamada.',
     responses: { 200: resp('Resumen'), ...ERRORES },
   }),
@@ -37,7 +38,7 @@ adminSistema.openapi(
 
 adminSistema.openapi(
   createRoute({
-    ...STAFF, tags: TAG_DASH, method: 'get', path: '/api/admin/estadisticas/serie', summary: 'Serie de tiempo de testimonios',
+    ...RESUMEN, tags: TAG_DASH, method: 'get', path: '/api/admin/estadisticas/serie', summary: 'Serie de tiempo de testimonios',
     request: {
       query: z.object({
         desde: z.iso.date(),
@@ -56,7 +57,7 @@ adminSistema.openapi(
 
 adminSistema.openapi(
   createRoute({
-    ...STAFF, tags: TAG_DASH, method: 'get', path: '/api/admin/estadisticas/geografia', summary: 'Distribución geográfica (por entidad y celdas)',
+    ...RESUMEN, tags: TAG_DASH, method: 'get', path: '/api/admin/estadisticas/geografia', summary: 'Distribución geográfica (por entidad y celdas)',
     description: 'Usa la ubicación exacta (solo personal). `celda` en grados: 0.25 ≈ 28 km.',
     request: { query: z.object({ celda: z.coerce.number().min(0.01).max(5).default(0.25) }) },
     responses: { 200: resp('Entidades y celdas'), ...ERRORES },
@@ -66,8 +67,8 @@ adminSistema.openapi(
 
 adminSistema.openapi(
   createRoute({
-    ...MODERAR, tags: TAG_DASH, method: 'get', path: '/api/admin/exportar/testimonios.geojson', summary: 'Exportar testimonios a GeoJSON (QGIS, análisis)',
-    description: 'Mismos filtros que el listado. Incluye la ubicación EXACTA y los campos de la ficha, sin datos personales de la persona. Máx. 10 000.',
+    ...SUPERADMIN, tags: TAG_DASH, method: 'get', path: '/api/admin/exportar/testimonios.geojson', summary: 'Exportar testimonios a GeoJSON (QGIS, análisis)',
+    description: 'Solo superadmin. Mismos filtros que el listado. Incluye la ubicación EXACTA y los campos de la ficha, sin datos personales de la persona. Máx. 10 000.',
     request: { query: FiltrosStaffQuery },
     responses: { 200: resp('FeatureCollection'), ...ERRORES },
   }),
@@ -136,8 +137,8 @@ adminSistema.openapi(
 
 adminSistema.openapi(
   createRoute({
-    ...ADMIN, tags: TAG_CFG, method: 'post', path: '/api/admin/mantenimiento/purgar', summary: 'Purgar auditoría vencida, sesiones y límites expirados',
-    description: 'Borra la auditoría de envío cuya retención ya venció (`auditoria_retencion_dias`) y datos técnicos caducados. Puede ejecutarse periódicamente.',
+    ...SUPERADMIN, tags: TAG_CFG, method: 'post', path: '/api/admin/mantenimiento/purgar', summary: 'Purgar auditoría vencida, sesiones y límites expirados',
+    description: 'Solo superadmin. Borra la auditoría de envío cuya retención ya venció (`auditoria_retencion_dias`) y datos técnicos caducados. Puede ejecutarse periódicamente.',
     responses: { 200: resp('Filas purgadas'), ...ERRORES },
   }),
   async (c) => {
@@ -156,8 +157,10 @@ adminSistema.openapi(
 
 adminSistema.openapi(
   createRoute({
-    ...ADMIN, tags: TAG_BIT, method: 'get', path: '/api/admin/bitacora', summary: 'Bitácora: quién hizo qué',
-    description: 'Registro de solo-agregar de todo lo que modifican, aprueban, suben o borran usuarios y personas, con el antes y el después. La IP se descifra para este endpoint.',
+    ...SUPERADMIN, tags: TAG_BIT, method: 'get', path: '/api/admin/bitacora', summary: 'Bitácora: quién hizo qué',
+    description:
+      'Solo superadmin. Registro de solo-agregar de todo lo que modifican, aprueban, suben o borran usuarios y personas: quién (nombre, correo y rol de ese momento), ' +
+      'qué folio, cuándo, desde dónde (IP y navegador) y el antes y el después. La IP se descifra para este endpoint.',
     request: {
       query: z
         .object({
@@ -165,6 +168,7 @@ adminSistema.openapi(
           accion: z.string().max(80).optional().openapi({ description: 'Prefijo o exacta, p. ej. testimonio.aprobar o testimonio.' }),
           entidad: z.string().max(40).optional(),
           entidad_id: z.string().max(80).optional(),
+          folio: z.string().trim().max(60).optional().openapi({ description: 'Folio del testimonio, p. ej. FUTURO/001-T7K3MQ9X' }),
           desde: z.iso.date().optional(),
           hasta: z.iso.date().optional(),
         })
@@ -180,6 +184,7 @@ adminSistema.openapi(
       q.accion ? sql`${bitacora.accion} like ${q.accion.replace(/[%_]/g, '\\$&') + '%'}` : undefined,
       q.entidad ? eq(bitacora.entidad, q.entidad) : undefined,
       q.entidad_id ? eq(bitacora.entidad_id, q.entidad_id) : undefined,
+      q.folio ? sql`upper(${bitacora.folio}) = ${q.folio.toUpperCase()}` : undefined,
       q.desde ? sql`${bitacora.created_at} >= ${q.desde}::date` : undefined,
       q.hasta ? sql`${bitacora.created_at} < (${q.hasta}::date + 1)` : undefined,
     );

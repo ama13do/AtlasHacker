@@ -105,31 +105,31 @@ Backend en `../backend` (Hono; **no se modifica desde aquí**). Guía: `../docs/
   - `POST /api/auth/login` devuelve un access token de 15 min, que se guarda **solo en memoria**, y deja una cookie `httpOnly` de refresh (`path=/api/auth`);
   - `stores/auth.ts` lo renueva un minuto antes de que expire y, al recargar, intenta recuperar la sesión con la cookie;
   - `services/adminHttp.ts` agrega `Authorization: Bearer`; ante un 401 renueva una vez y reintenta. Si no puede, la sesión se cierra y vuelve al login con «Tu sesión expiró».
-- **Roles:** admin, moderador, facilitador y lector. La navegación se filtra por rol y el guard (`adminGuard`) redirige si falta permiso. Con una contraseña temporal (`debe_cambiar_password`; la tienen las cuentas creadas o restablecidas, también desde Swagger), el guard lleva a `/admin/cuenta`, que se muestra como «Crea tu contraseña», sin navegación. Al guardarla, la API cierra todas las sesiones y el front vuelve a entrar solo con la nueva (`changePasswordAndRelogin`) y abre el panel.
+- **Roles:** superadmin, admin, moderador, facilitador y lector (tabla completa en `backend/README.md`). `auth.can()` deja pasar siempre al superadmin y `auth.perms` dice qué botones mostrar (aprobar, editar, borrar, descargar, bitácora). La navegación se filtra por rol y el guard (`adminGuard`) manda a la primera vista del rol (`auth.home`) si falta permiso: resumen (admin y lectura), testimonios (moderación) o capturar (facilitación). Con una contraseña temporal (`debe_cambiar_password`; la tienen las cuentas creadas o restablecidas, también desde Swagger), el guard lleva a `/admin/cuenta`, que se muestra como «Crea tu contraseña», sin navegación. Al guardarla, la API cierra todas las sesiones y el front vuelve a entrar solo con la nueva (`changePasswordAndRelogin`) y abre el panel.
 - **Login en local:** el back solo acepta login desde los orígenes de `CORS_ORIGINS` (protege la cookie). Hay que agregar `http://localhost:5173` en el stage de pruebas; si no, el login responde 403 y la pantalla lo explica.
 - **Safari:** en producción, con front y API en dominios distintos, puede bloquear la cookie de refresh. Entonces la sesión dura 15 min y luego pide volver a entrar.
 - **Testimonios (`/admin/testimonios`):** cola de moderación con pestañas (por revisar, aprobados, rechazados, dados de baja, todos), filtros (texto o folio exacto, categoría, origen, sensibles, fechas) que viven en la URL y paginación.
-  - **Por lote** (admin y moderador): seleccionar y aprobar, rechazar (con motivo), regresar a revisión, dar de baja o reactivar. Se informa cuántos fallaron.
+  - **Por lote:** seleccionar y aprobar o rechazar (con motivo); administración también regresa a revisión, da de baja o reactiva. Se informa cuántos fallaron.
+  - Moderación y lectura no ven los testimonios con información sensible o de menores.
   - **Detalle (`/admin/testimonios/:id`):**
     - la ficha completa con la ubicación exacta en el mapa, el consentimiento y la información sensible;
     - **acciones según el estado:** aprobar (eligiendo si se publica la multimedia autorizada), rechazar (con motivo, que la persona ve en «Mi folio»), regresar a revisión, dar de baja o reactivar;
     - **edición de la ficha** (queda en la bitácora con el antes y el después), notas internas y ubicación aproximada en el mapa público;
     - **evidencias:** ver con una URL de 5 min (queda registrado), pública o privada, ocultar o eliminar.
-  - **Solo admin:** la auditoría del envío (IP descifrada, a demanda) y la eliminación definitiva, que exige escribir el folio.
-  - **Lector:** solo lectura. **Facilitador:** ve únicamente lo que capturó.
-  - **Subir evidencias** desde el detalle (admin, moderación y facilitación): reservar → subir directo a R2 → confirmar (`staffEvidenceService`, mismo `useEvidenceUpload` que la zona pública).
+  - **Administración:** editar, notas internas, ubicación aproximada, publicar u ocultar evidencias y la auditoría del envío (IP descifrada, a demanda). **Solo superadmin:** eliminar definitivamente (exige escribir el folio).
+  - **Moderación:** aprobar o rechazar. **Lector:** solo lectura.
+  - **Subir evidencias** desde el detalle (administración, o quien capturó la ficha): reservar → subir directo a R2 → confirmar (`staffEvidenceService`, mismo `useEvidenceUpload` que la zona pública).
 - **Capturar ficha (`/admin/capturar`, admin, moderador y facilitador):** fichas en papel con los mismos pasos que el formulario público (mini-mapa, buscador y chincheta), sin captcha (`POST /api/admin/testimonios`). La persona puede ser **nueva** (la API emite su folio y se muestra una sola vez para entregárselo) o **existente** (por su id; desde la ficha de una persona, «Capturar ficha para esta persona» lo llena solo). Si hay varios expedientes se elige el mapa.
 - **Comentarios (`/admin/comentarios`):** pestañas por revisar, publicados, ocultos, rechazados y todos; filtro por testimonio (`?testimonio=<id>`, enlazado desde el detalle).
-  - Admin y moderador pueden aprobar, rechazar, ocultar o mostrar y editar el texto (queda en la bitácora). Solo admin elimina para siempre.
+  - Moderación aprueba o rechaza; administración además oculta o muestra y edita el texto (queda en la bitácora). Solo el superadmin elimina para siempre.
   - El lector solo ve.
-- **Personas (`/admin/personas`, admin y moderador):**
+- **Personas (`/admin/personas`, solo administración):**
   - **Búsqueda** por índice ciego (correo o teléfono exactos, o los últimos 4 del folio). No muestra datos personales; correo y teléfono no van en la URL.
   - **Detalle:**
     - «Ver y rectificar datos personales» los descifra y queda registrado en la bitácora;
     - rectificar (un campo vacío lo borra) y perfil público;
     - emitir un folio nuevo (el anterior deja de funcionar; el nuevo se muestra una sola vez) y desactivar o reactivar el folio;
-    - **solo admin:** cancelar datos personales (ARCO), con confirmación escribiendo «CANCELAR».
-  - **Nueva persona:** también el facilitador puede crearla para emitirle un folio antes de capturar su ficha.
+    - **solo superadmin:** cancelar datos personales (ARCO), con confirmación escribiendo «CANCELAR».
 - **Configuración (`/admin/configuracion`, solo admin):** modo de publicación, participación (comentarios, reacciones, edición), seguridad (captcha, auditoría), límites de evidencias y versión del consentimiento. Envía solo lo que cambió y pide confirmación si se toca la publicación o el captcha. El back tarda hasta 15 s en aplicarlo.
   - **Modos de publicación:**
     - **Revisar todo** (el de fábrica): nada sale al mapa sin aprobación;
@@ -137,11 +137,11 @@ Backend en `../backend` (Hono; **no se modifica desde aquí**). Guía: `../docs/
     - **Automática:** se publica al instante todo lo que tenga autorización pública.
   - En cualquier modo, «solo documentación interna», «no autorizo» y lo sensible con revisión o uso interno nunca se publican solos.
   - Al publicarse, el back avisa por Supabase Realtime y el mapa lo agrega sin recargar.
-- **Usuarios (`/admin/usuarios`, solo admin):** crear cuentas con su rol. La contraseña temporal la genera el back, se muestra una sola vez y se pide cambiarla al entrar. También editar nombre, correo y rol, desactivar, restablecer contraseña y cerrar sesiones. Tu propia cuenta no se puede desactivar ni cambiar de rol, y el back exige que siempre quede un admin activo.
-- **Catálogos (`/admin/catalogos`):** categorías y expedientes; todo el equipo los ve y solo admin los edita. El mapa usa los colores de marca por identificador (slug); una categoría nueva recibe uno automático. Al guardar se recargan las categorías del sitio público.
-- **Bitácora (`/admin/bitacora`, solo admin):** quién hizo qué, con filtros por tipo de acción, usuario y fechas. «Ver cambios» muestra antes y después, IP y navegador. Desde un testimonio o una persona, «Historial» filtra sus eventos.
-- **Exportar:** en Testimonios, «Exportar GeoJSON» (admin y moderador) descarga los testimonios de los filtros actuales con ubicación exacta y sin datos personales. El máximo es 10 000 y la exportación queda en la bitácora.
-- **Mantenimiento:** en Configuración, «Purgar datos vencidos» borra la auditoría vencida y las sesiones y límites expirados.
+- **Usuarios (`/admin/usuarios`, administración):** crear cuentas con su rol. La contraseña temporal la genera el back, se muestra una sola vez y se pide cambiarla al entrar. También editar nombre, correo y rol, desactivar, restablecer contraseña y cerrar sesiones. Administración gestiona moderación, facilitación y lectura; el rol admin y las cuentas admin solo los maneja el superadmin, que además puede eliminar cuentas. Tu propia cuenta no se puede desactivar ni cambiar de rol.
+- **Catálogos (`/admin/catalogos`, administración):** categorías y expedientes. El mapa usa los colores de marca por identificador (slug); una categoría nueva recibe uno automático. Al guardar se recargan las categorías del sitio público.
+- **Bitácora (`/admin/bitacora`, solo superadmin):** quién hizo qué (nombre y rol de ese momento), a qué folio, cuándo y desde dónde (IP y dispositivo), con filtros por tipo de acción, usuario, folio y fechas. «Ver cambios» muestra una tabla campo por campo con el antes y el después. Desde un testimonio o una persona, «Historial» filtra sus eventos.
+- **Exportar:** en Testimonios, «Exportar GeoJSON» (solo superadmin) descarga los testimonios de los filtros actuales con ubicación exacta y sin datos personales. El máximo es 10 000 y la exportación queda en la bitácora.
+- **Mantenimiento:** en Configuración, «Purgar datos vencidos» (solo superadmin) borra la auditoría vencida y las sesiones y límites expirados.
 - **Resumen:** KPIs, «Por entidad» (ubicación exacta, solo para el equipo), lo que ve el público (`GET /api/estadisticas`), estado de la API (`GET /health`, con su latencia) y la **evolución** de testimonios: 30 días (del resumen) o, al elegir 12 semanas, 12 meses o una categoría, `GET /api/admin/estadisticas/serie` (los periodos sin datos se rellenan con cero).
 - **Gráficas:** SVG propias, sin dependencias. Los colores `--chart-1` y `--chart-2` en `style.css` están validados para daltonismo y contraste en ambos temas. Cada gráfica trae tooltip y una tabla oculta para lectores de pantalla.
 

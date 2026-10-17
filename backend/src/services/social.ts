@@ -123,9 +123,16 @@ export async function quitarLikeComentario(comentarioId: string, huella: string)
 
 /* ───────────────────────────────────── Moderación de comentarios (dashboard) ───────────────────────────────────── */
 
-export async function listarComentariosStaff(f: { estado?: 'pendiente' | 'aprobado' | 'rechazado'; activo?: boolean; testimonio_id?: string; pagina: number; por_pagina: number }) {
+/** Comentarios de testimonios con información sensible o de menores: solo los ve administración. */
+const deTestimonioNoSensible = sql`${comentarios.testimonio_id} in (select id from testimonios where not (info_sensible or info_menores))`;
+
+export async function listarComentariosStaff(
+  f: { estado?: 'pendiente' | 'aprobado' | 'rechazado'; activo?: boolean; testimonio_id?: string; pagina: number; por_pagina: number },
+  sinSensibles = false,
+) {
   const db = getDb();
   const cond = and(
+    sinSensibles ? deTestimonioNoSensible : undefined,
     f.estado ? eq(comentarios.estado, f.estado) : undefined,
     f.activo !== undefined ? eq(comentarios.activo, f.activo) : undefined,
     f.testimonio_id ? eq(comentarios.testimonio_id, f.testimonio_id) : undefined,
@@ -145,15 +152,34 @@ export async function listarComentariosStaff(f: { estado?: 'pendiente' | 'aproba
   return { filas, total };
 }
 
-export async function editarComentarioStaff(c: Ctx, id: string, cambios: { estado?: 'pendiente' | 'aprobado' | 'rechazado'; activo?: boolean; contenido?: string }) {
+export async function editarComentarioStaff(
+  c: Ctx,
+  id: string,
+  cambios: { estado?: 'pendiente' | 'aprobado' | 'rechazado'; activo?: boolean; contenido?: string },
+  sinSensibles = false,
+) {
   if (Object.keys(cambios).length === 0) throw E.invalido('No hay cambios que aplicar');
-  const [fila] = await getDb().update(comentarios).set(cambios).where(eq(comentarios.id, id)).returning({ id: comentarios.id });
-  if (!fila) throw E.noEncontrado('Comentario');
-  await registrarBitacora(c, { accion: 'comentario.editar', entidad: 'comentario', entidadId: id, despues: { ...cambios, contenido: cambios.contenido ? '[texto modificado]' : undefined } });
+  const db = getDb();
+  const [actual] = await db
+    .select({ estado: comentarios.estado, activo: comentarios.activo })
+    .from(comentarios)
+    .where(and(eq(comentarios.id, id), sinSensibles ? deTestimonioNoSensible : undefined))
+    .limit(1);
+  if (!actual) throw E.noEncontrado('Comentario');
+  await db.update(comentarios).set(cambios).where(eq(comentarios.id, id));
+  const { contenido, ...resto } = cambios;
+  const antes = Object.fromEntries(Object.keys(resto).map((k) => [k, actual[k as keyof typeof actual]]));
+  await registrarBitacora(c, { accion: 'comentario.editar', entidad: 'comentario', entidadId: id, antes, despues: { ...resto, contenido: contenido ? '[texto modificado]' : undefined } });
 }
 
 export async function eliminarComentarioStaff(c: Ctx, id: string) {
-  const borrados = await getDb().delete(comentarios).where(eq(comentarios.id, id)).returning({ id: comentarios.id });
-  if (borrados.length === 0) throw E.noEncontrado('Comentario');
-  await registrarBitacora(c, { accion: 'comentario.eliminar_permanente', entidad: 'comentario', entidadId: id });
+  const db = getDb();
+  const [actual] = await db
+    .select({ testimonio_folio: sql<string>`(select folio from testimonios t where t.id = ${colDe('comentarios', 'testimonio_id')})` })
+    .from(comentarios)
+    .where(eq(comentarios.id, id))
+    .limit(1);
+  if (!actual) throw E.noEncontrado('Comentario');
+  await db.delete(comentarios).where(eq(comentarios.id, id));
+  await registrarBitacora(c, { accion: 'comentario.eliminar_permanente', entidad: 'comentario', entidadId: id, folio: actual.testimonio_folio });
 }

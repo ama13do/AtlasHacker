@@ -2,7 +2,7 @@ import { and, asc, desc, eq, getTableColumns, sql, type SQL } from 'drizzle-orm'
 import type { Context } from 'hono';
 import { enSerie, getDb, type Ejecutor } from '../db/client.js';
 import { colDe, geoJson } from '../db/geo.js';
-import { categorias, evidencias, expedientes, testimonios, testimonios_auditoria, v_testimonios_publicos } from '../db/schema.js';
+import { categorias, evidencias, expedientes, testimonios, testimonios_auditoria, usuarios, v_testimonios_publicos } from '../db/schema.js';
 import { cifrar, hmac } from '../lib/crypto.js';
 import { E, esViolacionUnica } from '../lib/errors.js';
 import { folioTestimonio } from '../lib/ids.js';
@@ -159,6 +159,7 @@ export async function crearTestimonio(c: Ctx, input: CrearTestimonioInput | Crea
             accion: 'testimonio.crear',
             entidad: 'testimonio',
             entidadId: creado.id,
+            folio: creado.folio,
             despues: { folio: creado.folio, estado: creado.estado, categoria: categoria.slug, origen: op.origen },
             detalle: { decision: decision.razon, participante_nuevo: Boolean(folioParticipante) },
           },
@@ -240,7 +241,7 @@ export async function obtenerStaff(id: string) {
   const db = getDb();
   const [t] = await db.select(selDetalle).from(testimonios).where(eq(testimonios.id, id)).limit(1);
   if (!t) throw E.noEncontrado('Testimonio');
-  const [ctx, evs, [aud]] = await enSerie(
+  const [ctx, evs, [aud], [mod]] = await enSerie(
     () => categoriaYExpediente(t),
     () => db
       .select({
@@ -252,11 +253,15 @@ export async function obtenerStaff(id: string) {
       .where(eq(evidencias.testimonio_id, id))
       .orderBy(asc(evidencias.created_at)),
     () => db.select({ n: sql<number>`count(*)::int` }).from(testimonios_auditoria).where(eq(testimonios_auditoria.testimonio_id, id)),
+    () => (t.moderado_por ? db.select({ nombre: usuarios.nombre }).from(usuarios).where(eq(usuarios.id, t.moderado_por)) : Promise.resolve([])),
   );
-  return { ...t, ...ctx, evidencias: evs, tiene_auditoria: (aud?.n ?? 0) > 0 };
+  return { ...t, ...ctx, evidencias: evs, tiene_auditoria: (aud?.n ?? 0) > 0, moderado_por_nombre: mod?.nombre ?? null };
 }
 
-export async function listarStaff(f: FiltrosStaff, pagina: number, porPagina: number, restringirFacilitadorId?: string) {
+/** Qué parte de los testimonios ve quien consulta: el facilitador solo lo suyo; moderación y lectura, sin sensibles. */
+export type AlcanceStaff = { facilitadorId?: string; sinSensibles?: boolean };
+
+export async function listarStaff(f: FiltrosStaff, pagina: number, porPagina: number, alcance: AlcanceStaff = {}) {
   const db = getDb();
   const cond: (SQL | undefined)[] = [];
   if (f.estado) cond.push(eq(testimonios.estado, f.estado));
@@ -267,7 +272,8 @@ export async function listarStaff(f: FiltrosStaff, pagina: number, porPagina: nu
   if (f.origen) cond.push(eq(testimonios.origen, f.origen));
   if (f.participante_id) cond.push(eq(testimonios.participante_id, f.participante_id));
   if (f.facilitador_id) cond.push(eq(testimonios.facilitador_id, f.facilitador_id));
-  if (restringirFacilitadorId) cond.push(eq(testimonios.facilitador_id, restringirFacilitadorId));
+  if (alcance.facilitadorId) cond.push(eq(testimonios.facilitador_id, alcance.facilitadorId));
+  if (alcance.sinSensibles) cond.push(sql`not (${testimonios.info_sensible} or ${testimonios.info_menores})`);
   if (f.entidad) cond.push(eq(testimonios.entidad, f.entidad));
   if (f.folio) cond.push(sql`upper(${testimonios.folio}) = ${f.folio.toUpperCase()}`);
   if (f.categoria) cond.push(UUID.test(f.categoria) ? eq(testimonios.categoria_id, f.categoria) : sql`${testimonios.categoria_id} = (select id from categorias where slug = ${f.categoria})`);
@@ -336,12 +342,12 @@ function resumirParaBitacora(o: Record<string, unknown>) {
 type CambiosInternos = Partial<typeof testimonios.$inferInsert>;
 
 /** Actualiza, registra en la bitácora y emite el evento de mapa si cambió la visibilidad pública. */
-async function persistirCambios(c: Ctx, id: string, antes: { es_publico: boolean } & Record<string, unknown>, set: CambiosInternos, accion: string, detalle?: unknown) {
+async function persistirCambios(c: Ctx, id: string, antes: { es_publico: boolean; folio: string } & Record<string, unknown>, set: CambiosInternos, accion: string, detalle?: unknown) {
   const db = getDb();
   const d = diferencias(antes, set as Record<string, unknown>);
   const [despues] = await db.update(testimonios).set(set).where(eq(testimonios.id, id)).returning({ es_publico: testimonios.es_publico });
   if (!despues) throw E.noEncontrado('Testimonio');
-  await registrarBitacora(c, { accion, entidad: 'testimonio', entidadId: id, antes: resumirParaBitacora(d.antes), despues: resumirParaBitacora(d.despues), detalle });
+  await registrarBitacora(c, { accion, entidad: 'testimonio', entidadId: id, folio: antes.folio, antes: resumirParaBitacora(d.antes), despues: resumirParaBitacora(d.despues), detalle });
   await emitirCambioDeVisibilidad(id, antes.es_publico, despues.es_publico);
   return despues;
 }
@@ -491,7 +497,7 @@ export async function eliminarPermanente(c: Ctx, id: string) {
   }
   await db.transaction(async (tx) => {
     await tx.delete(testimonios).where(eq(testimonios.id, id)); // cascada: evidencias, comentarios, reacciones, auditoría
-    await registrarBitacora(c, { accion: 'testimonio.eliminar_permanente', entidad: 'testimonio', entidadId: id, antes: { folio: t.folio }, detalle: { archivos_borrados: archivos.length } }, tx);
+    await registrarBitacora(c, { accion: 'testimonio.eliminar_permanente', entidad: 'testimonio', entidadId: id, folio: t.folio, antes: { folio: t.folio }, detalle: { archivos_borrados: archivos.length } }, tx);
   });
   if (t.es_publico) await emitirEventoMapa('testimonio.retirado', { id });
 }

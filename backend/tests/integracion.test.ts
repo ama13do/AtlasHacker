@@ -79,10 +79,10 @@ beforeAll(async () => {
   const { hashPassword } = await import('../src/lib/passwords.js');
   const { usuarios } = await import('../src/db/schema.js');
   const hash = await hashPassword(PASS);
-  for (const rol of ['admin', 'moderador', 'lector', 'facilitador'] as const) {
+  for (const rol of ['superadmin', 'admin', 'moderador', 'lector', 'facilitador'] as const) {
     await db.insert(usuarios).values({ email: `${rol}@atlas.test`, nombre: `Usuario ${rol}`, rol, password_hash: hash });
   }
-  for (const rol of ['admin', 'moderador', 'lector', 'facilitador']) {
+  for (const rol of ['superadmin', 'admin', 'moderador', 'lector', 'facilitador']) {
     const r = await llamar('POST', '/api/auth/login', { body: { email: `${rol}@atlas.test`, password: PASS }, ip: '172.16.0.1' });
     expect(r.status, `login ${rol}: ${r.texto}`).toBe(200);
     tokens[rol] = r.json.data.access_token;
@@ -178,6 +178,22 @@ describe('autenticación del dashboard', () => {
     expect((await llamar('GET', '/api/admin/usuarios', { token: tokens.moderador })).status).toBe(403);
     expect((await llamar('GET', '/api/admin/usuarios', { token: tokens.lector })).status).toBe(403);
     expect((await llamar('GET', '/api/admin/usuarios', { token: tokens.admin })).status).toBe(200);
+  });
+
+  it('el login fallido sobre una cuenta existente y el cierre de sesión quedan en la bitácora', async () => {
+    await llamar('POST', '/api/auth/login', { body: { email: 'facilitador@atlas.test', password: 'equivocada' }, ip: '172.16.5.5' });
+    await llamar('POST', '/api/auth/login', { body: { email: 'nadie@atlas.test', password: 'equivocada' }, ip: '172.16.5.5' });
+    const fallidos = (await llamar('GET', '/api/admin/bitacora?accion=auth.login_fallido', { token: tokens.superadmin })).json.data;
+    expect(fallidos.map((e: any) => e.detalle.email).sort()).toEqual(['admin@atlas.test', 'facilitador@atlas.test']); // el correo inexistente no se guarda
+    expect(fallidos.find((e: any) => e.detalle.email === 'facilitador@atlas.test')).toMatchObject({ detalle: { motivo: 'CREDENCIALES_INVALIDAS' } });
+    expect(JSON.stringify(fallidos)).not.toContain('equivocada');
+
+    // (con otra cuenta: los intentos del lector ya cuentan para su límite por el Swagger y la prueba de bloqueo)
+    const r = await llamar('POST', '/api/auth/login', { body: { email: 'superadmin@atlas.test', password: PASS }, ip: '172.16.5.6' });
+    const cookie = r.headers.get('set-cookie')!.split(';')[0]!;
+    await llamar('POST', '/api/auth/logout', { headers: { cookie } });
+    const salida = (await llamar('GET', '/api/admin/bitacora?accion=auth.logout', { token: tokens.superadmin })).json.data[0];
+    expect(salida).toMatchObject({ usuario_email: 'superadmin@atlas.test', usuario_rol: 'superadmin' });
   });
 
   it('bloqueo de cuenta tras 5 intentos fallidos', async () => {
@@ -292,11 +308,21 @@ describe('moderación y mapa público', () => {
     const [t] = [...(await db.execute<any>(sql`select moderado_por, moderado_at from testimonios where id = ${ids.t1}`))];
     expect(t.moderado_por).toBeTruthy();
 
-    const bit = await llamar('GET', `/api/admin/bitacora?entidad=testimonio&entidad_id=${ids.t1}`, { token: tokens.admin });
+    const bit = await llamar('GET', `/api/admin/bitacora?entidad=testimonio&entidad_id=${ids.t1}`, { token: tokens.superadmin });
     const acciones = bit.json.data.map((e: any) => e.accion);
     expect(acciones).toEqual(expect.arrayContaining(['testimonio.crear', 'testimonio.aprobar']));
     const ap = bit.json.data.find((e: any) => e.accion === 'testimonio.aprobar');
-    expect(ap).toMatchObject({ actor_tipo: 'usuario', usuario_email: 'moderador@atlas.test', antes: { estado: 'pendiente' }, despues: { estado: 'aprobado' } });
+    expect(ap).toMatchObject({
+      actor_tipo: 'usuario', usuario_email: 'moderador@atlas.test', usuario_nombre: 'Usuario moderador', usuario_rol: 'moderador',
+      folio: r.json.data.folio, antes: { estado: 'pendiente' }, despues: { estado: 'aprobado' },
+    });
+    expect(ap.ip).toBeTruthy();
+    // se puede buscar por folio
+    const porFolio = await llamar('GET', `/api/admin/bitacora?folio=${encodeURIComponent(r.json.data.folio.toLowerCase())}`, { token: tokens.superadmin });
+    expect(porFolio.json.data.every((e: any) => e.folio === r.json.data.folio)).toBe(true);
+    expect(porFolio.json.total).toBeGreaterThanOrEqual(2);
+    // quién lo aprobó, en el detalle del panel
+    expect((await llamar('GET', `/api/admin/testimonios/${ids.t1}`, { token: tokens.admin })).json.data.moderado_por_nombre).toBe('Usuario moderador');
   });
 
   it('aprobar publica en el mapa: GeoJSON con pin, y detalle público sin datos personales', async () => {
@@ -353,31 +379,35 @@ describe('moderación y mapa público', () => {
   });
 
   it('desactivar (activo=0) retira del mapa sin borrar; activar lo regresa; aprobado→pendiente también retira', async () => {
-    await llamar('POST', `/api/admin/testimonios/${ids.t2}/desactivar`, { token: tokens.moderador, body: {} });
+    for (const a of ['desactivar', 'activar', 'desaprobar']) {
+      expect((await llamar('POST', `/api/admin/testimonios/${ids.t2}/${a}`, { token: tokens.moderador, body: {} })).status).toBe(403); // solo administración
+    }
+    await llamar('POST', `/api/admin/testimonios/${ids.t2}/desactivar`, { token: tokens.admin, body: {} });
     expect((await llamar('GET', `/api/testimonios/${ids.t2}`)).status).toBe(404);
     const [fila] = [...(await db.execute<any>(sql`select activo, estado from testimonios where id = ${ids.t2}`))];
     expect(fila).toEqual({ activo: false, estado: 'aprobado' }); // sigue en la base
-    await llamar('POST', `/api/admin/testimonios/${ids.t2}/activar`, { token: tokens.moderador, body: {} });
+    await llamar('POST', `/api/admin/testimonios/${ids.t2}/activar`, { token: tokens.admin, body: {} });
     expect((await llamar('GET', `/api/testimonios/${ids.t2}`)).status).toBe(200);
-    await llamar('POST', `/api/admin/testimonios/${ids.t2}/desaprobar`, { token: tokens.moderador, body: {} });
+    await llamar('POST', `/api/admin/testimonios/${ids.t2}/desaprobar`, { token: tokens.admin, body: {} });
     expect((await llamar('GET', `/api/testimonios/${ids.t2}`)).status).toBe(404);
     await llamar('POST', `/api/admin/testimonios/${ids.t2}/aprobar`, { token: tokens.moderador, body: {} });
   });
 
   it('PATCH permite cambiar cualquier aspecto y deja el antes/después en la bitácora', async () => {
+    expect((await llamar('PATCH', `/api/admin/testimonios/${ids.t1}`, { token: tokens.moderador, body: { titulo: 'x' } })).status).toBe(403); // el moderador no edita
     const r = await llamar('PATCH', `/api/admin/testimonios/${ids.t1}`, {
-      token: tokens.moderador,
+      token: tokens.admin,
       body: { titulo: 'Línea de transmisión sin consulta', categoria: 'afectaciones-cambio-climatico', notas_internas: 'Verificar con la comunidad', municipio: 'Juchitán de Zaragoza' },
     });
     expect(r.status).toBe(200);
     expect(r.json.data).toMatchObject({ titulo: 'Línea de transmisión sin consulta', notas_internas: 'Verificar con la comunidad', categoria: { slug: 'afectaciones-cambio-climatico' } });
-    const bit = await llamar('GET', `/api/admin/bitacora?accion=testimonio.editar&entidad_id=${ids.t1}`, { token: tokens.admin });
+    const bit = await llamar('GET', `/api/admin/bitacora?accion=testimonio.editar&entidad_id=${ids.t1}`, { token: tokens.superadmin });
     expect(bit.json.data[0].despues).toMatchObject({ titulo: 'Línea de transmisión sin consulta', municipio: 'Juchitán de Zaragoza' });
-    expect(bit.json.data[0].usuario_email).toBe('moderador@atlas.test');
-    expect((await llamar('PATCH', `/api/admin/testimonios/${ids.t1}`, { token: tokens.moderador, body: {} })).status).toBe(400);
+    expect(bit.json.data[0].usuario_email).toBe('admin@atlas.test');
+    expect((await llamar('PATCH', `/api/admin/testimonios/${ids.t1}`, { token: tokens.admin, body: {} })).status).toBe(400);
     expect((await llamar('PATCH', `/api/admin/testimonios/${ids.t1}`, { token: tokens.lector, body: { titulo: 'x' } })).status).toBe(403);
     // devolver a su categoría original
-    await llamar('PATCH', `/api/admin/testimonios/${ids.t1}`, { token: tokens.moderador, body: { categoria: 'megaproyectos' } });
+    await llamar('PATCH', `/api/admin/testimonios/${ids.t1}`, { token: tokens.admin, body: { categoria: 'megaproyectos' } });
   });
 });
 
@@ -388,7 +418,11 @@ describe('consentimiento e información sensible', () => {
     });
     expect(r.status).toBe(201);
     const id = r.json.data.testimonio.id;
-    await llamar('POST', `/api/admin/testimonios/${id}/aprobar`, { token: tokens.moderador, body: {} });
+    // información sensible: solo administración la ve y la aprueba
+    expect((await llamar('GET', `/api/admin/testimonios/${id}`, { token: tokens.moderador })).status).toBe(404);
+    expect((await llamar('GET', `/api/admin/testimonios/${id}`, { token: tokens.lector })).status).toBe(404);
+    expect((await llamar('POST', `/api/admin/testimonios/${id}/aprobar`, { token: tokens.moderador, body: {} })).status).toBe(404);
+    await llamar('POST', `/api/admin/testimonios/${id}/aprobar`, { token: tokens.admin, body: {} });
     const d = await llamar('GET', `/api/testimonios/${id}`);
     expect(d.json.data.nombre_publico).toBeNull();
     expect(d.json.data.aproximada).toBe(true);
@@ -454,7 +488,7 @@ describe('modos de publicación configurables desde el dashboard', () => {
   });
 
   it('el cambio de configuración queda en la bitácora con el valor anterior', async () => {
-    const bit = await llamar('GET', '/api/admin/bitacora?accion=configuracion.editar', { token: tokens.admin });
+    const bit = await llamar('GET', '/api/admin/bitacora?accion=configuracion.editar', { token: tokens.superadmin });
     expect(bit.json.data[0]).toMatchObject({ usuario_email: 'admin@atlas.test', antes: { modo_publicacion: 'auto_todo' }, despues: { modo_publicacion: 'revisar_todo' } });
   });
 });
@@ -507,10 +541,16 @@ describe('comentarios, likes y reacciones', () => {
 
   it('moderación de comentarios: ocultar baja el contador y desaparece de la lista pública', async () => {
     expect((await llamar('PATCH', `/api/admin/comentarios/${comentario}`, { token: tokens.lector, body: { activo: false } })).status).toBe(403);
-    expect((await llamar('PATCH', `/api/admin/comentarios/${comentario}`, { token: tokens.moderador, body: { activo: false } })).status).toBe(200);
+    expect((await llamar('PATCH', `/api/admin/comentarios/${comentario}`, { token: tokens.moderador, body: { activo: false } })).status).toBe(403); // ocultar: administración
+    expect((await llamar('PATCH', `/api/admin/comentarios/${comentario}`, { token: tokens.moderador, body: { contenido: 'otro' } })).status).toBe(403);
+    expect((await llamar('PATCH', `/api/admin/comentarios/${comentario}`, { token: tokens.admin, body: { activo: false } })).status).toBe(200);
+    const bitCom = (await llamar('GET', `/api/admin/bitacora?accion=comentario.editar`, { token: tokens.superadmin })).json.data[0];
+    expect(bitCom).toMatchObject({ antes: { activo: true }, despues: { activo: false } });
+    expect(bitCom.folio).toMatch(/^FUTURO\/001-T/);
     expect((await llamar('GET', `/api/testimonios/${ids.t1}/comentarios`)).json.data).toHaveLength(0);
     expect((await llamar('GET', `/api/testimonios/${ids.t1}`)).json.data.comentarios_conteo).toBe(0);
-    expect((await llamar('DELETE', `/api/admin/comentarios/${comentario}`, { token: tokens.moderador })).status).toBe(403); // borrar de la BD: solo admin
+    expect((await llamar('DELETE', `/api/admin/comentarios/${comentario}`, { token: tokens.moderador })).status).toBe(403);
+    expect((await llamar('DELETE', `/api/admin/comentarios/${comentario}`, { token: tokens.admin })).status).toBe(403); // borrar de la BD: solo superadmin
   });
 
   it('con moderación de comentarios activada quedan pendientes', async () => {
@@ -557,29 +597,30 @@ describe('personas, recuperación de folio y derechos ARCO (dashboard)', () => {
   let folioViejo = '';
 
   it('se busca por correo o teléfono sin descifrar (índice ciego) y no se exponen datos personales en el listado', async () => {
-    const r = await llamar('GET', '/api/admin/participantes?correo=MARIA@example.org', { token: tokens.moderador });
+    expect((await llamar('GET', '/api/admin/participantes', { token: tokens.moderador })).status).toBe(403); // datos personales: administración
+    const r = await llamar('GET', '/api/admin/participantes?correo=MARIA@example.org', { token: tokens.admin });
     expect(r.status).toBe(200);
     expect(r.json.data).toHaveLength(1);
     expect(r.json.data[0]).toMatchObject({ testimonios: 2, dejo_correo: true });
     expect(JSON.stringify(r.json)).not.toContain('maria@example.org');
     personaId = r.json.data[0].id;
-    expect((await llamar('GET', '/api/admin/participantes?telefono=%2B52%2055%201234%205678', { token: tokens.moderador })).json.data).toHaveLength(1);
-    expect((await llamar('GET', '/api/admin/participantes?correo=otra@example.org', { token: tokens.moderador })).json.data).toHaveLength(0);
+    expect((await llamar('GET', '/api/admin/participantes?telefono=%2B52%2055%201234%205678', { token: tokens.admin })).json.data).toHaveLength(1);
+    expect((await llamar('GET', '/api/admin/participantes?correo=otra@example.org', { token: tokens.admin })).json.data).toHaveLength(0);
     expect((await llamar('GET', '/api/admin/participantes', { token: tokens.lector })).status).toBe(403);
   });
 
   it('ver datos personales descifrados queda en la bitácora', async () => {
-    const r = await llamar('GET', `/api/admin/participantes/${personaId}`, { token: tokens.moderador });
+    const r = await llamar('GET', `/api/admin/participantes/${personaId}`, { token: tokens.admin });
     expect(r.json.data.datos_personales).toEqual({ nombre: 'María López', correo: 'maria@example.org', telefono: '+525512345678' });
-    const bit = await llamar('GET', `/api/admin/bitacora?accion=participante.ver_datos_personales`, { token: tokens.admin });
-    expect(bit.json.data[0]).toMatchObject({ usuario_email: 'moderador@atlas.test', entidad_id: personaId });
+    const bit = await llamar('GET', `/api/admin/bitacora?accion=participante.ver_datos_personales`, { token: tokens.superadmin });
+    expect(bit.json.data[0]).toMatchObject({ usuario_email: 'admin@atlas.test', entidad_id: personaId });
     expect(JSON.stringify(bit.json)).not.toContain('maria@example.org');
   });
 
   it('recuperar folio perdido: se emite uno nuevo y el anterior deja de servir', async () => {
     const inicial = [...(await db.execute<any>(sql`select folio_pista from participantes where id = ${personaId}`))][0];
     folioViejo = inicial.folio_pista;
-    const r = await llamar('POST', `/api/admin/participantes/${personaId}/rotar-folio`, { token: tokens.moderador });
+    const r = await llamar('POST', `/api/admin/participantes/${personaId}/rotar-folio`, { token: tokens.admin });
     expect(r.status).toBe(200);
     const nuevo = r.json.data.folio;
     expect(nuevo).toMatch(/^P(-[0-9A-HJKMNP-TV-Z]{4}){4}$/);
@@ -591,12 +632,13 @@ describe('personas, recuperación de folio y derechos ARCO (dashboard)', () => {
 
   it('desactivar a una persona bloquea su folio; cancelar datos borra lo personal pero conserva los testimonios', async () => {
     const f = (await llamar('POST', `/api/admin/participantes/${personaId}/rotar-folio`, { token: tokens.admin })).json.data.folio;
-    await llamar('PATCH', `/api/admin/participantes/${personaId}`, { token: tokens.moderador, body: { activo: false } });
+    await llamar('PATCH', `/api/admin/participantes/${personaId}`, { token: tokens.admin, body: { activo: false } });
     expect((await llamar('GET', '/api/mis-testimonios', { folio: f })).status).toBe(401);
-    await llamar('PATCH', `/api/admin/participantes/${personaId}`, { token: tokens.moderador, body: { activo: true } });
+    await llamar('PATCH', `/api/admin/participantes/${personaId}`, { token: tokens.admin, body: { activo: true } });
 
     expect((await llamar('DELETE', `/api/admin/participantes/${personaId}/datos-personales`, { token: tokens.moderador })).status).toBe(403);
-    expect((await llamar('DELETE', `/api/admin/participantes/${personaId}/datos-personales`, { token: tokens.admin })).status).toBe(200);
+    expect((await llamar('DELETE', `/api/admin/participantes/${personaId}/datos-personales`, { token: tokens.admin })).status).toBe(403); // borrar: solo superadmin
+    expect((await llamar('DELETE', `/api/admin/participantes/${personaId}/datos-personales`, { token: tokens.superadmin })).status).toBe(200);
     const p = (await llamar('GET', `/api/admin/participantes/${personaId}`, { token: tokens.admin })).json.data;
     expect(p).toMatchObject({ dejo_nombre: false, dejo_correo: false, dejo_telefono: false, perfil_publico: false, testimonios: 2 });
     expect(p.datos_cancelados_at).toBeTruthy();
@@ -698,10 +740,12 @@ describe('evidencias ya subidas: conteo en el dashboard y visibilidad pública c
     expect(lista).toHaveLength(2);
     const recibo = lista.find((e: any) => e.tipo === 'recibo_factura');
     expect(recibo.publica).toBe(false);
-    await llamar('PATCH', `/api/admin/testimonios/${id}/evidencias/${recibo.id}`, { token: tokens.moderador, body: { publica: true } });
+    expect((await llamar('PATCH', `/api/admin/testimonios/${id}/evidencias/${recibo.id}`, { token: tokens.moderador, body: { publica: true } })).status).toBe(403);
+    await llamar('PATCH', `/api/admin/testimonios/${id}/evidencias/${recibo.id}`, { token: tokens.admin, body: { publica: true } });
     expect((await llamar('GET', `/api/testimonios/${id}`)).json.data.evidencias).toHaveLength(2);
-    const bit = await llamar('GET', '/api/admin/bitacora?accion=evidencia.editar', { token: tokens.admin });
-    expect(bit.json.data[0]).toMatchObject({ usuario_email: 'moderador@atlas.test', despues: { publica: true } });
+    const bit = await llamar('GET', '/api/admin/bitacora?accion=evidencia.editar', { token: tokens.superadmin });
+    expect(bit.json.data[0]).toMatchObject({ usuario_email: 'admin@atlas.test', folio: r.json.data.testimonio.folio, despues: { publica: true } });
+    expect((await llamar('DELETE', `/api/admin/testimonios/${id}/evidencias/${recibo.id}`, { token: tokens.admin })).status).toBe(403); // borrar: solo superadmin
   });
 
   it('el listado del dashboard cuenta las evidencias subidas de cada testimonio (regresión: subconsulta correlacionada)', async () => {
@@ -717,23 +761,24 @@ describe('evidencias ya subidas: conteo en el dashboard y visibilidad pública c
     const r = await llamar('GET', `/api/admin/evidencias/${e.id}/url`, { token: tokens.lector });
     expect(r.status).toBe(200);
     expect(r.json.data.expira_en_segundos).toBe(300);
-    expect((await llamar('GET', `/api/admin/bitacora?accion=evidencia.ver`, { token: tokens.admin })).json.data[0]).toMatchObject({ entidad_id: e.id });
+    expect((await llamar('GET', `/api/admin/bitacora?accion=evidencia.ver`, { token: tokens.superadmin })).json.data[0]).toMatchObject({ entidad_id: e.id });
   });
 });
 
 describe('eliminación permanente solo con confirmación explícita', () => {
-  it('borrar de la base de datos exige ser admin y confirmar con el folio', async () => {
+  it('borrar de la base de datos exige ser superadmin y confirmar con el folio', async () => {
     const r = await llamar('POST', '/api/testimonios', { body: ficha() });
     const id = r.json.data.testimonio.id;
     const folio = r.json.data.testimonio.folio;
     expect((await llamar('DELETE', `/api/admin/testimonios/${id}?confirmar=${encodeURIComponent(folio)}`, { token: tokens.moderador })).status).toBe(403);
-    expect((await llamar('DELETE', `/api/admin/testimonios/${id}`, { token: tokens.admin })).status).toBe(400); // falta confirmar
-    expect((await llamar('DELETE', `/api/admin/testimonios/${id}?confirmar=FUTURO/001-TXXXXXXXX`, { token: tokens.admin })).status).toBe(400);
-    const ok = await llamar('DELETE', `/api/admin/testimonios/${id}?confirmar=${encodeURIComponent(folio.toLowerCase())}`, { token: tokens.admin });
+    expect((await llamar('DELETE', `/api/admin/testimonios/${id}?confirmar=${encodeURIComponent(folio)}`, { token: tokens.admin })).status).toBe(403);
+    expect((await llamar('DELETE', `/api/admin/testimonios/${id}`, { token: tokens.superadmin })).status).toBe(400); // falta confirmar
+    expect((await llamar('DELETE', `/api/admin/testimonios/${id}?confirmar=FUTURO/001-TXXXXXXXX`, { token: tokens.superadmin })).status).toBe(400);
+    const ok = await llamar('DELETE', `/api/admin/testimonios/${id}?confirmar=${encodeURIComponent(folio.toLowerCase())}`, { token: tokens.superadmin });
     expect(ok.status).toBe(200);
     expect([...(await db.execute(sql`select 1 from testimonios where id = ${id}`))]).toHaveLength(0);
-    const bit = await llamar('GET', `/api/admin/bitacora?accion=testimonio.eliminar_permanente`, { token: tokens.admin });
-    expect(bit.json.data[0]).toMatchObject({ entidad_id: id, antes: { folio } }); // queda constancia aunque ya no exista
+    const bit = await llamar('GET', `/api/admin/bitacora?accion=testimonio.eliminar_permanente`, { token: tokens.superadmin });
+    expect(bit.json.data[0]).toMatchObject({ entidad_id: id, folio, usuario_rol: 'superadmin', antes: { folio } }); // queda constancia aunque ya no exista
   });
 });
 
@@ -751,16 +796,20 @@ describe('dashboard: resumen, estadísticas, usuarios, catálogos y exportación
   });
 
   it('serie de tiempo, geografía y exportación GeoJSON', async () => {
-    const hoy = new Date().toISOString().slice(0, 10);
-    const s = await llamar('GET', `/api/admin/estadisticas/serie?desde=${hoy}&hasta=${hoy}&agrupar=dia`, { token: tokens.moderador });
-    expect(s.json.data[0].recibidos).toBeGreaterThan(5);
-    const g = await llamar('GET', '/api/admin/estadisticas/geografia', { token: tokens.moderador });
+    // De ayer a mañana: la zona horaria de la base y la de la máquina pueden caer en días distintos
+    const dia = (d: number) => new Date(Date.now() + d * 86400_000).toISOString().slice(0, 10);
+    expect((await llamar('GET', '/api/admin/resumen', { token: tokens.moderador })).status).toBe(403); // el moderador no ve el resumen
+    const s = await llamar('GET', `/api/admin/estadisticas/serie?desde=${dia(-1)}&hasta=${dia(1)}&agrupar=dia`, { token: tokens.lector });
+    expect(s.json.data.reduce((n: number, f: any) => n + f.recibidos, 0)).toBeGreaterThan(5);
+    const g = await llamar('GET', '/api/admin/estadisticas/geografia', { token: tokens.admin });
     expect(g.json.data.celdas[0]).toMatchObject({ lng: expect.any(Number), lat: expect.any(Number), total: expect.any(Number) });
-    const ex = await llamar('GET', '/api/admin/exportar/testimonios.geojson?estado=aprobado', { token: tokens.moderador });
+    for (const rol of ['admin', 'moderador', 'lector']) {
+      expect((await llamar('GET', '/api/admin/exportar/testimonios.geojson', { token: tokens[rol] })).status).toBe(403); // descargar: solo superadmin
+    }
+    const ex = await llamar('GET', '/api/admin/exportar/testimonios.geojson?estado=aprobado', { token: tokens.superadmin });
     expect(ex.json.data.type).toBe('FeatureCollection');
     expect(ex.json.data.features.length).toBeGreaterThan(3);
     expect(JSON.stringify(ex.json)).not.toContain('maria@');
-    expect((await llamar('GET', '/api/admin/exportar/testimonios.geojson', { token: tokens.lector })).status).toBe(403);
   });
 
   it('listado del dashboard con filtros combinados y paginación', async () => {
@@ -768,8 +817,14 @@ describe('dashboard: resumen, estadísticas, usuarios, catálogos y exportación
     expect(pend.json.data.length).toBeLessThanOrEqual(2);
     expect(pend.json.total).toBeGreaterThan(2);
     expect(pend.json.data.every((t: any) => t.estado === 'pendiente')).toBe(true);
-    const sens = await llamar('GET', '/api/admin/testimonios?info_sensible=true&categoria=megaproyectos', { token: tokens.lector });
+    const sens = await llamar('GET', '/api/admin/testimonios?info_sensible=true&categoria=megaproyectos', { token: tokens.admin });
+    expect(sens.json.total).toBeGreaterThan(0);
     expect(sens.json.data.every((t: any) => t.info_sensible)).toBe(true);
+    // moderación y lectura no ven los sensibles
+    for (const rol of ['moderador', 'lector']) {
+      expect((await llamar('GET', '/api/admin/testimonios?info_sensible=true', { token: tokens[rol] })).json.total).toBe(0);
+      expect((await llamar('GET', '/api/admin/testimonios?por_pagina=200', { token: tokens[rol] })).json.data.some((t: any) => t.info_sensible)).toBe(false);
+    }
     const folio = pend.json.data[0].folio;
     expect((await llamar('GET', `/api/admin/testimonios?folio=${encodeURIComponent(folio.toLowerCase())}`, { token: tokens.lector })).json.total).toBe(1);
     expect((await llamar('GET', '/api/admin/testimonios?q=transmisión', { token: tokens.lector })).json.total).toBeGreaterThan(0);
@@ -777,14 +832,15 @@ describe('dashboard: resumen, estadísticas, usuarios, catálogos y exportación
   });
 
   it('moderación por lote', async () => {
-    const pend = (await llamar('GET', '/api/admin/testimonios?estado=pendiente&activo=true&por_pagina=3', { token: tokens.admin })).json.data.map((t: any) => t.id);
+    const pend = (await llamar('GET', '/api/admin/testimonios?estado=pendiente&activo=true&info_sensible=false&por_pagina=3', { token: tokens.admin })).json.data.map((t: any) => t.id);
+    expect((await llamar('POST', '/api/admin/testimonios/moderar-lote', { token: tokens.moderador, body: { ids: pend, accion: 'desactivar' } })).status).toBe(403);
     const r = await llamar('POST', '/api/admin/testimonios/moderar-lote', { token: tokens.moderador, body: { ids: [...pend, '00000000-0000-4000-8000-000000000000'], accion: 'rechazar', motivo: 'Sin información suficiente' } });
     expect(r.json.data).toMatchObject({ procesados: pend.length + 1, correctos: pend.length });
     const mis = [...(await db.execute<any>(sql`select estado, motivo_rechazo from testimonios where id = ${pend[0]}`))][0];
     expect(mis).toEqual({ estado: 'rechazado', motivo_rechazo: 'Sin información suficiente' });
   });
 
-  it('usuarios: se crean con contraseña temporal, no se puede quitar al último admin ni auto-degradarse', async () => {
+  it('usuarios: se crean con contraseña temporal y nadie puede auto-degradarse', async () => {
     const nuevo = await llamar('POST', '/api/admin/usuarios', { token: tokens.admin, body: { email: 'nueva@atlas.test', nombre: 'Persona Nueva', rol: 'facilitador' } });
     expect(nuevo.status).toBe(201);
     expect(nuevo.json.data.password_temporal.length).toBeGreaterThanOrEqual(15);
@@ -793,8 +849,11 @@ describe('dashboard: resumen, estadísticas, usuarios, catálogos y exportación
     expect((await llamar('POST', '/api/admin/usuarios', { token: tokens.admin, body: { email: 'debil@atlas.test', nombre: 'Débil', rol: 'lector', password: '1234' } })).status).toBe(400);
 
     const me = (await llamar('GET', '/api/auth/me', { token: tokens.admin })).json.data;
+    expect((await llamar('PATCH', `/api/admin/usuarios/${me.id}`, { token: tokens.admin, body: { nombre: 'Admin renombrado' } })).status).toBe(403); // las cuentas admin las toca el superadmin
     expect((await llamar('PATCH', `/api/admin/usuarios/${me.id}`, { token: tokens.admin, body: { activo: false } })).status).toBe(409);
     expect((await llamar('PATCH', `/api/admin/usuarios/${me.id}`, { token: tokens.admin, body: { rol: 'lector' } })).status).toBe(409);
+    const yo = (await llamar('GET', '/api/auth/me', { token: tokens.superadmin })).json.data;
+    expect((await llamar('PATCH', `/api/admin/usuarios/${yo.id}`, { token: tokens.superadmin, body: { rol: 'admin' } })).status).toBe(409);
 
     // desactivar a alguien cierra su sesión de inmediato
     const mod = (await llamar('GET', '/api/auth/me', { token: tokens.moderador })).json.data;
@@ -838,13 +897,77 @@ describe('dashboard: resumen, estadísticas, usuarios, catálogos y exportación
 
     // purga de la auditoría vencida
     await db.execute(sql`update testimonios_auditoria set retener_hasta = now() - interval '1 day' where testimonio_id = ${id}`);
-    const p = await llamar('POST', '/api/admin/mantenimiento/purgar', { token: tokens.admin });
+    expect((await llamar('POST', '/api/admin/mantenimiento/purgar', { token: tokens.admin })).status).toBe(403); // borrar: solo superadmin
+    const p = await llamar('POST', '/api/admin/mantenimiento/purgar', { token: tokens.superadmin });
     expect(p.json.data.auditoria).toBe(1);
   });
 
   it('la bitácora no se puede alterar ni borrar', async () => {
     await expect(db.execute(sql`update bitacora set accion = 'manipulada'`)).rejects.toThrow();
     await expect(db.execute(sql`delete from bitacora`)).rejects.toThrow();
+  });
+});
+
+describe('roles: quién ve y hace qué en el panel', () => {
+  it('superadmin: ve y hace todo, incluida la bitácora; admin no ve la bitácora', async () => {
+    expect((await llamar('GET', '/api/admin/bitacora', { token: tokens.superadmin })).status).toBe(200);
+    for (const rol of ['admin', 'moderador', 'lector', 'facilitador']) {
+      expect((await llamar('GET', '/api/admin/bitacora', { token: tokens[rol] })).status, rol).toBe(403);
+    }
+    for (const ruta of ['/api/admin/resumen', '/api/admin/usuarios', '/api/admin/configuracion', '/api/admin/participantes', '/api/admin/comentarios', '/api/admin/testimonios']) {
+      expect((await llamar('GET', ruta, { token: tokens.superadmin })).status, ruta).toBe(200);
+      expect((await llamar('GET', ruta, { token: tokens.admin })).status, ruta).toBe(200);
+    }
+  });
+
+  it('moderador: testimonios, captura y comentarios; sin resumen, personas, usuarios, catálogos ni configuración', async () => {
+    for (const ruta of ['/api/admin/testimonios', '/api/admin/comentarios']) expect((await llamar('GET', ruta, { token: tokens.moderador })).status, ruta).toBe(200);
+    for (const ruta of ['/api/admin/resumen', '/api/admin/participantes', '/api/admin/usuarios', '/api/admin/configuracion']) {
+      expect((await llamar('GET', ruta, { token: tokens.moderador })).status, ruta).toBe(403);
+    }
+    const r = await llamar('POST', '/api/admin/testimonios', { token: tokens.moderador, body: ficha() });
+    expect(r.status).toBe(201);
+    expect((await llamar('POST', `/api/admin/testimonios/${r.json.data.testimonio.id}/aprobar`, { token: tokens.moderador, body: {} })).status).toBe(200);
+  });
+
+  it('lector: resumen, testimonios y comentarios, sin modificar nada', async () => {
+    for (const ruta of ['/api/admin/resumen', '/api/admin/testimonios', '/api/admin/comentarios']) expect((await llamar('GET', ruta, { token: tokens.lector })).status, ruta).toBe(200);
+    for (const ruta of ['/api/admin/participantes', '/api/admin/usuarios', '/api/admin/configuracion']) expect((await llamar('GET', ruta, { token: tokens.lector })).status, ruta).toBe(403);
+    expect((await llamar('POST', `/api/admin/testimonios/${ids.t1}/rechazar`, { token: tokens.lector, body: { motivo: 'x' } })).status).toBe(403);
+  });
+
+  it('facilitador: solo captura (y sube evidencias a lo que capturó)', async () => {
+    for (const ruta of ['/api/admin/resumen', '/api/admin/comentarios', '/api/admin/participantes', '/api/admin/usuarios']) {
+      expect((await llamar('GET', ruta, { token: tokens.facilitador })).status, ruta).toBe(403);
+    }
+    const r = await llamar('POST', '/api/admin/testimonios', { token: tokens.facilitador, body: ficha() });
+    const id = r.json.data.testimonio.id;
+    const archivo = { nombre: 'a.jpg', mime: 'image/jpeg', bytes: 1000, tipo: 'foto' };
+    expect((await llamar('POST', `/api/admin/testimonios/${id}/evidencias`, { token: tokens.facilitador, body: { archivos: [archivo] } })).status).toBe(201);
+    expect((await llamar('POST', `/api/admin/testimonios/${ids.t1}/evidencias`, { token: tokens.facilitador, body: { archivos: [archivo] } })).status).toBe(404);
+    expect((await llamar('POST', `/api/admin/testimonios/${ids.t1}/evidencias`, { token: tokens.moderador, body: { archivos: [archivo] } })).status).toBe(404); // no capturado por él
+  });
+
+  it('cuentas: el admin gestiona moderación, facilitación y lectura; solo el superadmin da el rol admin y borra cuentas', async () => {
+    expect((await llamar('POST', '/api/admin/usuarios', { token: tokens.admin, body: { email: 'otro-admin@atlas.test', nombre: 'Otro', rol: 'admin' } })).status).toBe(403);
+    expect((await llamar('POST', '/api/admin/usuarios', { token: tokens.superadmin, body: { email: 'dos@atlas.test', nombre: 'Dos', rol: 'superadmin' } })).status).toBe(403);
+    const lec = await llamar('POST', '/api/admin/usuarios', { token: tokens.admin, body: { email: 'temporal@atlas.test', nombre: 'Temporal', rol: 'lector' } });
+    expect(lec.status).toBe(201);
+    const id = lec.json.data.usuario.id;
+    expect((await llamar('PATCH', `/api/admin/usuarios/${id}`, { token: tokens.admin, body: { rol: 'moderador' } })).status).toBe(200);
+    expect((await llamar('PATCH', `/api/admin/usuarios/${id}`, { token: tokens.admin, body: { rol: 'admin' } })).status).toBe(403);
+    const sa = (await llamar('GET', '/api/auth/me', { token: tokens.superadmin })).json.data;
+    expect((await llamar('PATCH', `/api/admin/usuarios/${sa.id}`, { token: tokens.admin, body: { activo: false } })).status).toBe(403);
+    expect((await llamar('POST', `/api/admin/usuarios/${sa.id}/restablecer-password`, { token: tokens.admin })).status).toBe(403);
+
+    expect((await llamar('DELETE', `/api/admin/usuarios/${id}`, { token: tokens.admin })).status).toBe(403);
+    expect((await llamar('DELETE', `/api/admin/usuarios/${sa.id}`, { token: tokens.superadmin })).status).toBe(409);
+    expect((await llamar('DELETE', `/api/admin/usuarios/${id}`, { token: tokens.superadmin })).status).toBe(200);
+    expect([...(await db.execute(sql`select 1 from usuarios where id = ${id}`))]).toHaveLength(0);
+    // la bitácora conserva quién era
+    const bit = (await llamar('GET', `/api/admin/bitacora?entidad_id=${id}`, { token: tokens.superadmin })).json.data;
+    expect(bit.find((e: any) => e.accion === 'usuario.eliminar')).toMatchObject({ antes: { email: 'temporal@atlas.test', rol: 'moderador' } });
+    expect(bit.find((e: any) => e.accion === 'usuario.actualizar')).toMatchObject({ usuario_rol: 'admin', antes: { rol: 'lector' }, despues: { rol: 'moderador' } });
   });
 });
 

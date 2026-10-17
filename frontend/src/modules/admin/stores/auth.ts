@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { authService } from '@admin/services/auth.service'
+import type { RouteLocationRaw } from 'vue-router'
 import type { ApiSesion, ApiUsuario, Rol } from '@admin/types/api'
 
 // Renovar el access token este tiempo antes de que expire
@@ -103,9 +104,34 @@ export const useAuthStore = defineStore('admin/auth', () => {
     expired.value = false
   }
 
+  // El superadmin puede todo
   function can(...roles: Rol[]) {
-    return !!user.value && roles.includes(user.value.rol)
+    return !!user.value && (user.value.rol === 'superadmin' || roles.includes(user.value.rol))
   }
 
-  return { token, user, status, expired, isAuthenticated, login, refresh, restore, logout, changePassword, changePasswordAndRelogin, endSession, can }
+  // Qué se muestra a cada rol (la API aplica las mismas reglas)
+  const perms = computed(() => {
+    const rol = user.value?.rol
+    const superadmin = rol === 'superadmin'
+    const admin = superadmin || rol === 'admin'
+    return {
+      superadmin,
+      admin, // editar, dar de baja, ver sensibles y datos personales, usuarios y configuración
+      approve: admin || rol === 'moderador', // aprobar y rechazar
+      capture: admin || rol === 'moderador' || rol === 'facilitador',
+      remove: superadmin, // borrar definitivamente
+      download: superadmin, // exportar GeoJSON
+      log: superadmin, // bitácora
+    }
+  })
+
+  // Primera vista de cada rol (y a donde se manda a quien entra a una que no le toca)
+  const home = computed<RouteLocationRaw>(() => {
+    const rol = user.value?.rol
+    if (rol === 'moderador') return { name: 'admin-testimonies' }
+    if (rol === 'facilitador') return { name: 'admin-capture' }
+    return { name: 'admin-home' }
+  })
+
+  return { token, user, status, expired, isAuthenticated, login, refresh, restore, logout, changePassword, changePasswordAndRelogin, endSession, can, perms, home }
 })

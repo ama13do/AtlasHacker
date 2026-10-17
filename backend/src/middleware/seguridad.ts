@@ -12,7 +12,7 @@ import { ipCliente } from '../lib/ip.js';
 import { limitar } from '../lib/rate-limit.js';
 import { verificarTurnstile } from '../lib/captcha.js';
 import { obtenerConfiguracion } from '../services/configuracion.js';
-import type { AppEnv } from '../types.js';
+import type { AppEnv, UsuarioAuth } from '../types.js';
 
 /** Primer middleware: carga/valida el entorno (cold start), asigna requestId e IP real. */
 export const contexto = createMiddleware<AppEnv>(async (c, next) => {
@@ -29,7 +29,15 @@ export function tokenBearer(authorization: string | undefined): string | null {
   return m?.[1] ?? null;
 }
 
-/** Exige un usuario del dashboard autenticado (JWT) y con alguno de los roles indicados (sin roles = cualquiera). */
+/** Administración (admin y superadmin): ve datos sensibles y personales, edita, configura y gestiona usuarios. */
+export const esAdmin = (u: Pick<UsuarioAuth, 'rol'>) => u.rol === 'admin' || u.rol === 'superadmin';
+/** Superadmin: el único que borra definitivamente, exporta y consulta la bitácora. */
+export const esSuperadmin = (u: Pick<UsuarioAuth, 'rol'>) => u.rol === 'superadmin';
+
+/**
+ * Exige un usuario del dashboard autenticado (JWT) y con alguno de los roles indicados (sin roles = cualquiera).
+ * El superadmin pasa siempre: ve y edita todo.
+ */
 export const requiereUsuario = (...roles: Rol[]) =>
   createMiddleware<AppEnv>(async (c, next) => {
     const token = tokenBearer(c.req.header('authorization'));
@@ -49,7 +57,7 @@ export const requiereUsuario = (...roles: Rol[]) =>
     // El rol y el estado se leen de la base en cada petición: los cambios y bajas aplican de inmediato.
     const [u] = await getDb().select().from(usuarios).where(eq(usuarios.id, sub)).limit(1);
     if (!u || !u.activo || iat < Math.floor(u.tokens_validos_desde.getTime() / 1000)) throw E.noAutenticado('Sesión no válida');
-    if (roles.length > 0 && !roles.includes(u.rol)) throw E.prohibido(`Requiere rol: ${roles.join(' o ')}`);
+    if (roles.length > 0 && u.rol !== 'superadmin' && !roles.includes(u.rol)) throw E.prohibido(`Requiere rol: ${roles.join(' o ')}`);
 
     c.set('usuario', { id: u.id, email: u.email, nombre: u.nombre, rol: u.rol });
     await next();

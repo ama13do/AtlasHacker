@@ -31,6 +31,8 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const route = useRoute()
 const auth = useAuthStore()
+// Facilitación solo captura: no ve la cola ni las fichas
+const canBrowse = computed(() => auth.can('admin', 'moderador', 'lector'))
 const categoriesStore = useCategoriesStore()
 
 const form = useTestimonyForm({ storageKey: 'atlashacker:staff-draft', staff: true })
@@ -145,7 +147,7 @@ const STATUS_LABELS = { pendiente: 'Pendiente de revisión', aprobado: 'Aprobado
         </h1>
         <p class="mt-2 text-sm opacity-70">Para fichas en papel o testimonios recogidos en campo. No pide captcha; queda registrado a tu nombre.</p>
       </div>
-      <RouterLink :to="{ name: 'admin-testimonies' }" class="btn-hxnf btn-paper btn-sm">Ver testimonios</RouterLink>
+      <RouterLink v-if="canBrowse" :to="{ name: 'admin-testimonies' }" class="btn-hxnf btn-paper btn-sm">Ver testimonios</RouterLink>
     </div>
 
     <!-- Guardado -->
@@ -165,7 +167,7 @@ const STATUS_LABELS = { pendiente: 'Pendiente de revisión', aprobado: 'Aprobado
       <OneTimeFolio v-if="result.participante.folio" :folio="result.participante.folio" title="Folio de la persona (entrégaselo)" />
       <UploadProgress :upload="upload" />
       <div class="flex flex-wrap gap-3">
-        <RouterLink :to="{ name: 'admin-testimony', params: { id: result.testimonio.id } }" class="btn-hxnf btn-ink">Abrir la ficha</RouterLink>
+        <RouterLink v-if="canBrowse" :to="{ name: 'admin-testimony', params: { id: result.testimonio.id } }" class="btn-hxnf btn-ink">Abrir la ficha</RouterLink>
         <button type="button" class="btn-hxnf btn-lime" :disabled="upload.busy.value" @click="another">Capturar otra</button>
       </div>
     </section>
@@ -182,7 +184,10 @@ const STATUS_LABELS = { pendiente: 'Pendiente de revisión', aprobado: 'Aprobado
           </label>
           <label class="flex items-start gap-2 text-sm">
             <input v-model="personMode" type="radio" value="existente" class="mt-1 accent-black" />
-            <span><span class="font-bold">Ya tiene folio</span><span class="block text-xs opacity-65">Búscala en Personas y copia su id.</span></span>
+            <span>
+              <span class="font-bold">Ya tiene folio</span>
+              <span class="block text-xs opacity-65">{{ auth.perms.admin ? 'Búscala en Personas y copia su id.' : 'Pide su id a administración.' }}</span>
+            </span>
           </label>
           <div v-if="personMode === 'existente'" class="space-y-1">
             <input
@@ -194,7 +199,7 @@ const STATUS_LABELS = { pendiente: 'Pendiente de revisión', aprobado: 'Aprobado
               :aria-invalid="!!participantError"
             />
             <p v-if="participantError" class="text-xs text-danger">{{ participantError }}</p>
-            <RouterLink :to="{ name: 'admin-people' }" class="text-xs font-bold underline">Buscar en Personas</RouterLink>
+            <RouterLink v-if="auth.perms.admin" :to="{ name: 'admin-people' }" class="text-xs font-bold underline">Buscar en Personas</RouterLink>
           </div>
         </section>
 

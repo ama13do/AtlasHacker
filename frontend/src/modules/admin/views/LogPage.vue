@@ -15,7 +15,7 @@ const router = useRouter()
 const q = (key: string) => (typeof route.query[key] === 'string' ? (route.query[key] as string) : '')
 const page = computed(() => Math.max(1, Number(q('pagina')) || 1))
 
-const form = reactive({ accion: '', usuario: '', entidad_id: '', desde: '', hasta: '' })
+const form = reactive({ accion: '', usuario: '', folio: '', entidad_id: '', desde: '', hasta: '' })
 const users = ref<ApiUsuarioStaff[]>([])
 const rows = ref<ApiEventoBitacora[]>([])
 const meta = ref<PaginaMeta | null>(null)
@@ -27,6 +27,7 @@ async function load() {
     const r = await systemService.log({
       accion: q('accion') || undefined,
       usuario_id: q('usuario') || undefined,
+      folio: q('folio') || undefined,
       entidad_id: q('entidad_id') || undefined,
       desde: q('desde') || undefined,
       hasta: q('hasta') || undefined,
@@ -45,14 +46,14 @@ watch(
   () => route.query,
   () => {
     if (route.name !== 'admin-log') return
-    Object.assign(form, { accion: q('accion'), usuario: q('usuario'), entidad_id: q('entidad_id'), desde: q('desde'), hasta: q('hasta') })
+    Object.assign(form, { accion: q('accion'), usuario: q('usuario'), folio: q('folio'), entidad_id: q('entidad_id'), desde: q('desde'), hasta: q('hasta') })
     load()
   },
   { immediate: true },
 )
 
 function apply() {
-  router.push({ query: Object.fromEntries(Object.entries(form).filter(([, v]) => v)) })
+  router.push({ query: Object.fromEntries(Object.entries({ ...form, folio: form.folio.trim() }).filter(([, v]) => v)) })
 }
 
 onMounted(async () => {
@@ -68,24 +69,28 @@ onMounted(async () => {
   <div class="space-y-6">
     <div>
       <h1 class="text-3xl font-black uppercase"><span class="hl-box hl-orange" style="--hl-rot: -1deg">Bitácora</span></h1>
-      <p class="text-sm text-fg/60">Registro de solo agregar: quién hizo qué y cuándo, con el antes y el después.</p>
+      <p class="text-sm text-fg/60">
+        Registro de solo agregar, que nadie puede editar ni borrar: quién hizo qué, a qué folio, cuándo y desde dónde, con el antes y el después.
+      </p>
     </div>
 
-    <form class="grid gap-2 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto_auto_auto]" @submit.prevent="apply">
+    <form class="grid gap-2 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_auto_auto_auto]" @submit.prevent="apply">
       <select v-model="form.accion" class="field-input text-sm md:py-2" aria-label="Tipo de acción">
         <option v-for="g in LOG_GROUPS" :key="g.value" :value="g.value">{{ g.label }}</option>
       </select>
       <select v-model="form.usuario" class="field-input text-sm md:py-2" aria-label="Usuario">
         <option value="">Cualquier usuario</option>
-        <option v-for="u in users" :key="u.id" :value="u.id">{{ u.email }}</option>
+        <option v-for="u in users" :key="u.id" :value="u.id">{{ u.nombre ? `${u.nombre} · ${u.email}` : u.email }}</option>
       </select>
+      <input v-model="form.folio" type="search" class="field-input font-mono text-sm md:py-2" placeholder="Folio (FUTURO/001-T…)" aria-label="Folio del testimonio" />
       <input v-model="form.desde" type="date" class="field-input text-sm md:py-2" aria-label="Desde" />
       <input v-model="form.hasta" type="date" class="field-input text-sm md:py-2" aria-label="Hasta" />
       <button type="submit" class="btn-hxnf btn-ink btn-sm">Filtrar</button>
     </form>
-    <p v-if="q('entidad_id')" class="flex flex-wrap items-center gap-3 rounded-xl bg-fg/5 px-4 py-2 text-sm">
-      Historial de un solo elemento.
-      <RouterLink :to="{ query: { ...route.query, entidad_id: undefined } }" class="text-fg/60 hover:underline">Quitar filtro</RouterLink>
+    <p v-if="q('entidad_id') || q('folio')" class="flex flex-wrap items-center gap-3 rounded-xl bg-fg/5 px-4 py-2 text-sm">
+      <template v-if="q('folio')">Historial del folio <span class="font-mono font-semibold">{{ q('folio') }}</span>.</template>
+      <template v-else>Historial de un solo elemento.</template>
+      <RouterLink :to="{ query: { ...route.query, entidad_id: undefined, folio: undefined } }" class="text-fg/60 hover:underline">Quitar filtro</RouterLink>
     </p>
 
     <div v-if="status === 'loading'" class="space-y-2" aria-hidden="true">

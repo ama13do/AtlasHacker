@@ -28,10 +28,11 @@ npm run entorno:verificar     # revisa que .env sea válido, sin mostrar secreto
    npm run db:migrate
    ```
    PostGIS se activa solo (esquema `extensions`). No hace falta pegar SQL a mano: las migraciones están versionadas en `backend/drizzle/`.
-4. Crea el primer administrador:
+4. Crea el superadmin (el único que borra, descarga y ve la bitácora; los demás se crean desde el panel):
    ```bash
    npm run admin:crear -- --email tu@correo.org --nombre "Tu Nombre"
    ```
+   Por defecto el rol es `superadmin`; con `--rol admin` crea una cuenta de administración.
    Sin `--password` genera una temporal y la muestra **una vez**.
 5. (Opcional) **QGIS**: la migración crea el rol `lector_qgis`, de solo lectura y **únicamente** sobre la vista pública. Para habilitarlo, en el SQL Editor de Supabase:
    `ALTER ROLE lector_qgis LOGIN PASSWORD '<contraseña fuerte>';` y conecta QGIS por el *Session pooler* con el usuario `lector_qgis.<ref>`.
@@ -62,7 +63,7 @@ npm run entorno:verificar     # revisa que .env sea válido, sin mostrar secreto
 
 ```bash
 npm run dev                   # http://localhost:3000
-npm test                      # 70 pruebas con Postgres+PostGIS embebido (no usa Docker ni toca servicios reales)
+npm test                      # 78 pruebas con Postgres+PostGIS embebido (no usa Docker ni toca servicios reales)
 npm run typecheck
 ```
 - **Swagger:** `http://localhost:3000/docs` → pide **usuario y contraseña de un usuario del dashboard** (HTTP Basic). Para probar rutas protegidas: `POST /api/auth/login`, copia el `access_token` y pulsa **Authorize**.
