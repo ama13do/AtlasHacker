@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
+  LngLat,
   Map as MapLibreMap,
   Marker,
   NavigationControl,
@@ -95,8 +96,8 @@ const LAYER_COLORS: Record<
   Theme,
   { land: string; water: string; mask: string; maskOpacity: number; outline: string; halo: string; haloOpacity: number; shadow: string; ink: string; states: string; statesOpacity: number; textHalo: string }
 > = {
-  dark: { land: '#0b0b0b', water: '#17191c', mask: BRAND.black, maskOpacity: 0.7, outline: BRAND.white, halo: BRAND.neonGreen, haloOpacity: 0.55, shadow: BRAND.neonLime, ink: BRAND.white, states: BRAND.neonGreen, statesOpacity: 0.4, textHalo: BRAND.black },
-  light: { land: '#ffffff', water: '#e9eef1', mask: BRAND.white, maskOpacity: 0.78, outline: BRAND.black, halo: BRAND.neonGreen, haloOpacity: 0.75, shadow: BRAND.black, ink: BRAND.black, states: BRAND.black, statesOpacity: 0.3, textHalo: BRAND.white },
+  dark: { land: '#0b0b0b', water: '#17191c', mask: BRAND.black, maskOpacity: 1, outline: BRAND.white, halo: BRAND.neonGreen, haloOpacity: 0.55, shadow: BRAND.neonLime, ink: BRAND.white, states: BRAND.neonGreen, statesOpacity: 0.4, textHalo: BRAND.black },
+  light: { land: '#ffffff', water: '#e9eef1', mask: BRAND.white, maskOpacity: 1, outline: BRAND.black, halo: BRAND.neonGreen, haloOpacity: 0.75, shadow: BRAND.black, ink: BRAND.black, states: BRAND.black, statesOpacity: 0.3, textHalo: BRAND.white },
 }
 
 // Deja del estilo base solo fondo, agua, límites y nombres de estado (y ciudades al acercarse si se pide)
@@ -375,6 +376,8 @@ onMounted(() => {
     minZoom: MIN_ZOOM,
     maxZoom: MAX_ZOOM,
     maxBounds: PAN_BOUNDS,
+    // Un solo mundo: sin copias repetidas de México a los lados
+    renderWorldCopies: false,
     // Atribución compacta (botón ⓘ) para no chocar con otros controles en móvil
     attributionControl: { compact: true },
     // Se puede girar (clic derecho o Ctrl + arrastrar; dos dedos en móvil), pero nunca inclinar
@@ -453,9 +456,13 @@ onMounted(() => {
           requestAnimationFrame(() => instance.setPaintProperty(id, 'line-opacity', target as number))
         }
         instance.fitBounds(initialBounds(), { padding: props.fitPadding, bearing: SOUTH_UP, duration: 2200, easing: (t) => 1 - Math.pow(1 - t, 3) })
-        instance.once('moveend', () => setTimeout(() => (dropping = false), 1200))
+        instance.once('moveend', () => {
+          setTimeout(() => (dropping = false), 1200)
+          limitZoomOut(instance)
+        })
       } else {
         fit(instance, initialBounds(), { padding: props.fitPadding, animate: false })
+        limitZoomOut(instance)
       }
     }
     cameraRequested = true
@@ -477,9 +484,12 @@ onMounted(() => {
 
   // Solo los gestos de la persona traen originalEvent
   instance.on('movestart', (e) => {
-    if ((e as { originalEvent?: Event }).originalEvent) userMoved = true
+    if (!(e as { originalEvent?: Event }).originalEvent) return
+    userMoved = true
+    if (!zoomLimited) limitZoomOut(instance)
   })
   instance.on('resize', () => {
+    if (!dropping) limitZoomOut(instance)
     if (!userMoved && !instance.isMoving() && !props.selectedId && !props.pickable && instance.isStyleLoaded()) {
       fit(instance, initialBounds(), { padding: props.fitPadding, animate: false })
     }
@@ -505,6 +515,44 @@ watch(
 )
 
 watch(theme, (value) => map?.setStyle(MAP_STYLES[value], { diff: false }))
+
+// Tope para alejarse: México siempre llena la pantalla (no se hace chiquito ni se pierde entre otros países).
+// Depende del tamaño de la pantalla, por eso se recalcula al cambiarlo
+let zoomLimited = false
+function limitZoomOut(instance: MapLibreMap) {
+  // Si los márgenes no caben (pantalla muy chica o panel abierto), se calcula sin ellos: nunca queda sin tope
+  // Durante la entrada el mapa va girando: el tope se calcula con el giro final (sur arriba)
+  const bearing = dropping ? SOUTH_UP : instance.getBearing()
+  const camera =
+    instance.cameraForBounds(MEXICO_BOUNDS, { padding: props.fitPadding, bearing }) ??
+    instance.cameraForBounds(MEXICO_BOUNDS, { padding: 0, bearing })
+  if (camera?.zoom === undefined) return
+  zoomLimited = true
+  // En celular, México ya ocupa todo el ancho: no se deja alejar más; en pantallas grandes, un poco de holgura
+  const slack = instance.getContainer().clientWidth < 640 ? 0 : 0.3
+  const minZoom = Math.max(MIN_ZOOM, camera.zoom - slack)
+  instance.setMinZoom(minZoom)
+  const home = camera.center ? LngLat.convert(camera.center) : LngLat.convert(MEXICO_CENTER)
+  // Esta función reemplaza a la de MapLibre, que también limita el zoom: aquí se limita a mano
+  instance.setTransformConstrain((lngLat, zoom) => {
+    const z = Math.min(MAX_ZOOM, Math.max(minZoom, zoom))
+    return { center: keepOverMexico(lngLat, z, minZoom, home), zoom: z }
+  })
+}
+
+// Paneo: con el mapa alejado, el centro casi no se mueve (México se queda centrado); al acercarse se puede
+// recorrer todo el país, pero nunca salir de él (fuera solo hay fondo vacío)
+const MEXICO_BOX = { west: -118.4, east: -86.7, south: 14.5, north: 32.7 }
+function keepOverMexico(lngLat: LngLat, zoom: number, minZoom: number, home: LngLat): LngLat {
+  const t = Math.min(1, Math.max(0, (zoom - minZoom) / 3))
+  const mid = { lng: (MEXICO_BOX.west + MEXICO_BOX.east) / 2, lat: (MEXICO_BOX.south + MEXICO_BOX.north) / 2 }
+  const centerLng = home.lng + (mid.lng - home.lng) * t
+  const centerLat = home.lat + (mid.lat - home.lat) * t
+  const halfLng = 0.75 + ((MEXICO_BOX.east - MEXICO_BOX.west) / 2 + 1 - 0.75) * t
+  const halfLat = 0.5 + ((MEXICO_BOX.north - MEXICO_BOX.south) / 2 + 1 - 0.5) * t
+  const clamp = (v: number, c: number, h: number) => Math.min(c + h, Math.max(c - h, v))
+  return new LngLat(clamp(lngLat.lng, centerLng, halfLng), clamp(lngLat.lat, centerLat, halfLat))
+}
 
 // --- Selección de estado ---
 

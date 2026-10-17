@@ -2,13 +2,15 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { STICKERS, SITE_HOST, SITE_URL, phraseFor } from '@/core/config/brand'
 import { coverFor } from '@testimonies/data/covers'
+import { logoForSlug } from '@testimonies/data/maps'
 import { useCategoriesStore } from '@testimonies/stores/categories'
-import { renderShareImage, type ShareFormat } from '@testimonies/utils/shareImage'
+import { renderShareImage, type ShareDesign, type ShareFormat } from '@testimonies/utils/shareImage'
 import type { TestimonyDetail, TestimonySummary } from '@testimonies/types/testimony'
 
-// Compartir un testimonio: imagen lista para publicar (el relato, con collage de sus fotos o stickers de la marca),
-// en formato historia (9:16, Instagram/WhatsApp) o publicación (4:5), con la leyenda
-// «Este testimonio salió del sitio web atlashacker.hxnf.mx (comparte tu experiencia)» y el enlace al testimonio.
+// Compartir un testimonio: imagen lista para publicar, en formato historia (9:16) o publicación (4:5) y en tres
+// diseños que se comparan en un carrusel: el de la plataforma (relato con collage de fotos o stickers de la marca),
+// «Negativo» (negro con foto recortada) y «Brutalista» (cartel de fotocopia). Todas llevan la leyenda
+// «Este testimonio salió de atlashacker.hxnf.mx · Léelo completo y comparte el tuyo» y el enlace al testimonio.
 // Los enlaces siempre usan el dominio oficial, no el de Vercel.
 const props = defineProps<{ testimony: TestimonySummary; detail: TestimonyDetail | null; mapSlug: string }>()
 const emit = defineEmits<{ close: [] }>()
@@ -22,26 +24,53 @@ const date = computed(() => new Date(`${props.testimony.date}T00:00:00`).toLocal
 const link = computed(() => `${SITE_URL}/mapas/${props.mapSlug}?t=${props.testimony.id}`)
 const photos = computed(() => props.detail?.files.filter((f) => f.mime.startsWith('image/')).map((f) => f.url) ?? [])
 const text = computed(() =>
-  [`«${title.value}»`, `${place.value} · ${date.value}`, '', `Este testimonio salió del sitio web ${SITE_HOST} (comparte tu experiencia):`, link.value].join('\n'),
+  [`«${title.value}»`, `${place.value} · ${date.value}`, '', `Este testimonio salió de ${SITE_HOST}. Léelo completo, explora el mapa y comparte el tuyo:`, link.value].join('\n'),
 )
 
+const DESIGNS: { id: ShareDesign; label: string; hint: string }[] = [
+  { id: 'platform', label: 'Plataforma', hint: 'Colores de la categoría' },
+  { id: 'negative', label: 'Negativo', hint: 'Negro y foto recortada' },
+  { id: 'brutalist', label: 'Brutalista', hint: 'Cartel de fotocopia' },
+]
+
+type Key = `${ShareDesign}:${ShareFormat}`
+const keyOf = (d: ShareDesign, f: ShareFormat): Key => `${d}:${f}`
+
 const format = ref<ShareFormat>('story')
-const images = ref<Partial<Record<ShareFormat, { blob: Blob; url: string }>>>({})
-const loading = ref(false)
-const failed = ref(false)
+const design = ref<ShareDesign>('platform')
+const images = ref<Partial<Record<Key, { blob: Blob; url: string }>>>({})
+const failed = ref<Partial<Record<Key, true>>>({})
 const notice = ref<string | null>(null)
 
-const current = computed(() => images.value[format.value] ?? null)
+const current = computed(() => images.value[keyOf(design.value, format.value)] ?? null)
 const file = computed(() =>
-  current.value ? new File([current.value.blob], `testimonio-${props.testimony.folio.replace(/\W+/g, '-')}-${format.value}.png`, { type: 'image/png' }) : null,
+  current.value
+    ? new File(
+        [current.value.blob],
+        `testimonio-${props.testimony.folio.replace(/\W+/g, '-')}-${design.value}-${format.value}.${current.value.blob.type === 'image/jpeg' ? 'jpg' : 'png'}`,
+        { type: current.value.blob.type },
+      )
+    : null,
 )
 // Compartir nativo con la imagen (celulares): abre la hoja del sistema con Instagram, WhatsApp, etc.
 const canShareFile = computed(() => !!file.value && typeof navigator.canShare === 'function' && navigator.canShare({ files: [file.value] }))
 
-async function render(f: ShareFormat) {
-  if (images.value[f]) return
-  loading.value = true
-  failed.value = false
+// Una imagen a la vez (son pesadas de dibujar): la elegida primero y luego las demás del carrusel
+const pending = new Map<Key, Promise<void>>()
+let queue: Promise<unknown> = Promise.resolve()
+function render(d: ShareDesign, f: ShareFormat): Promise<void> {
+  const key = keyOf(d, f)
+  if (images.value[key] || failed.value[key]) return Promise.resolve()
+  const running = pending.get(key)
+  if (running) return running
+  const job = queue.then(() => draw(d, f, key))
+  queue = job
+  pending.set(key, job)
+  return job
+}
+
+async function draw(d: ShareDesign, f: ShareFormat, key: Key) {
+  if (closed) return
   try {
     const blob = await renderShareImage(
       {
@@ -57,18 +86,63 @@ async function render(f: ShareFormat) {
         phraseUrl: phraseFor(props.testimony.category),
         coverUrl: coverFor(props.testimony),
         folio: props.testimony.folio,
+        campaignLogo: logoForSlug(props.mapSlug),
       },
       f,
+      d,
     )
-    images.value = { ...images.value, [f]: { blob, url: URL.createObjectURL(blob) } }
+    if (closed) return
+    images.value = { ...images.value, [key]: { blob, url: URL.createObjectURL(blob) } }
   } catch (e) {
     console.error(e)
-    failed.value = true
+    failed.value = { ...failed.value, [key]: true }
   } finally {
-    loading.value = false
+    pending.delete(key)
   }
 }
-watch(format, render)
+
+async function renderAll() {
+  const f = format.value
+  await render(design.value, f)
+  for (const d of DESIGNS) await render(d.id, f)
+}
+watch(format, async () => {
+  await nextTick()
+  centerOn(design.value, 'instant')
+  renderAll()
+})
+
+// Carrusel: deslizar cambia de diseño; tocar un botón o una vista previa la centra
+const track = ref<HTMLElement | null>(null)
+function centerOn(d: ShareDesign, behavior: ScrollBehavior = 'smooth') {
+  const box = track.value
+  const item = box?.querySelector<HTMLElement>(`[data-design="${d}"]`)
+  if (box && item) box.scrollTo({ left: item.offsetLeft - (box.clientWidth - item.offsetWidth) / 2, behavior })
+}
+function choose(d: ShareDesign) {
+  design.value = d
+  centerOn(d)
+  render(d, format.value)
+}
+let scrollTimer: ReturnType<typeof setTimeout> | undefined
+function onTrackScroll() {
+  clearTimeout(scrollTimer)
+  scrollTimer = setTimeout(() => {
+    const box = track.value
+    if (!box) return
+    const middle = box.scrollLeft + box.clientWidth / 2
+    let best = design.value
+    let distance = Infinity
+    box.querySelectorAll<HTMLElement>('[data-design]').forEach((el) => {
+      const gap = Math.abs(el.offsetLeft + el.offsetWidth / 2 - middle)
+      if (gap < distance) {
+        distance = gap
+        best = el.dataset.design as ShareDesign
+      }
+    })
+    design.value = best
+  }, 90)
+}
 
 const closeButton = ref<HTMLButtonElement | null>(null)
 function onKey(e: KeyboardEvent) {
@@ -81,9 +155,12 @@ onMounted(async () => {
   window.addEventListener('keydown', onKey, true)
   await nextTick()
   closeButton.value?.focus()
-  render(format.value)
+  renderAll()
 })
+let closed = false
 onBeforeUnmount(() => {
+  closed = true
+  clearTimeout(scrollTimer)
   window.removeEventListener('keydown', onKey, true)
   Object.values(images.value).forEach((i) => i && URL.revokeObjectURL(i.url))
 })
@@ -123,20 +200,12 @@ async function copy(value: string, message: string) {
 // (para el sticker «Enlace») y se abre la cámara de historias en el celular
 async function toInstagram() {
   if (format.value !== 'story') format.value = 'story'
-  await render('story')
+  await render(design.value, 'story')
   if (canShareFile.value) return shareNative()
   download()
   await copy(link.value, 'Imagen descargada y enlace copiado: súbela a tu historia y agrega el sticker «Enlace».')
   if (/Android|iPhone|iPad/i.test(navigator.userAgent)) window.location.href = 'instagram://story-camera'
 }
-
-const enc = encodeURIComponent
-const NETWORKS = computed(() => [
-  { name: 'WhatsApp', href: `https://wa.me/?text=${enc(text.value)}`, cls: 'bg-neon-green text-black' },
-  { name: 'Facebook', href: `https://www.facebook.com/sharer/sharer.php?u=${enc(link.value)}`, cls: 'bg-brand-blue text-white' },
-  { name: 'X', href: `https://twitter.com/intent/tweet?text=${enc(text.value)}`, cls: 'bg-black text-white' },
-  { name: 'Telegram', href: `https://t.me/share/url?url=${enc(link.value)}&text=${enc(text.value)}`, cls: 'bg-brand-pink text-black' },
-])
 </script>
 
 <template>
@@ -162,21 +231,60 @@ const NETWORKS = computed(() => [
           <button type="button" class="chip-toggle justify-center py-2 text-xs" :aria-pressed="format === 'post'" @click="format = 'post'">Publicación · 4:5</button>
         </div>
 
-        <!-- Vista previa -->
-        <div class="mx-auto mt-4 w-full overflow-hidden rounded-2xl border-2 border-ink bg-fg/5" :class="format === 'story' ? 'max-w-[15rem]' : 'max-w-[19rem]'">
-          <img v-if="current" :key="current.url" :src="current.url" alt="Vista previa de la imagen para compartir" class="tm-pop-in w-full" />
-          <div v-else-if="failed" class="p-6 text-center text-sm">No pudimos crear la imagen. Aún puedes compartir el enlace.</div>
-          <div v-else class="grid place-items-center gap-2 text-xs font-bold opacity-70" :class="format === 'story' ? 'aspect-9/16' : 'aspect-4/5'" aria-busy="true">
-            <span class="size-8 animate-spin rounded-full border-4 border-fg/20 border-t-fg" aria-hidden="true" />
-            Armando tu imagen…
-          </div>
+        <!-- Diseño -->
+        <div class="mt-3 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Diseño de la imagen">
+          <button
+            v-for="d in DESIGNS"
+            :key="d.id"
+            type="button"
+            role="radio"
+            class="chip-toggle justify-center py-2 text-xs"
+            :aria-checked="design === d.id"
+            :aria-pressed="design === d.id"
+            @click="choose(d.id)"
+          >
+            {{ d.label }}
+          </button>
         </div>
-        <p class="mt-2 text-center text-[11px] opacity-60">
-          {{ photos.length > 1 ? `Collage con ${Math.min(photos.length, 4)} fotos del testimonio` : photos.length ? 'Con la foto del testimonio' : 'Sin fotos: el relato va más completo' }}
+
+        <!-- Vistas previas: se desliza para comparar los tres diseños -->
+        <div
+          ref="track"
+          class="no-scrollbar -mx-5 mt-4 flex snap-x snap-mandatory gap-3 overflow-x-auto pb-1"
+          :style="{ paddingInline: `calc(50% - ${format === 'story' ? 6.75 : 8.5}rem)` }"
+          @scroll.passive="onTrackScroll"
+        >
+          <button
+            v-for="d in DESIGNS"
+            :key="d.id"
+            type="button"
+            :data-design="d.id"
+            class="shrink-0 snap-center transition-[opacity,scale] duration-200"
+            :class="[format === 'story' ? 'w-[13.5rem]' : 'w-[17rem]', design === d.id ? 'opacity-100' : 'scale-[0.94] opacity-55']"
+            :aria-label="`Diseño ${d.label}`"
+            @click="choose(d.id)"
+          >
+            <span
+              class="block overflow-hidden rounded-2xl border-2 border-ink bg-fg/5"
+              :class="[format === 'story' ? 'aspect-9/16' : 'aspect-4/5', design === d.id ? 'shadow-brut' : '']"
+            >
+              <img v-if="images[keyOf(d.id, format)]" :src="images[keyOf(d.id, format)]!.url" :alt="`Vista previa: diseño ${d.label}`" class="tm-pop-in size-full object-cover" />
+              <span v-else-if="failed[keyOf(d.id, format)]" class="grid size-full place-items-center p-4 text-center text-xs">No pudimos crear esta imagen.</span>
+              <span v-else class="grid size-full place-content-center place-items-center gap-2 text-xs font-bold opacity-70" aria-busy="true">
+                <span class="size-8 animate-spin rounded-full border-4 border-fg/20 border-t-fg" aria-hidden="true" />
+                Armando…
+              </span>
+            </span>
+            <span class="mt-2 block text-center text-xs font-black uppercase">{{ d.label }}</span>
+            <span class="block text-center text-[11px] opacity-60">{{ d.hint }}</span>
+          </button>
+        </div>
+        <p class="mt-1 text-center text-[11px] opacity-60">
+          {{ photos.length > 1 ? `Con ${Math.min(photos.length, 4)} fotos del testimonio` : photos.length ? 'Con la foto del testimonio' : 'Sin fotos: los diseños en blanco y negro usan una torre eléctrica' }}
         </p>
 
         <div class="mt-4 grid gap-2">
-          <button type="button" class="btn-hxnf btn-pink w-full" :disabled="loading || !current" @click="toInstagram">
+          <button type="button" class="btn-hxnf btn-pink w-full" :disabled="!current" @click="toInstagram">
             <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
               <rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
             </svg>
@@ -191,9 +299,6 @@ const NETWORKS = computed(() => [
           <div class="grid grid-cols-2 gap-2">
             <button type="button" class="btn-hxnf btn-lime btn-sm" :disabled="!current" @click="download">Descargar</button>
             <button type="button" class="btn-hxnf btn-paper btn-sm" @click="copy(text, 'Texto y enlace copiados.')">Copiar texto</button>
-          </div>
-          <div class="grid grid-cols-4 gap-2">
-            <a v-for="n in NETWORKS" :key="n.name" :href="n.href" target="_blank" rel="noopener noreferrer" class="btn-hxnf btn-sm px-1 text-[11px]" :class="n.cls">{{ n.name }}</a>
           </div>
           <p v-if="notice" class="rounded-xl border-2 border-black bg-neon-lime px-3 py-2 text-xs font-bold text-black" role="status">{{ notice }}</p>
           <p class="text-[11px] leading-relaxed opacity-60">El enlace lleva a este testimonio en <span class="font-bold">{{ SITE_HOST }}</span>.</p>

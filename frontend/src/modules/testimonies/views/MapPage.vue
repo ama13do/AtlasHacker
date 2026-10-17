@@ -19,6 +19,7 @@ import TestimonyCard from '@testimonies/components/TestimonyCard.vue'
 import TestimonySidebar from '@testimonies/components/TestimonySidebar.vue'
 import ThemeToggle from '@/shared/components/ThemeToggle.vue'
 import BrandMark from '@/shared/components/BrandMark.vue'
+import MapLogo from '@testimonies/components/MapLogo.vue'
 
 const MD_BREAKPOINT = 768
 
@@ -312,6 +313,12 @@ onBeforeUnmount(() => {
 
     <!-- Región del mapa -->
     <div class="relative h-full min-w-0 flex-1">
+      <MapLogo
+        v-if="map.logo && !formOpen"
+        :logo="map.logo"
+        alt=""
+        class="pointer-events-none absolute top-5 right-6 z-20 hidden w-32 -rotate-2 md:block xl:w-40"
+      />
       <MapView
         ref="mapView"
         class="absolute inset-0"
@@ -343,7 +350,8 @@ onBeforeUnmount(() => {
             </svg>
           </RouterLink>
           <BrandMark variant="acronym" size="sm" :label="null" class="shrink-0" />
-          <p class="min-w-0 flex-1 truncate text-[13px] leading-tight font-black uppercase">{{ map.title }}</p>
+          <p v-if="map.logo" class="min-w-0 flex-1"><MapLogo :logo="map.logo" :alt="map.title" class="h-9 w-auto max-w-full" /></p>
+          <p v-else class="min-w-0 flex-1 truncate text-[13px] leading-tight font-black uppercase">{{ map.title }}</p>
           <button type="button" class="icon-btn size-9 text-base font-black" aria-label="¿Cómo funciona el mapa?" @click="openHelp">?</button>
           <RouterLink :to="{ name: 'my-folio' }" class="icon-btn size-9" aria-label="Mi folio">
             <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -379,7 +387,8 @@ onBeforeUnmount(() => {
       <Transition leave-active-class="transition duration-500 ease-in" leave-to-class="opacity-0 scale-110">
         <div v-if="showIntro" class="pointer-events-none absolute inset-0 z-30 grid place-items-center" aria-hidden="true">
           <p class="tm-intro text-center text-3xl leading-tight font-black uppercase md:text-5xl">
-            <span class="hl-box hl-wrap" :class="ACCENT_CLASSES[map.accent].hl" style="--hl-rot: -2deg; --hl-delay: 0.05s">{{ map.title }}</span>
+            <MapLogo v-if="map.logo" :logo="map.logo" alt="" class="mx-auto w-[min(78vw,28rem)] -rotate-2" />
+            <span v-else class="hl-box hl-wrap" :class="ACCENT_CLASSES[map.accent].hl" style="--hl-rot: -2deg; --hl-delay: 0.05s">{{ map.title }}</span>
             <span class="mt-3 block text-sm font-bold tracking-widest opacity-70 md:text-base">{{ map.kicker }} · {{ map.code }}</span>
           </p>
         </div>

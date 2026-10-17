@@ -1,8 +1,9 @@
 import type { CoverName } from '@testimonies/data/covers'
 import type { Dossier } from '@testimonies/types/testimony'
+import { LOGOS, type ThemedLogo } from '@/core/config/brand'
 
 // Cada mapa es un expediente de la API (GET /api/config → expedientes). Aquí solo vive su presentación:
-// título de portada, color y sticker. Un expediente nuevo aparece en la cuadrícula aunque no esté aquí.
+// título de portada, color, sticker y logo de la campaña. Un expediente nuevo aparece en la cuadrícula aunque no esté aquí.
 
 export type MapAccent = 'green' | 'pink' | 'orange' | 'blue' | 'lime'
 
@@ -15,6 +16,7 @@ export interface MapInfo {
   matter: string | null // Materia del expediente
   accent: MapAccent
   sticker: CoverName
+  logo: ThemedLogo | null // logo de la campaña: sustituye al título escrito donde se muestra el nombre del mapa
 }
 
 export const DEFAULT_MAP_CODE = 'FUTURO/001'
@@ -37,6 +39,7 @@ const PRESENTATION: Record<string, Partial<MapInfo>> = {
       'Testimonios de personas y comunidades sobre cómo les afecta el sistema energético nacional: apagones, cobros, megaproyectos y crisis climática. Cada historia marcada en el territorio es evidencia para el Tribunal Popular.',
     accent: 'green',
     sticker: 'rayo',
+    logo: LOGOS.juicios,
   },
 }
 
@@ -54,7 +57,13 @@ export function mapInfo(dossier: Dossier, index = 0): MapInfo {
     matter: dossier.matter,
     accent: p.accent ?? ACCENTS[index % ACCENTS.length],
     sticker: p.sticker ?? STICKERS[index % STICKERS.length],
+    logo: p.logo ?? null,
   }
+}
+
+// Logo de la campaña de un mapa a partir de su slug (historias e imágenes para compartir)
+export function logoForSlug(slug: string): ThemedLogo | null {
+  return Object.entries(PRESENTATION).find(([code]) => mapSlug(code) === slug)?.[1].logo ?? null
 }
 
 // Mientras carga /api/config (o si falla) el mapa principal sigue disponible

@@ -10,6 +10,7 @@ import { useTestimoniesStore } from '@testimonies/stores/testimonies'
 import type { Collaborator, PublicStats } from '@testimonies/types/testimony'
 import { STICKERS } from '@/core/config/brand'
 import BrandMark from '@/shared/components/BrandMark.vue'
+import MapLogo from '@testimonies/components/MapLogo.vue'
 import SiteHeader from '@/shared/components/SiteHeader.vue'
 
 // Portada: cuadrícula con los mapas. Hoy hay uno grande (FUTURO/001); cada expediente nuevo
@@ -63,7 +64,7 @@ onMounted(async () => {
   <div class="min-h-dvh overflow-x-clip">
     <SiteHeader />
 
-    <main class="mx-auto max-w-6xl px-4 pt-6 pb-20 md:px-8 md:pt-8">
+    <main class="mx-auto max-w-7xl px-4 pt-6 pb-20 md:px-8 md:pt-8">
       <!-- Encabezado compacto: el protagonista es el mapa -->
       <section class="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         <h1 class="text-2xl leading-tight font-black uppercase md:text-3xl">
@@ -85,64 +86,95 @@ onMounted(async () => {
       </p>
       <p v-if="configFailed" class="mt-2 text-sm opacity-70" role="status">No pudimos cargar la lista de mapas; mostramos el principal.</p>
 
-      <!-- Mapa principal: grande y centrado -->
-      <article class="card-brut-lg mt-6 overflow-hidden" aria-labelledby="featured-title">
-        <div class="grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
-          <div class="order-2 flex flex-col p-6 md:p-8 lg:order-1">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="chip bg-black text-white dark:bg-white dark:text-black">{{ featured.code }}</span>
-              <span class="chip" :class="[ACCENT_CLASSES[featured.accent].bg, ACCENT_CLASSES[featured.accent].text]">{{ featured.kicker }}</span>
+      <!-- Mapa principal y, a su derecha, cómo funciona (en celular, debajo) -->
+      <div class="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_23rem]">
+        <article class="card-brut-lg overflow-hidden" aria-labelledby="featured-title">
+          <div class="grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
+            <div class="order-2 flex flex-col p-6 md:p-8 lg:order-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="chip bg-black text-white dark:bg-white dark:text-black">{{ featured.code }}</span>
+                <span class="chip" :class="[ACCENT_CLASSES[featured.accent].bg, ACCENT_CLASSES[featured.accent].text]">{{ featured.kicker }}</span>
+              </div>
+              <!-- Con logo de campaña: en celular va dentro de la vista previa del mapa (se ve primero); en escritorio, aquí -->
+              <h2 v-if="featured.logo" id="featured-title" class="lg:mt-5">
+                <span class="sr-only lg:hidden">{{ featured.title }}</span>
+                <MapLogo :logo="featured.logo" :alt="featured.title" class="hidden w-full max-w-[25rem] -rotate-1 lg:block" />
+              </h2>
+              <h2 v-else id="featured-title" class="mt-4 text-3xl leading-[1.15] font-black uppercase md:text-[2.6rem]">
+                <span class="hl-box hl-wrap" :class="ACCENT_CLASSES[featured.accent].hl" style="--hl-rot: -1deg; --hl-delay: 0.3s">
+                  {{ featured.title }}
+                </span>
+              </h2>
+              <p v-if="featured.matter" class="mt-3 text-xs font-bold tracking-wide uppercase opacity-60">Materia: {{ featured.matter }}</p>
+              <p class="mt-3 leading-relaxed opacity-85">{{ featured.description }}</p>
+
+              <!-- Qué hay en el mapa -->
+              <ul v-if="stats?.byCategory.length" class="mt-5 space-y-1.5 text-sm" aria-label="Testimonios por categoría">
+                <li v-for="c in stats.byCategory" :key="c.slug" class="flex items-center gap-2">
+                  <span class="size-3.5 shrink-0 rounded-full border-2 border-black" :style="{ backgroundColor: categoryStyle(c.slug).color }" aria-hidden="true" />
+                  <span class="flex-1 font-semibold">{{ c.label }}</span>
+                  <span class="font-wide font-black tabular-nums">{{ nf.format(c.total) }}</span>
+                </li>
+              </ul>
+
+              <div class="mt-auto grid gap-3.5 pt-7">
+                <RouterLink :to="{ name: 'map', params: { mapa: featured.slug } }" class="btn-hxnf btn-ink min-h-15 w-full text-lg md:text-xl">
+                  Entrar al mapa
+                  <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </RouterLink>
+                <RouterLink :to="{ name: 'testimony-new', params: { mapa: featured.slug } }" class="btn-hxnf btn-lime min-h-15 w-full text-lg md:text-xl">
+                  <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  Subir testimonio
+                </RouterLink>
+              </div>
             </div>
-            <h2 id="featured-title" class="mt-4 text-3xl leading-[1.15] font-black uppercase md:text-[2.6rem]">
-              <span class="hl-box hl-wrap" :class="ACCENT_CLASSES[featured.accent].hl" style="--hl-rot: -1deg; --hl-delay: 0.3s">
-                {{ featured.title }}
-              </span>
-            </h2>
-            <p v-if="featured.matter" class="mt-3 text-xs font-bold tracking-wide uppercase opacity-60">Materia: {{ featured.matter }}</p>
-            <p class="mt-3 leading-relaxed opacity-85">{{ featured.description }}</p>
 
-            <!-- Qué hay en el mapa -->
-            <ul v-if="stats?.byCategory.length" class="mt-5 space-y-1.5 text-sm" aria-label="Testimonios por categoría">
-              <li v-for="c in stats.byCategory" :key="c.slug" class="flex items-center gap-2">
-                <span class="size-3.5 shrink-0 rounded-full border-2 border-black" :style="{ backgroundColor: categoryStyle(c.slug).color }" aria-hidden="true" />
-                <span class="flex-1 font-semibold">{{ c.label }}</span>
-                <span class="font-wide font-black tabular-nums">{{ nf.format(c.total) }}</span>
-              </li>
-            </ul>
-
-            <div class="mt-auto flex flex-wrap gap-3 pt-6">
-              <RouterLink :to="{ name: 'map', params: { mapa: featured.slug } }" class="btn-hxnf btn-ink">
-                Entrar al mapa
-                <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
+            <!-- Vista previa del mapa (también entra al mapa) y, debajo, la nota «Importante» -->
+            <div class="order-1 flex flex-col border-b-2 border-ink lg:order-2 lg:border-b-0 lg:border-l-2">
+              <RouterLink
+                :to="{ name: 'map', params: { mapa: featured.slug } }"
+                class="group relative grid min-h-72 flex-1 place-items-center bg-[radial-gradient(circle,color-mix(in_oklab,var(--fg)_14%,transparent)_1.2px,transparent_1.6px)] bg-[length:14px_14px] p-6 md:p-10"
+                :class="featured.logo ? 'pt-28 md:pt-36 lg:pt-10' : ''"
+                tabindex="-1"
+                aria-hidden="true"
+              >
+                <div class="w-full transition-transform duration-500 group-hover:scale-[1.03] group-hover:-rotate-1">
+                  <MexicoPreview :points="previewPoints" />
+                </div>
+                <MapLogo v-if="featured.logo" :logo="featured.logo" alt="" class="absolute top-5 left-5 w-44 -rotate-2 md:w-60 lg:hidden" />
+                <img :src="COVERS[featured.sticker]" alt="" class="cutout pointer-events-none absolute top-5 right-5 w-20 animate-sticker-float md:w-28 motion-reduce:animate-none" />
+                <span class="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border-2 border-black bg-white px-4 py-1.5 text-xs font-black whitespace-nowrap text-black uppercase sm:text-sm shadow-[3px_3px_0_0_#000] transition group-hover:bg-neon-lime">
+                  {{ store.dossier === featured.code && store.status === 'ready' ? `${nf.format(store.items.length)} en el mapa · ` : '' }}Entrar →
+                </span>
               </RouterLink>
-              <RouterLink :to="{ name: 'testimony-new', params: { mapa: featured.slug } }" class="btn-hxnf btn-lime">
-                <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
-                  <path d="M12 5v14M5 12h14" />
-                </svg>
-                Subir testimonio
-              </RouterLink>
+              <p class="on-light border-t-2 border-ink bg-neon-lime px-5 py-3.5 text-sm leading-relaxed text-black md:px-6">
+                <span class="font-black uppercase">Importante · </span>Estos mapas no son una declaración jurídica oficial ni sustituyen una denuncia formal. Son una
+                herramienta de documentación y participación para el Tribunal Popular por Nuestro Futuro, impulsada por Hackers x Nuestro Futuro.
+              </p>
             </div>
           </div>
+        </article>
 
-          <!-- Vista previa del mapa (también entra al mapa) -->
-          <RouterLink
-            :to="{ name: 'map', params: { mapa: featured.slug } }"
-            class="group relative order-1 grid min-h-72 place-items-center border-b-2 border-ink bg-[radial-gradient(circle,color-mix(in_oklab,var(--fg)_14%,transparent)_1.2px,transparent_1.6px)] bg-[length:14px_14px] p-6 md:p-10 lg:order-2 lg:border-b-0 lg:border-l-2"
-            tabindex="-1"
-            aria-hidden="true"
-          >
-            <div class="w-full transition-transform duration-500 group-hover:scale-[1.03] group-hover:-rotate-1">
-              <MexicoPreview :points="previewPoints" />
-            </div>
-            <img :src="COVERS[featured.sticker]" alt="" class="cutout pointer-events-none absolute top-5 right-5 w-20 animate-sticker-float md:w-28 motion-reduce:animate-none" />
-            <span class="absolute bottom-5 left-1/2 -translate-x-1/2 rounded-full border-2 border-black bg-white px-4 py-1.5 text-xs font-black whitespace-nowrap text-black uppercase sm:text-sm shadow-[3px_3px_0_0_#000] transition group-hover:bg-neon-lime">
-              {{ store.dossier === featured.code && store.status === 'ready' ? `${nf.format(store.items.length)} en el mapa · ` : '' }}Entrar →
-            </span>
-          </RouterLink>
-        </div>
-      </article>
+        <!-- Cómo funciona -->
+        <section class="card-brut-lg flex flex-col p-6 md:p-8" aria-labelledby="how-title">
+          <h2 id="how-title" class="text-2xl leading-[1.25] font-black uppercase md:text-3xl">
+            Tu testimonio <span class="hl-box hl-orange" style="--hl-rot: 1deg">es evidencia</span>
+          </h2>
+          <ol class="mt-6 grid flex-1 gap-6 md:grid-cols-3 xl:grid-cols-1 xl:content-around">
+            <li v-for="(s, i) in STEPS" :key="s.n" class="tm-stagger flex gap-4" :style="{ '--i': i }">
+              <span class="font-wide inline-grid size-14 shrink-0 place-items-center rounded-full border-2 border-black text-lg font-black text-black shadow-brut-sm" :class="s.color">{{ s.n }}</span>
+              <div>
+                <h3 class="text-lg font-black uppercase">{{ s.title }}</h3>
+                <p class="mt-1.5 leading-relaxed opacity-80">{{ s.text }}</p>
+              </div>
+            </li>
+          </ol>
+        </section>
+      </div>
 
       <!-- Otros mapas (expedientes activos) -->
       <section v-if="others.length" class="mt-10" aria-labelledby="others-title">
@@ -154,31 +186,14 @@ onMounted(async () => {
                 <span class="chip bg-black text-white dark:bg-white dark:text-black">{{ m.code }}</span>
                 <span class="chip" :class="[ACCENT_CLASSES[m.accent].bg, ACCENT_CLASSES[m.accent].text]">{{ m.kicker }}</span>
               </div>
-              <h3 class="font-wide mt-4 text-2xl leading-tight font-black uppercase">{{ m.title }}</h3>
+              <h3 v-if="m.logo" class="mt-4"><MapLogo :logo="m.logo" :alt="m.title" class="w-full max-w-[15rem]" /></h3>
+              <h3 v-else class="font-wide mt-4 text-2xl leading-tight font-black uppercase">{{ m.title }}</h3>
               <p class="mt-2 line-clamp-3 text-sm opacity-80">{{ m.description }}</p>
               <span class="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-bold uppercase">Entrar al mapa →</span>
             </RouterLink>
             <img :src="COVERS[m.sticker]" alt="" class="cutout pointer-events-none absolute -right-2 -bottom-3 w-20 rotate-6" />
           </article>
         </div>
-      </section>
-
-      <!-- Cómo funciona -->
-      <section class="mt-16" aria-labelledby="how-title">
-        <h2 id="how-title" class="text-2xl leading-[1.2] font-black uppercase md:text-3xl">
-          Tu testimonio <span class="hl-box hl-orange" style="--hl-rot: 1deg">es evidencia</span>
-        </h2>
-        <ol class="mt-6 grid gap-5 md:grid-cols-3">
-          <li v-for="(s, i) in STEPS" :key="s.n" class="card-brut tm-stagger p-5" :style="{ '--i': i }">
-            <span class="font-wide inline-grid size-11 place-items-center rounded-full border-2 border-black text-base font-black text-black" :class="s.color">{{ s.n }}</span>
-            <h3 class="mt-3 text-lg font-black uppercase">{{ s.title }}</h3>
-            <p class="mt-1.5 text-sm leading-relaxed opacity-80">{{ s.text }}</p>
-          </li>
-        </ol>
-        <p class="mt-6 rounded-2xl border-l-8 border-black bg-neon-lime px-4 py-3 text-sm text-black">
-          <span class="font-black uppercase">Importante · </span>Estos mapas no son una declaración jurídica oficial ni sustituyen una denuncia formal. Son
-          una herramienta de documentación y participación para el Tribunal Popular por Nuestro Futuro, impulsada por Hackers x Nuestro Futuro.
-        </p>
       </section>
 
       <!-- Colaboradores (perfiles públicos) -->

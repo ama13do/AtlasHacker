@@ -22,7 +22,7 @@ export const PAN_BOUNDS = [
 ] satisfies LngLatBoundsLike as [[number, number], [number, number]]
 
 export const MEXICO_CENTER: LngLatLike = [-102.5, 23.6]
-export const MIN_ZOOM = 2.5
+export const MIN_ZOOM = 3
 export const MAX_ZOOM = 18
 
 // --- Mapa base simplificado ---

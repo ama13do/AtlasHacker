@@ -4,13 +4,14 @@ import { useRoute } from 'vue-router'
 import { STICKERS, phraseFor } from '@/core/config/brand'
 import { categoryStyle } from '@testimonies/data/categories'
 import { coverFor } from '@testimonies/data/covers'
-import { DEFAULT_MAP_SLUG } from '@testimonies/data/maps'
+import { DEFAULT_MAP_SLUG, logoForSlug } from '@testimonies/data/maps'
 import { useCategoriesStore } from '@testimonies/stores/categories'
 import type { TestimonyDetail, TestimonySummary } from '@testimonies/types/testimony'
 import CategoryIcon from '@testimonies/components/CategoryIcon.vue'
 import ReactionBar from '@testimonies/components/ReactionBar.vue'
 import ShareSheet from '@testimonies/components/ShareSheet.vue'
 import MediaViewer from '@testimonies/components/media/MediaViewer.vue'
+import MapLogo from '@testimonies/components/MapLogo.vue'
 
 // Historias: los testimonios con más reacciones, uno tras otro. La duración depende de cuánto hay que leer
 // y de cuántas fotos trae; las fotos pasan como carrete dentro de la historia.
@@ -40,6 +41,7 @@ const date = computed(() =>
 )
 const route = useRoute()
 const mapSlug = computed(() => (typeof route.params.mapa === 'string' ? route.params.mapa : DEFAULT_MAP_SLUG))
+const campaignLogo = computed(() => logoForSlug(mapSlug.value))
 
 // Fotos del testimonio (carrete) y duración: ~16 caracteres por segundo de lectura + 3.5 s por foto extra
 const photos = computed(() => props.detail?.files.filter((f) => f.mime.startsWith('image/')) ?? [])
@@ -217,7 +219,8 @@ onBeforeUnmount(() => {
 
           <!-- Encabezado -->
           <header class="relative z-10 flex items-center gap-2 px-3 pt-2.5">
-            <img :src="STICKERS.hxnf.lima" alt="hxnf" class="h-8 w-auto shrink-0 -rotate-3" />
+            <MapLogo v-if="campaignLogo" :logo="campaignLogo" tone="ink" alt="Juicios x Nuestro Futuro" class="h-9 w-auto shrink-0 -rotate-2" />
+            <img v-else :src="STICKERS.hxnf.lima" alt="hxnf" class="h-8 w-auto shrink-0 -rotate-3" />
             <div class="min-w-0 flex-1 leading-tight">
               <p class="truncate text-[11px] font-black uppercase">{{ index + 1 }} de {{ stories.length }} · Lo más apoyado</p>
               <p class="truncate text-xs font-semibold opacity-80">{{ story.place }}</p>

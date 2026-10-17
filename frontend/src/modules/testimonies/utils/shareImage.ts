@@ -1,83 +1,23 @@
 // Imagen para compartir un testimonio en redes, con la identidad de Hackers x Nuestro Futuro:
 // logo oficial, sticker hxnf, «¿Futuro? lo estamos diseñando», color de la categoría y la leyenda
-// «Este testimonio salió del sitio web atlashacker.hxnf.mx · comparte tu experiencia».
+// «Este testimonio salió de atlashacker.hxnf.mx · Léelo completo y comparte el tuyo» (LEGEND, en shareEditorial.ts).
 //   · story: 1080×1920 (historias de Instagram/WhatsApp; lo importante queda fuera de las zonas que tapa la app)
 //   · post:  1080×1350 (publicación 4:5)
 // Lo importante es el testimonio: primero se acomoda el texto (lo más completo posible, con la letra más grande
 // que quepa) y las fotos ocupan el espacio que sobra. Fotos: una → grande; varias → collage (una grande y hasta
 // tres chiquitas). Sin fotos → ícono de la categoría y un sticker de frase (nunca mascotas: es un relato serio).
-// Todo en Parkinsans. Las fotos de R2 se leen con CORS (el bucket lo permite).
+// Todo en Parkinsans. Los otros dos diseños (negativo y brutalista) están en shareEditorial.ts.
 
 import { LOGOS, STICKERS, SITE_HOST } from '@/core/config/brand'
+import { FONT, W, drawContain, loadFonts, loadLocal, loadRemote, toBlob, wrap, type Img, type ShareCard, type ShareDesign, type ShareFormat } from './shareCanvas'
+import { LEGEND, renderBrutalist, renderNegative } from './shareEditorial'
 
-export type ShareFormat = 'story' | 'post'
+export type { ShareCard, ShareDesign, ShareFormat } from './shareCanvas'
 
-export interface ShareCard {
-  title: string
-  place: string
-  date: string // ya formateada
-  category: string
-  color: string // fondo (color de la categoría)
-  ink: string // texto sobre `color`
-  excerpt: string
-  question?: string
-  photoUrls: string[] // fotos públicas, en orden
-  phraseUrl: string // sticker de frase, si no hay fotos
-  coverUrl: string // sticker del testimonio
-  folio: string
-}
-
-const FONT = '"Parkinsans Variable", system-ui, sans-serif'
-const W = 1080
-
-type Img = ImageBitmap | HTMLImageElement
-
-// Fotos de R2 (otro origen): sin caché, porque si la miniatura ya la cargó sin CORS el navegador reusaría esa respuesta
-async function loadRemote(url: string): Promise<Img | null> {
-  try {
-    const res = await fetch(url, { mode: 'cors', cache: 'no-store' })
-    if (!res.ok) return null
-    return await createImageBitmap(await res.blob())
-  } catch {
-    return null
-  }
-}
-
-// Recursos propios (logos SVG y stickers): mismo origen, se cargan como <img>
-function loadLocal(url: string): Promise<HTMLImageElement | null> {
-  return new Promise((resolve) => {
-    const img = new Image()
-    img.onload = () => resolve(img)
-    img.onerror = () => resolve(null)
-    img.src = url
-  })
-}
-
-function wrap(ctx: CanvasRenderingContext2D, text: string, width: number, max: number): string[] {
-  const words = text.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean)
-  const lines: string[] = []
-  let line = ''
-  let used = 0
-  for (const word of words) {
-    const test = line ? `${line} ${word}` : word
-    if (ctx.measureText(test).width <= width) {
-      line = test
-      used++
-      continue
-    }
-    if (line) lines.push(line)
-    if (lines.length === max) break
-    line = word
-    used++
-  }
-  if (lines.length < max && line) lines.push(line)
-  if (used < words.length || lines.length > max) {
-    lines.length = Math.min(lines.length, max)
-    let last = lines[lines.length - 1] ?? ''
-    while (last && ctx.measureText(`${last}…`).width > width) last = last.slice(0, -1)
-    lines[lines.length - 1] = `${last.trimEnd()}…`
-  }
-  return lines
+export function renderShareImage(c: ShareCard, format: ShareFormat = 'story', design: ShareDesign = 'platform'): Promise<Blob> {
+  if (design === 'negative') return renderNegative(c, format)
+  if (design === 'brutalist') return renderBrutalist(c, format)
+  return renderPlatform(c, format)
 }
 
 // Tarjeta de la marca: borde de tinta y sombra dura desplazada
@@ -111,18 +51,6 @@ function photoCard(ctx: CanvasRenderingContext2D, img: Img, x: number, y: number
   const sh = h / scale
   ctx.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, x, y, w, h)
   ctx.restore()
-}
-
-function drawContain(ctx: CanvasRenderingContext2D, img: Img, cx: number, cy: number, maxW: number, maxH: number, rot = 0) {
-  const s = Math.min(maxW / img.width, maxH / img.height)
-  const w = img.width * s
-  const h = img.height * s
-  ctx.save()
-  ctx.translate(cx, cy)
-  if (rot) ctx.rotate((rot * Math.PI) / 180)
-  ctx.drawImage(img, -w / 2, -h / 2, w, h)
-  ctx.restore()
-  return { w, h }
 }
 
 function pill(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, h: number, bg: string, fg: string, size: number) {
@@ -192,16 +120,16 @@ function layoutText(ctx: CanvasRenderingContext2D, c: ShareCard, story: boolean,
   return { ...m, full: false }
 }
 
-export async function renderShareImage(c: ShareCard, format: ShareFormat = 'story'): Promise<Blob> {
+async function renderPlatform(c: ShareCard, format: ShareFormat): Promise<Blob> {
   const story = format === 'story'
   const H = story ? 1920 : 1350
   const PAD = story ? 64 : 52
   const inner = W - PAD * 2
 
-  await Promise.all([document.fonts.load(`800 64px ${FONT}`), document.fonts.load(`600 32px ${FONT}`), document.fonts.load(`400 32px ${FONT}`)])
+  await loadFonts()
   const [logo, hxnf, futuro, cover, phrase, ...photos] = await Promise.all([
     loadLocal(LOGOS.hackers.light),
-    loadLocal(STICKERS.hxnf.lima),
+    loadLocal(c.campaignLogo?.light ?? STICKERS.hxnf.lima),
     loadLocal(STICKERS.futuro.lima),
     loadLocal(c.coverUrl),
     c.photoUrls.length ? Promise.resolve(null) : loadLocal(c.phraseUrl),
@@ -235,7 +163,11 @@ export async function renderShareImage(c: ShareCard, format: ShareFormat = 'stor
     card(ctx, PAD, top, lw + 48, logoH + 32, '#fff', 24, 8)
     ctx.drawImage(logo, PAD + 24, top + 16, lw, logoH)
   }
-  if (hxnf) drawContain(ctx, hxnf, W - PAD - 110, top + (logoH + 32) / 2, 220, 92, 6)
+  // Logo de la campaña (letras negras sobre el color de la categoría) o, si el mapa no tiene, el sticker hxnf
+  if (hxnf && c.campaignLogo) {
+    const lw = story ? 250 : 200
+    drawContain(ctx, hxnf, W - PAD - lw / 2, top + (logoH + 32) / 2, lw, (logoH + 32) * 1.25, -3)
+  } else if (hxnf) drawContain(ctx, hxnf, W - PAD - 110, top + (logoH + 32) / 2, 220, 92, 6)
 
   // Categoría · lugar · fecha
   let y = top + logoH + 32 + (story ? 34 : 24)
@@ -340,13 +272,13 @@ export async function renderShareImage(c: ShareCard, format: ShareFormat = 'stor
   const bandTextW = bandW - (story ? 40 : PAD) - (story ? 330 : 300)
   ctx.fillStyle = '#fff'
   ctx.font = `600 ${story ? 30 : 24}px ${FONT}`
-  ctx.fillText('Este testimonio salió del sitio web', bx, footerTop + (story ? 32 : 18), bandTextW)
+  ctx.fillText(LEGEND.before, bx, footerTop + (story ? 32 : 18), bandTextW)
   ctx.fillStyle = '#e0fa49'
   ctx.font = `800 ${story ? 42 : 34}px ${FONT}`
   ctx.fillText(SITE_HOST, bx, footerTop + (story ? 76 : 46), bandTextW)
   ctx.fillStyle = '#fff'
   ctx.font = `600 ${story ? 28 : 22}px ${FONT}`
-  ctx.fillText('comparte tu experiencia', bx, footerTop + (story ? 128 : 84), bandTextW)
+  ctx.fillText(LEGEND.after, bx, footerTop + (story ? 128 : 84), bandTextW)
   if (futuro) drawContain(ctx, futuro, bandX + bandW - (story ? 165 : 160), footerTop + bandH / 2 - (story ? 8 : 4), story ? 300 : 270, story ? 130 : 110, -5)
 
   // Folio, discreto
@@ -358,5 +290,5 @@ export async function renderShareImage(c: ShareCard, format: ShareFormat = 'stor
     ctx.globalAlpha = 1
   }
 
-  return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('No se pudo crear la imagen'))), 'image/png'))
+  return toBlob(canvas)
 }

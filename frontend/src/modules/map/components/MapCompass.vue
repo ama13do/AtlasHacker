@@ -104,8 +104,8 @@ const isSouthUp = computed(() => Math.abs((((props.bearing % 360) + 360) % 360) 
 }
 
 .tm-compass-rose {
-  width: 68px;
-  height: 68px;
+  width: 86px;
+  height: 86px;
 }
 
 .tm-compass-rose svg {
@@ -115,8 +115,19 @@ const isSouthUp = computed(() => Math.abs((((props.bearing % 360) + 360) % 360) 
 }
 
 .tm-compass-turn {
-  width: 38px;
-  height: 38px;
+  width: 50px;
+  height: 50px;
+}
+
+@media (max-width: 767px) {
+  .tm-compass-rose {
+    width: 78px;
+    height: 78px;
+  }
+  .tm-compass-turn {
+    width: 46px;
+    height: 46px;
+  }
 }
 
 .tm-compass-turn:hover {
@@ -125,8 +136,8 @@ const isSouthUp = computed(() => Math.abs((((props.bearing % 360) + 360) % 360) 
 }
 
 .tm-compass-turn svg {
-  width: 18px;
-  height: 18px;
+  width: 24px;
+  height: 24px;
 }
 
 .tm-compass-ring {

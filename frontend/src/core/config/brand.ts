@@ -4,6 +4,8 @@ import hackersNegro from '@/assets/brand/logo/hackers-negro.svg'
 import hackersBlanco from '@/assets/brand/logo/hackers-blanco.svg'
 import hxnfNegro from '@/assets/brand/logo/hxnf-negro.svg'
 import hxnfBlanco from '@/assets/brand/logo/hxnf-blanco.svg'
+import juiciosNegro from '@/assets/brand/logo/juicios-negro.webp'
+import juiciosBlanco from '@/assets/brand/logo/juicios-blanco.webp'
 import stickerHxnfVerde from '@/assets/brand/stickers/hxnf-verde.webp'
 import stickerHxnfLima from '@/assets/brand/stickers/hxnf-lima.webp'
 import stickerHxnfRosa from '@/assets/brand/stickers/hxnf-rosa.webp'
@@ -28,7 +30,11 @@ export const HXNF_URL = 'https://hxnf.mx'
 export const LOGOS = {
   hackers: { light: hackersNegro, dark: hackersBlanco }, // «hackers x nuestro futuro»
   hxnf: { light: hxnfNegro, dark: hxnfBlanco }, // acrónimo
+  // Campaña «Juicios x Nuestro Futuro» (mapa FUTURO/001): light = letras negras, dark = letras blancas
+  juicios: { light: juiciosNegro, dark: juiciosBlanco },
 } as const
+
+export type ThemedLogo = { light: string; dark: string }
 
 export const STICKERS = {
   hxnf: { verde: stickerHxnfVerde, lima: stickerHxnfLima, rosa: stickerHxnfRosa, azul: stickerHxnfAzul },
