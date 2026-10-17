@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { EVIDENCE_LABELS } from '@testimonies/data/categories'
 import type { EvidenceFile } from '@testimonies/types/testimony'
+import PdfViewer from '@testimonies/components/media/PdfViewer.vue'
 
 // Visor de evidencias a pantalla completa: flechas (o ← →) para pasar, Esc para cerrar
 const props = defineProps<{ files: EvidenceFile[]; index: number; title?: string }>()
@@ -67,7 +68,7 @@ onBeforeUnmount(() => {
           <p class="font-bold">{{ file.description || file.name }}</p>
           <audio :key="file.id" :src="file.url" controls autoplay class="w-full" />
         </div>
-        <iframe v-else-if="kind === 'pdf'" :key="file.id" :src="file.url" :title="file.name" class="size-full max-w-4xl rounded-xl border-2 border-white bg-white" />
+        <PdfViewer v-else-if="kind === 'pdf'" :key="file.id" :url="file.url" :name="file.name" />
         <div v-else class="space-y-3 text-center">
           <p class="font-bold">{{ file.name }}</p>
           <a :href="file.url" target="_blank" rel="noopener noreferrer" class="btn-hxnf btn-lime">Descargar</a>

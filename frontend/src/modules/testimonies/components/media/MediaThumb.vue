@@ -10,6 +10,7 @@ const kind = computed(() => {
   if (props.file.mime.startsWith('image/')) return 'image'
   if (props.file.mime.startsWith('video/')) return 'video'
   if (props.file.mime.startsWith('audio/')) return 'audio'
+  if (props.file.mime === 'application/pdf') return 'pdf'
   return 'doc'
 })
 </script>
@@ -30,9 +31,12 @@ const kind = computed(() => {
       <svg v-if="kind === 'audio'" viewBox="0 0 24 24" class="size-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M9 18V5l12-2v13" /><circle cx="6" cy="18" r="3" /><circle cx="18" cy="16" r="3" />
       </svg>
-      <svg v-else viewBox="0 0 24 24" class="size-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M8 13h8M8 17h5" />
-      </svg>
+      <span v-else class="grid justify-items-center gap-0.5">
+        <svg viewBox="0 0 24 24" class="size-8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6M8 13h8M8 17h5" />
+        </svg>
+        <span v-if="kind === 'pdf'" class="rounded border border-black bg-white px-1 text-[10px] leading-tight font-black">PDF</span>
+      </span>
     </span>
     <span class="absolute inset-x-0 bottom-0 truncate bg-black/75 px-1.5 py-0.5 text-[10px] font-bold text-white">{{ EVIDENCE_LABELS[file.type] }}</span>
   </span>

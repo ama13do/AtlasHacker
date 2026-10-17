@@ -4,7 +4,8 @@ import type { ApiError } from '@/core/http/client'
 import { adminTestimoniesService, staffEvidenceService } from '@admin/services/testimonies.service'
 import { useEvidenceUpload } from '@testimonies/composables/useEvidenceUpload'
 import { useCategoriesStore } from '@testimonies/stores/categories'
-import type { EvidenceAttachment, EvidenceType } from '@testimonies/types/testimony'
+import type { EvidenceAttachment, EvidenceFile, EvidenceType } from '@testimonies/types/testimony'
+import MediaViewer from '@testimonies/components/media/MediaViewer.vue'
 import UploadProgress from '@testimonies/components/UploadProgress.vue'
 import { EVIDENCE_OPTIONS } from '@testimonies/data/categories'
 import { useAuthStore } from '@admin/stores/auth'
@@ -71,9 +72,25 @@ watch(upload.busy, async (busyNow, was) => {
 
 const size = (b: number) => (b < 1048576 ? `${Math.round(b / 1024)} KB` : `${(b / 1048576).toFixed(1)} MB`)
 
+// Fotos, videos, audios y PDF se ven aquí mismo (el PDF con el visor propio: en el celular abrirlo en otra
+// pestaña lo descarga); lo demás (hojas de cálculo, documentos) se abre en otra pestaña
+const PREVIEWABLE = /^(image|video|audio)\/|^application\/pdf$/
+const viewing = ref<EvidenceFile | null>(null)
+
 async function view(e: ApiEvidenciaStaff) {
   busy.value = e.id
   error.value = null
+  if (PREVIEWABLE.test(e.mime)) {
+    try {
+      const url = await adminTestimoniesService.evidenceUrl(e.id)
+      viewing.value = { id: e.id, folio: e.folio, type: e.tipo as EvidenceType, mime: e.mime, name: e.nombre_original, url, description: e.descripcion }
+    } catch (err) {
+      error.value = (err as Partial<ApiError>).message ?? 'No se pudo abrir la evidencia.'
+    } finally {
+      busy.value = null
+    }
+    return
+  }
   // Se abre la pestaña antes de pedir la URL para que el navegador no la bloquee
   // (con 'noopener' window.open devuelve null; se corta el vínculo a mano)
   const tab = window.open('', '_blank')
@@ -190,6 +207,7 @@ async function remove(e: ApiEvidenciaStaff) {
     </div>
 
     <p class="text-xs text-fg/50">Cada vez que se abre una evidencia queda registrado en la bitácora.</p>
+    <MediaViewer v-if="viewing" :files="[viewing]" :index="0" :title="viewing.folio" @close="viewing = null" />
     <p v-if="error" class="text-sm text-danger" role="alert">{{ error }}</p>
   </section>
 </template>
