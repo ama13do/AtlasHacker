@@ -445,6 +445,34 @@ export const bitacora = pgTable(
   ],
 );
 
+/* ───────────────────────────── Enlace /ir (QR impreso) y eventos ───────────────────────────── */
+
+/**
+ * Visitas a atlashacker.hxnf.mx/ir: una fila por hora (no por visita) con el total y las personas distintas
+ * (IP + dispositivo, una vez al día; la huella vive en la tabla UNLOGGED ir_vistos del SQL extra y se purga a diario).
+ */
+export const ir_visitas = pgTable('ir_visitas', {
+  hora: ts('hora').primaryKey(),
+  total: integer('total').notNull().default(0),
+  unicos: integer('unicos').notNull().default(0),
+});
+
+/** Evento (feria, foro…): solo nombre y horario. Las visitas de /ir dentro del horario cuentan para el evento. */
+export const eventos = pgTable(
+  'eventos',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    nombre: text('nombre').notNull(),
+    lugar: text('lugar'),
+    inicio: ts('inicio').notNull(),
+    fin: ts('fin').notNull(),
+    created_by: uuid('created_by').references(() => usuarios.id, { onDelete: 'set null' }),
+    created_at: creado(),
+    updated_at: actualizado(),
+  },
+  (t) => [check('chk_eventos_horario', sql`${t.fin} > ${t.inicio}`), index('idx_eventos_inicio').on(t.inicio.desc())],
+);
+
 /* ──────────────── Vista pública (definida en el SQL extra; aquí solo su forma) ──────────────── */
 
 /**

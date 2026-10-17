@@ -327,3 +327,28 @@ export interface ApiGeografia {
   por_entidad: { entidad: string; total: number; publicos: number }[]
   celdas: { lng: number; lat: number; total: number }[]
 }
+
+// GET /api/admin/eventos · visitas al enlace /ir (total = escaneos; unicos = personas distintas al día)
+export interface ApiConteo {
+  total: number
+  unicos: number
+}
+
+export interface ApiEvento extends ApiConteo {
+  id: string
+  nombre: string
+  lugar: string | null
+  inicio: string
+  fin: string
+  created_at: string
+  updated_at: string
+}
+
+export interface ApiEventos {
+  total: ApiConteo
+  hoy: ApiConteo
+  fuera_de_evento: ApiConteo
+  primera_visita: string | null
+  eventos: ApiEvento[]
+  serie: ({ dia: string } & ApiConteo)[]
+}

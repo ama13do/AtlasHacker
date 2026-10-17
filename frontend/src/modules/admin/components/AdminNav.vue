@@ -20,6 +20,7 @@ const ITEMS: NavItem[] = [
   { label: 'Testimonios', to: { name: 'admin-testimonies' }, roles: ['admin', 'moderador', 'lector'], icon: 'M4 4h16v12H5.17L4 17.17zM8 8h8M8 12h5' },
   { label: 'Capturar ficha', to: { name: 'admin-capture' }, roles: ['admin', 'moderador', 'facilitador'], icon: 'M12 5v14M5 12h14' },
   { label: 'Comentarios', to: { name: 'admin-comments' }, roles: ['admin', 'moderador', 'lector'], icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z' },
+  { label: 'Eventos', to: { name: 'admin-events' }, roles: ['admin', 'lector'], icon: 'M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2M7 7h4v4H7zM13 13h4v4h-4zM13 7h4M7 13v4' },
   { label: 'Personas', to: { name: 'admin-people' }, roles: ['admin'], icon: 'M16 21v-2a4 4 0 0 0-8 0v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
   { label: 'Usuarios', to: { name: 'admin-users' }, roles: ['admin'], icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' },
   { label: 'Catálogos', to: { name: 'admin-catalogs' }, roles: ['admin'], icon: 'M4 6h16M4 12h16M4 18h10' },

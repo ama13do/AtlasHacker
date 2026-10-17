@@ -36,6 +36,9 @@ export const LOG_ACTIONS: Record<string, string> = {
   'categoria.editar': 'Editó una categoría',
   'expediente.crear': 'Creó un expediente',
   'expediente.editar': 'Editó un expediente',
+  'evento.crear': 'Registró un evento',
+  'evento.editar': 'Editó un evento',
+  'evento.eliminar': 'Borró un evento',
   'configuracion.editar': 'Cambió la configuración',
   'exportar.geojson': 'Exportó testimonios (GeoJSON)',
   'mantenimiento.purgar': 'Purgó datos vencidos',
@@ -54,5 +57,6 @@ export const LOG_GROUPS = [
   { value: 'configuracion.', label: 'Configuración' },
   { value: 'categoria.', label: 'Categorías' },
   { value: 'expediente.', label: 'Expedientes' },
+  { value: 'evento.', label: 'Eventos' },
   { value: 'exportar.', label: 'Exportaciones' },
 ]

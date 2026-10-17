@@ -67,6 +67,13 @@ export const adminRoutes: RouteRecordRaw[] = [
         meta: { roles: ['admin'] },
       },
       {
+        // Visitas al enlace /ir (QR impreso) por evento
+        path: 'eventos',
+        name: 'admin-events',
+        component: () => import('@admin/views/EventsPage.vue'),
+        meta: { roles: ['admin', 'lector'] },
+      },
+      {
         path: 'configuracion',
         name: 'admin-settings',
         component: () => import('@admin/views/SettingsPage.vue'),

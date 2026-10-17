@@ -971,6 +971,61 @@ describe('roles: quién ve y hace qué en el panel', () => {
   });
 });
 
+describe('enlace /ir (QR de la lona) y eventos', () => {
+  const NAVEGADOR = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1';
+  const visita = (ip: string, dispositivo: string, ua = NAVEGADOR) => llamar('POST', '/api/ir', { ip, headers: { 'user-agent': ua, 'x-device-id': dispositivo } });
+
+  it('cuenta visitas por hora; la misma IP y dispositivo es una sola persona al día; robots no cuentan', async () => {
+    expect((await visita('10.9.0.1', 'cel-a')).json.data).toEqual({ contada: true });
+    await visita('10.9.0.1', 'cel-a'); // vuelve a escanear
+    await visita('10.9.0.1', 'cel-b'); // otra persona en el mismo wifi del evento
+    await visita('10.9.0.2', 'cel-c');
+    expect((await visita('10.9.0.3', 'x', 'WhatsApp/2.23.20 A')).json.data).toEqual({ contada: false });
+    expect((await llamar('POST', '/api/ir', { ip: '10.9.0.4' })).json.data).toEqual({ contada: false }); // sin navegador
+    const [fila] = await db.execute<{ filas: number; total: number; unicos: number }>(sql`select count(*)::int filas, sum(total)::int total, sum(unicos)::int unicos from ir_visitas`);
+    expect(fila).toEqual({ filas: 1, total: 4, unicos: 3 });
+  });
+
+  it('un evento suma las visitas de su horario (aunque se registre después); el resto queda fuera de evento', async () => {
+    const ahora = Date.now();
+    const iso = (ms: number) => new Date(ms).toISOString();
+    const feria = await llamar('POST', '/api/admin/eventos', { token: tokens.admin, body: { nombre: 'Feria CDMX', lugar: 'Zócalo', inicio: iso(ahora - 3_600_000), fin: iso(ahora + 3_600_000) } });
+    expect(feria.status, feria.texto).toBe(201);
+    const pasado = await llamar('POST', '/api/admin/eventos', { token: tokens.admin, body: { nombre: 'Foro UNAM', inicio: iso(ahora - 30 * 86_400_000), fin: iso(ahora - 29 * 86_400_000) } });
+    expect(pasado.status).toBe(201);
+
+    const r = await llamar('GET', '/api/admin/eventos', { token: tokens.lector });
+    expect(r.status).toBe(200);
+    expect(r.json.data.total).toEqual({ total: 4, unicos: 3 });
+    expect(r.json.data.hoy).toEqual({ total: 4, unicos: 3 });
+    expect(r.json.data.fuera_de_evento).toEqual({ total: 0, unicos: 0 });
+    expect(r.json.data.eventos.find((e: any) => e.nombre === 'Feria CDMX')).toMatchObject({ lugar: 'Zócalo', total: 4, unicos: 3 });
+    expect(r.json.data.eventos.find((e: any) => e.nombre === 'Foro UNAM')).toMatchObject({ total: 0, unicos: 0 });
+    expect(r.json.data.serie).toHaveLength(60);
+    expect(r.json.data.serie.at(-1)).toMatchObject({ total: 4, unicos: 3 });
+    const horas = await llamar('GET', `/api/admin/eventos/${feria.json.data.id}/horas`, { token: tokens.lector });
+    expect(horas.json.data).toHaveLength(1);
+
+    // Moverlo al pasado: sus visitas pasan a «fuera de evento»
+    expect((await llamar('PATCH', `/api/admin/eventos/${feria.json.data.id}`, { token: tokens.admin, body: { inicio: iso(ahora - 10 * 86_400_000), fin: iso(ahora - 9 * 86_400_000) } })).status).toBe(200);
+    expect((await llamar('GET', '/api/admin/eventos', { token: tokens.admin })).json.data.fuera_de_evento).toEqual({ total: 4, unicos: 3 });
+    expect((await llamar('PATCH', `/api/admin/eventos/${feria.json.data.id}`, { token: tokens.admin, body: { fin: iso(ahora - 11 * 86_400_000) } })).status).toBe(400);
+
+    const bit = (await llamar('GET', `/api/admin/bitacora?entidad_id=${feria.json.data.id}`, { token: tokens.superadmin })).json.data;
+    expect(bit.map((e: any) => e.accion)).toEqual(expect.arrayContaining(['evento.crear', 'evento.editar']));
+  });
+
+  it('permisos: lectura para admin y lector; crear y editar solo admin; borrar solo superadmin', async () => {
+    for (const rol of ['moderador', 'facilitador']) expect((await llamar('GET', '/api/admin/eventos', { token: tokens[rol] })).status, rol).toBe(403);
+    expect((await llamar('POST', '/api/admin/eventos', { token: tokens.lector, body: { nombre: 'X', inicio: '2026-10-18T10:00:00Z', fin: '2026-10-18T12:00:00Z' } })).status).toBe(403);
+    const e = await llamar('POST', '/api/admin/eventos', { token: tokens.admin, body: { nombre: 'Para borrar', inicio: '2026-10-18T10:00:00-06:00', fin: '2026-10-18T12:00:00-06:00' } });
+    expect((await llamar('POST', '/api/admin/eventos', { token: tokens.admin, body: { nombre: 'Al revés', inicio: '2026-10-18T12:00:00Z', fin: '2026-10-18T10:00:00Z' } })).status).toBe(400);
+    expect((await llamar('DELETE', `/api/admin/eventos/${e.json.data.id}`, { token: tokens.admin })).status).toBe(403);
+    expect((await llamar('DELETE', `/api/admin/eventos/${e.json.data.id}`, { token: tokens.superadmin })).status).toBe(200);
+    expect((await llamar('DELETE', `/api/admin/eventos/${e.json.data.id}`, { token: tokens.superadmin })).status).toBe(404);
+  });
+});
+
 describe('endurecimiento', () => {
   it('los errores internos no filtran detalles; las rutas desconocidas y los cuerpos enormes se controlan', async () => {
     expect((await llamar('GET', '/api/no-existe')).json.error.codigo).toBe('RUTA_NO_ENCONTRADA');

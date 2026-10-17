@@ -1,4 +1,5 @@
 import type { RouteRecordRaw } from 'vue-router'
+import { countLinkVisit } from '@/core/http/linkVisit'
 import { DEFAULT_MAP_SLUG } from '@testimonies/data/maps'
 
 export const testimoniesRoutes: RouteRecordRaw[] = [
@@ -21,6 +22,14 @@ export const testimoniesRoutes: RouteRecordRaw[] = [
         props: { variant: 'panel' },
       },
     ],
+  },
+  {
+    // Enlace del QR impreso (atlashacker.hxnf.mx/ir): cuenta la visita y lleva a la portada
+    path: '/ir',
+    redirect: () => {
+      countLinkVisit()
+      return { name: 'home' }
+    },
   },
   // Enlaces anteriores (antes el mapa era la portada)
   { path: '/testimonios/nuevo', redirect: { name: 'testimony-new', params: { mapa: DEFAULT_MAP_SLUG } } },

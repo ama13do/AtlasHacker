@@ -2,16 +2,23 @@
 import { computed, ref } from 'vue'
 
 // Barras agrupadas por día: recibidos vs. aprobados (un solo eje). Colores validados (dataviz):
-// --chart-1 recibidos, --chart-2 aprobados. Hover con tooltip y tabla accesible
+// --chart-1 recibidos, --chart-2 aprobados. Hover con tooltip y tabla accesible.
+// `labels` y `subject` renombran las dos series (p. ej. escaneos y personas del enlace /ir)
 const props = withDefaults(
-  defineProps<{ days: { fecha: string; recibidos: number; aprobados: number }[]; title?: string; unit?: 'dia' | 'semana' | 'mes' }>(),
-  { title: 'Últimos 30 días', unit: 'dia' },
+  defineProps<{
+    days: { fecha: string; recibidos: number; aprobados: number }[]
+    title?: string
+    unit?: 'dia' | 'semana' | 'mes'
+    labels?: [string, string]
+    subject?: string
+  }>(),
+  { title: 'Últimos 30 días', unit: 'dia', labels: () => ['Recibidos', 'Aprobados'], subject: 'Testimonios' },
 )
 
-const SERIES = [
-  { key: 'recibidos', label: 'Recibidos', color: 'var(--chart-1)' },
-  { key: 'aprobados', label: 'Aprobados', color: 'var(--chart-2)' },
-] as const
+const SERIES = computed(() => [
+  { key: 'recibidos' as const, label: props.labels[0], color: 'var(--chart-1)' },
+  { key: 'aprobados' as const, label: props.labels[1], color: 'var(--chart-2)' },
+])
 
 const WIDTH = 720
 const HEIGHT = 200
@@ -81,7 +88,7 @@ const total = computed(() => props.days.reduce((s, d) => s + d.recibidos, 0))
         :viewBox="`0 0 ${WIDTH} ${HEIGHT}`"
         class="h-auto w-full min-w-[540px] overflow-visible"
         role="img"
-        :aria-label="`Testimonios recibidos y aprobados por día en los últimos 30 días; ${total} recibidos en total`"
+        :aria-label="`${subject}: ${labels[0].toLowerCase()} y ${labels[1].toLowerCase()} por día (${title.toLowerCase()}); ${total} ${labels[0].toLowerCase()} en total`"
         @mouseleave="hover = null"
       >
         <!-- Rejilla y eje (recesivos) -->
@@ -149,9 +156,9 @@ const total = computed(() => props.days.reduce((s, d) => s + d.recibidos, 0))
     <!-- Envuelta en un div: las tablas ignoran el ancho de 1px de sr-only -->
     <div class="sr-only">
       <table>
-        <caption>Testimonios por día, últimos 30 días</caption>
+        <caption>{{ subject }} por día, {{ title.toLowerCase() }}</caption>
         <thead>
-          <tr><th scope="col">Fecha</th><th scope="col">Recibidos</th><th scope="col">Aprobados</th></tr>
+          <tr><th scope="col">Fecha</th><th scope="col">{{ labels[0] }}</th><th scope="col">{{ labels[1] }}</th></tr>
         </thead>
         <tbody>
           <tr v-for="d in days" :key="d.fecha">

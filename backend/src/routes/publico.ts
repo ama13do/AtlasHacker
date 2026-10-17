@@ -1,5 +1,8 @@
 import { createRoute, z } from '@hono/zod-openapi';
 import { TIPOS_REACCION } from '../db/schema.js';
+import { hmac } from '../lib/crypto.js';
+import { AppError } from '../lib/errors.js';
+import { limitar } from '../lib/rate-limit.js';
 import { aportePublico, huellaDispositivo, limite } from '../middleware/seguridad.js';
 import { ERRORES, IdParam, SEG_FOLIO_OPCIONAL, Uuid, cuerpo, resp } from '../schemas/comunes.js';
 import { PaginacionCursor } from '../lib/paginacion.js';
@@ -7,6 +10,7 @@ import { CrearTestimonioSchema, FiltrosPublicosQuery, MapaQuery } from '../schem
 import { configuracionPublica, obtenerConfiguracion } from '../services/configuracion.js';
 import { catalogosPublicos, colaboradoresPublicos, detallePublico, estadisticasPublicas, listarPublicos, mapaPublico } from '../services/publico.js';
 import { comentar, likeComentario, listarComentariosPublicos, misReacciones, quitarLikeComentario, quitarReaccion, reaccionar } from '../services/social.js';
+import { esRobot, registrarVisita } from '../services/ir.js';
 import { crearTestimonio } from '../services/testimonios.js';
 import { cachePublico, nuevoRouter, ok, sinCache } from './base.js';
 import { enSerie } from '../db/client.js';
@@ -53,6 +57,31 @@ publico.openapi(
   async (c) => {
     cachePublico(c, 60);
     return c.json(ok(await colaboradoresPublicos()), 200);
+  },
+);
+
+/* ──────────────────────────────────────── Enlace /ir (QR impreso) ──────────────────────────────────────── */
+
+publico.openapi(
+  createRoute({
+    method: 'post', path: '/api/ir', tags: ['Sistema'], summary: 'Contar una visita al enlace /ir (QR de la lona)',
+    description:
+      'La página atlashacker.hxnf.mx/ir llama aquí y manda a la portada. Una fila por hora (no por visita). ' +
+      'Persona distinta = misma IP + mismo dispositivo (`X-Device-Id`) una vez al día. Robots y previsualizaciones no cuentan. Nunca falla: si algo sale mal, la visita solo no se cuenta.',
+    responses: { 200: resp('Visita registrada (o ignorada)', z.object({ contada: z.boolean() })) },
+  }),
+  async (c) => {
+    sinCache(c);
+    if (esRobot(c.req.header('user-agent'))) return c.json(ok({ contada: false }), 200);
+    try {
+      // Tope por IP: una red de evento con mucha gente cabe holgada; un script que recarga, no
+      await limitar(`ir:${c.get('ip')}`, 300, 3600);
+      await registrarVisita(hmac(`${c.get('ip')}|${c.req.header('x-device-id')?.slice(0, 100) ?? c.req.header('user-agent') ?? ''}`, 'ir'));
+      return c.json(ok({ contada: true }), 200);
+    } catch (err) {
+      if (!(err instanceof AppError)) console.error('ir: no se pudo contar la visita', err);
+      return c.json(ok({ contada: false }), 200);
+    }
   },
 );
 

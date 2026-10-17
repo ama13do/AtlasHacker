@@ -10,6 +10,7 @@ import { AppError } from './lib/errors.js';
 import { contexto } from './middleware/seguridad.js';
 import { adminCatalogos } from './routes/admin/catalogos.js';
 import { adminComentarios } from './routes/admin/comentarios.js';
+import { adminEventos } from './routes/admin/eventos.js';
 import { adminParticipantes } from './routes/admin/participantes.js';
 import { adminSistema } from './routes/admin/sistema.js';
 import { adminTestimonios } from './routes/admin/testimonios.js';
@@ -119,6 +120,7 @@ app.doc31('/docs/openapi.json', () => ({
     { name: 'Dashboard · Categorías' },
     { name: 'Dashboard · Expedientes' },
     { name: 'Dashboard · Usuarios y roles' },
+    { name: 'Dashboard · Enlace /ir y eventos' },
     { name: 'Dashboard · Configuración' },
     { name: 'Dashboard · Bitácora' },
   ],
@@ -137,6 +139,7 @@ app.route('/', adminParticipantes);
 app.route('/', adminComentarios);
 app.route('/', adminCatalogos);
 app.route('/', adminUsuarios);
+app.route('/', adminEventos);
 
 /* ────────────────────────────────────────────── 404 y errores ────────────────────────────────────────────── */
 
