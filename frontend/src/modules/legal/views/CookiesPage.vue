@@ -70,13 +70,14 @@ const NECESSARY = [
     <section id="analitica">
       <h2>4. Cookies de analítica (opcionales)</h2>
       <p>
-        Si las aceptas, usamos una herramienta de analítica web de terceros para saber, de forma agregada, cuántas personas nos visitan, qué páginas ven
-        y qué botones usan (por ejemplo, «Subir testimonio» o «Compartir»). Así decidimos qué mejorar para tu experiencia.
+        Si las aceptas, usamos un gestor de etiquetas y una herramienta de analítica web de terceros para saber, de forma agregada, cuántas personas
+        nos visitan, qué páginas ven y qué botones usan (por ejemplo, «Subir testimonio» o «Compartir»). Así decidimos qué mejorar para tu
+        experiencia. El gestor solo carga la analítica y por sí mismo no guarda cookies.
       </p>
       <ul>
         <li>Nunca enviamos tu nombre, correo, teléfono, folio ni el contenido de tu testimonio.</li>
         <li>No se usan para publicidad.</li>
-        <li>Si no las aceptas, no se activan.</li>
+        <li>Si no las aceptas, no se activan ni se carga ninguna herramienta de terceros.</li>
         <li>Si retiras tu consentimiento, las borramos de tu navegador.</li>
         <li>Duración: hasta 2 años, salvo que las borres antes.</li>
       </ul>

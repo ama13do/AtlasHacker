@@ -2,15 +2,18 @@ import { watch } from 'vue'
 import type { Router } from 'vue-router'
 import { useConsent } from '@/core/consent/consent'
 
-// Google Analytics 4 con Modo de consentimiento v2. Nada se descarga ni se envía hasta que la persona acepta
+// Google Tag Manager con Modo de consentimiento v2. Nada se descarga ni se envía hasta que la persona acepta
 // la analítica en el aviso de cookies; si después la retira, se deniega el almacenamiento y se borran las
-// cookies _ga. Sin VITE_GA_ID (p. ej. en local) no hace nada.
-// Las páginas vistas las cuenta GA4 solo (medición mejorada: cambios de página del historial, clics a sitios
-// externos, desplazamiento). Aquí se suman los eventos propios con `track`.
+// cookies _ga. El contenedor solo debe tener etiquetas de analítica (GA4): el aviso no pide permiso para
+// publicidad. En producción usa el contenedor de HxNF; VITE_GTM_ID lo cambia. En local no carga nada.
+// Las páginas vistas las cuenta GA4 dentro del contenedor (medición mejorada: cambios de página del historial,
+// clics a sitios externos, desplazamiento). Aquí se suman los eventos propios con `track`, que llegan al
+// contenedor como eventos personalizados del dataLayer.
 // Privacidad: nunca se envían datos personales (nombre, correo, teléfono, folio ni texto de los testimonios):
 // solo páginas, clics y el id público del testimonio. En el panel del equipo (/admin) no se envían eventos.
+// El fragmento <noscript> de GTM no se usa: cargaría Google sin consentimiento y GA4 no mide sin JavaScript.
 
-const GA_ID = import.meta.env.VITE_GA_ID as string | undefined
+const GTM_ID = (import.meta.env.VITE_GTM_ID as string | undefined) ?? (import.meta.env.PROD ? 'GTM-MZX7S53T' : undefined)
 
 declare global {
   interface Window {
@@ -23,28 +26,32 @@ let loaded = false
 let currentPath = typeof window !== 'undefined' ? window.location.pathname : '/'
 const isStaffArea = (path: string) => path.startsWith('/admin')
 
-// gtag.js espera el objeto `arguments` en dataLayer, no un arreglo
-function gtag(..._args: unknown[]) {
+function dataLayer() {
   window.dataLayer = window.dataLayer ?? []
+  return window.dataLayer
+}
+
+// Los comandos de consentimiento van como gtag(): el dataLayer espera el objeto `arguments`, no un arreglo
+function gtag(..._args: unknown[]) {
   // eslint-disable-next-line prefer-rest-params
-  window.dataLayer.push(arguments)
+  dataLayer().push(arguments)
 }
 
 function load() {
-  if (loaded || !GA_ID) return
+  if (loaded || !GTM_ID) return
   loaded = true
   window.gtag = gtag
+  // El consentimiento va antes que el contenedor para que sus etiquetas lo lean desde la primera
   gtag('consent', 'default', {
     ad_storage: 'denied',
     ad_user_data: 'denied',
     ad_personalization: 'denied',
     analytics_storage: 'granted',
   })
-  gtag('js', new Date())
-  gtag('config', GA_ID, { allow_google_signals: false, allow_ad_personalization_signals: false })
+  dataLayer().push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' })
   const script = document.createElement('script')
   script.async = true
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA_ID)}`
+  script.src = `https://www.googletagmanager.com/gtm.js?id=${encodeURIComponent(GTM_ID)}`
   document.head.appendChild(script)
 }
 
@@ -60,14 +67,14 @@ function clearGaCookies() {
 }
 
 export function setupAnalytics(router: Router) {
-  if (!GA_ID) return
+  if (!GTM_ID) return
   const { analytics } = useConsent()
   router.afterEach((to) => (currentPath = to.path))
   watch(
     analytics,
     (granted) => {
       if (granted) {
-        // Quien entra directo al panel no carga Analytics
+        // Quien entra directo al panel no carga el contenedor
         if (!loaded && isStaffArea(currentPath)) return
         if (loaded) gtag('consent', 'update', { analytics_storage: 'granted' })
         else load()
@@ -80,8 +87,9 @@ export function setupAnalytics(router: Router) {
   )
 }
 
-// Evento de clic o acción. Nombres en snake_case; parámetros cortos y sin datos personales
+// Evento de clic o acción. Nombres en snake_case; parámetros cortos y sin datos personales.
+// En GTM: activador «Evento personalizado» y etiqueta de evento de GA4 que lea los parámetros del dataLayer
 export function track(event: string, params: Record<string, string | number | boolean | undefined> = {}) {
   if (!loaded || isStaffArea(currentPath)) return
-  gtag('event', event, params)
+  dataLayer().push({ event, ...params })
 }

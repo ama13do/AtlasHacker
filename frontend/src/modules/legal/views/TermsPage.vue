@@ -3,7 +3,7 @@ import { LEGAL, LEGAL_ROUTES } from '@/core/legal/legal'
 import LegalLayout from '@/modules/legal/components/LegalLayout.vue'
 
 // Términos y condiciones, con base en los de la Escuela de Liderazgo Climático (mismas organizaciones).
-// Es el único documento que nombra la herramienta de analítica (sus condiciones piden informarlo)
+// Es el único documento que nombra las herramientas de analítica (sus condiciones piden informarlo)
 const [nf, pr] = LEGAL.respaldo
 
 const SECTIONS = [
@@ -157,9 +157,11 @@ const SECTIONS = [
     <section id="analitica">
       <h2>13. Cookies y analítica</h2>
       <p>
-        El sitio usa cookies necesarias para funcionar y, solo con tu consentimiento, <strong>Google Analytics</strong> para conocer de forma agregada
-        cómo se usa y mejorar tu experiencia. Con esta herramienta no se comparten tu nombre, correo, teléfono, folio ni el contenido de tu testimonio,
-        y sus funciones publicitarias están desactivadas. Google trata esa información conforme a sus propias políticas. Puedes aceptar o rechazar la
+        El sitio usa cookies necesarias para funcionar y, solo con tu consentimiento, <strong>Google Tag Manager</strong> y
+        <strong>Google Analytics</strong> para conocer de forma agregada cómo se usa y mejorar tu experiencia. Tag Manager es el gestor que carga la
+        analítica: no se activa hasta que la aceptas y por sí mismo no guarda cookies. Con estas herramientas no se comparten tu nombre, correo,
+        teléfono, folio ni el contenido de tu testimonio, y sus funciones publicitarias están desactivadas. Google trata esa información conforme a sus
+        propias políticas. Puedes aceptar o rechazar la
         analítica, y cambiar tu elección en cualquier momento, en la <RouterLink :to="{ name: LEGAL_ROUTES.cookies.name }">política de cookies</RouterLink>.
       </p>
     </section>

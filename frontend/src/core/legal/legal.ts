@@ -8,7 +8,7 @@ import { SITE_HOST, SITE_URL } from '@/core/config/brand'
 // Seguridad: los textos legales no nombran proveedores, tecnologías ni detalles de la infraestructura.
 export const LEGAL = {
   version: '2026-10',
-  updatedAt: '17 de octubre de 2026',
+  updatedAt: '19 de octubre de 2026',
   // Responsable del tratamiento de los datos (aviso de privacidad)
   responsable: 'Hackers x Nuestro Futuro',
   // Organizaciones que respaldan a la coalición: solo se mencionan en los términos y condiciones
