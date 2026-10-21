@@ -131,6 +131,7 @@ export async function crearTestimonio(c: Ctx, input: CrearTestimonioInput | Crea
             evidencia_descripcion: input.evidencia_descripcion,
             evidencia_tipos: input.evidencia_tipos ?? [],
             evidencia_otro: input.evidencia_otro,
+            enlaces_evidencia: input.enlaces_evidencia ?? [],
             dato_fuente_anio: input.dato_fuente_anio,
             fuentes: input.fuentes ?? [],
             fuente_pendiente_verificacion: input.fuente_pendiente_verificacion ?? false,

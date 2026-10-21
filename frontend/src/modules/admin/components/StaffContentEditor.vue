@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
+import { normalizeLink } from '@testimonies/composables/useTestimonyForm'
 import type { ApiError } from '@/core/http/client'
 import { useCategoriesStore } from '@/modules/testimonies'
 import { adminTestimoniesService } from '@admin/services/testimonies.service'
@@ -32,12 +33,19 @@ const initial = () => ({
 }) as Record<Field, string>
 
 const form = reactive(initial())
+
+// Links como evidencia: uno por renglón
+const initialLinks = (props.testimony.enlaces_evidencia ?? []).join('\n')
+const links = ref(initialLinks)
+const linkList = computed(() => links.value.split('\n').map((l) => l.trim()).filter(Boolean))
 const saving = ref(false)
 const error = ref<string | null>(null)
 
 const changes = computed(() => {
   const start = initial()
-  return Object.fromEntries(Object.entries(form).filter(([k, v]) => v.trim() !== (start[k as Field] ?? '').trim()).map(([k, v]) => [k, v.trim()])) as ApiEditarTestimonioStaff
+  const out = Object.fromEntries(Object.entries(form).filter(([k, v]) => v.trim() !== (start[k as Field] ?? '').trim()).map(([k, v]) => [k, v.trim()])) as ApiEditarTestimonioStaff
+  if (linkList.value.join('\n') !== initialLinks) out.enlaces_evidencia = linkList.value.map((l) => normalizeLink(l) ?? l)
+  return out
 })
 const dirty = computed(() => Object.keys(changes.value).length > 0)
 
@@ -45,6 +53,11 @@ async function save() {
   if (!dirty.value) return emit('cancel')
   if ('relato' in changes.value && (changes.value.relato?.length ?? 0) < 10) {
     error.value = 'El testimonio necesita al menos 10 caracteres.'
+    return
+  }
+  const bad = linkList.value.find((l) => !normalizeLink(l))
+  if (bad) {
+    error.value = `Link no válido: ${bad}`
     return
   }
   saving.value = true
@@ -71,6 +84,10 @@ async function save() {
       <label :for="`ed-${f.key}`" class="text-sm font-semibold">{{ f.label }}</label>
       <textarea v-if="f.rows" :id="`ed-${f.key}`" v-model="form[f.key]" :rows="f.rows" :maxlength="f.max" class="field-input resize-y text-sm" />
       <input v-else :id="`ed-${f.key}`" v-model="form[f.key]" type="text" :maxlength="f.max" class="field-input text-sm" />
+    </div>
+    <div class="space-y-1.5">
+      <label for="ed-enlaces" class="text-sm font-semibold">Links de evidencia (uno por renglón)</label>
+      <textarea id="ed-enlaces" v-model="links" rows="3" class="field-input resize-y text-sm" placeholder="https://…" />
     </div>
     <p v-if="error" class="text-sm text-danger" role="alert">{{ error }}</p>
     <div class="flex gap-2">

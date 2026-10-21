@@ -1,0 +1,1 @@
+ALTER TABLE "testimonios" ADD COLUMN "enlaces_evidencia" jsonb DEFAULT '[]'::jsonb NOT NULL;

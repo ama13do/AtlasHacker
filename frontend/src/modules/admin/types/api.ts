@@ -135,6 +135,7 @@ export interface ApiTestimonioStaff extends Omit<ApiTestimonioStaffFila, 'catego
   evidencia_descripcion: string | null
   evidencia_tipos: string[] | null
   evidencia_otro: string | null
+  enlaces_evidencia: string[] | null
   dato_fuente_anio: string | null
   fuente_pendiente_verificacion: boolean
   pregunta_tribunal: string | null
@@ -172,6 +173,7 @@ export interface ApiEditarTestimonioStaff {
   pregunta_tribunal?: string
   algo_mas?: string
   registro_voz?: string
+  enlaces_evidencia?: string[]
   notas_internas?: string | null
   ubicacion_aproximada?: boolean
 }

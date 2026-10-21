@@ -181,6 +181,14 @@ const TERRITORY_SECTIONS = computed(() =>
                   <template v-if="t.evidencia_otro"> ({{ t.evidencia_otro }})</template>
                 </p>
                 <p v-if="t.evidencia_descripcion" class="mt-1 text-sm whitespace-pre-line text-fg/85">{{ t.evidencia_descripcion }}</p>
+                <div v-if="t.enlaces_evidencia?.length" class="mt-2">
+                  <p class="text-xs font-semibold text-fg/60">Links</p>
+                  <ul class="mt-1 space-y-1 text-sm">
+                    <li v-for="url in t.enlaces_evidencia" :key="url">
+                      <a :href="url" target="_blank" rel="noopener noreferrer" class="break-all underline">{{ url }}</a>
+                    </li>
+                  </ul>
+                </div>
               </div>
               <div v-for="[title, text] in TERRITORY_SECTIONS" :key="title">
                 <h3 class="mb-1 text-xs font-semibold tracking-wide text-fg/50 uppercase">{{ title }}</h3>

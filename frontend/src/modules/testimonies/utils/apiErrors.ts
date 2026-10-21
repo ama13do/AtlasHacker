@@ -16,6 +16,7 @@ const API_FIELDS: Record<string, { field: keyof TestimonyDraft; step: number }> 
   evidencia_descripcion: { field: 'documentDescription', step: 2 },
   evidencia_tipos: { field: 'evidence', step: 2 },
   evidencia_otro: { field: 'evidenceOther', step: 2 },
+  enlaces_evidencia: { field: 'links', step: 2 },
   territorio_dice: { field: 'territory', step: 3 },
   comunidad_dice: { field: 'community', step: 3 },
   dato_fuente_anio: { field: 'dataText', step: 4 },

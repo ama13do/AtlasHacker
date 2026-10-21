@@ -76,6 +76,7 @@ const sections = computed(() => [
       ['Documento', draft.documentStatus ? LABELS.document[draft.documentStatus] : '—'],
       ['Qué dice', draft.documentDescription],
       ['Evidencias', evidence.value.join(', ')],
+      ['Links', draft.links.join('\n')],
       ['Huella digital', draft.files.some((a) => a.file.type.startsWith('image/')) ? (draft.stripMetadata ? 'Se borran los metadatos de las fotos' : 'Las fotos se suben tal cual') : ''],
     ],
     files: true,
@@ -148,7 +149,7 @@ const sections = computed(() => [
           <template v-for="[label, value] in section.rows" :key="label">
             <div v-if="value" class="grid grid-cols-[9rem_1fr] gap-3">
               <dt class="text-fg/55">{{ label }}</dt>
-              <dd class="whitespace-pre-line text-fg/90" :class="{ 'italic opacity-60': value === 'Pendiente' }">{{ value }}</dd>
+              <dd class="min-w-0 whitespace-pre-line text-fg/90 [overflow-wrap:anywhere]" :class="{ 'italic opacity-60': value === 'Pendiente' }">{{ value }}</dd>
             </div>
           </template>
         </dl>

@@ -67,6 +67,11 @@ const campos = {
   evidencia_descripcion: texto(5000).optional(),
   evidencia_tipos: z.array(z.enum(TIPOS_EVIDENCIA)).max(TIPOS_EVIDENCIA.length).optional().openapi({ description: 'EVIDENCIAS QUE ACOMPAÑAN' }),
   evidencia_otro: texto(200).optional(),
+  enlaces_evidencia: z
+    .array(z.url({ protocol: /^https?$/, error: 'Link no válido (debe empezar con http:// o https://)' }).max(2000))
+    .max(20)
+    .optional()
+    .openapi({ description: 'Links como evidencia (publicaciones, notas, videos…): solo la URL' }),
   dato_fuente_anio: texto(5000).optional().openapi({ description: '04 · LOS DATOS DICEN: datos (texto libre)' }),
   fuentes: z.array(FuenteSchema).max(20).optional().openapi({ description: '04 · Fuentes de los datos (dato, fuente, año y enlace)' }),
   fuente_pendiente_verificacion: z.boolean().optional(),

@@ -52,6 +52,7 @@ function emptyDraft(): TestimonyDraft {
     documentDescription: '',
     evidence: [],
     evidenceOther: '',
+    links: [],
     files: [],
     dataText: '',
     sources: [emptySource()],
@@ -154,6 +155,20 @@ function clearSaved(key: string) {
 
 const required = (value: string) => value.trim().length > 0
 
+export const MAX_LINKS = 20
+
+// Link pegado por la persona → URL completa (agrega https:// si falta); null si no es un link válido
+export function normalizeLink(value: string): string | null {
+  const raw = asText(value).trim()
+  if (!raw || raw.length > 2000 || /\s/.test(raw)) return null
+  try {
+    const url = new URL(/^[a-z][a-z\d+.-]*:/i.test(raw) ? raw : `https://${raw}`)
+    return (url.protocol === 'http:' || url.protocol === 'https:') && url.hostname.includes('.') ? url.href : null
+  } catch {
+    return null
+  }
+}
+
 // Mismos límites que la API (CrearTestimonioSchema)
 const MIN_TESTIMONY = 10
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -184,6 +199,7 @@ function validate(step: number, d: TestimonyDraft): FormErrors {
     case 2:
       if (!d.documentStatus) e.documentStatus = 'Indica si hay algún documento o evidencia (puede ser «Pendiente»).'
       if (d.evidence.includes('otro') && !required(d.evidenceOther)) e.evidenceOther = 'Describe el otro tipo de evidencia.'
+      if (d.links.some((l) => !normalizeLink(l))) e.links = 'Revisa los links: alguno no es válido.'
       break
     case 4: {
       const badYear = d.sources.some((s) => {

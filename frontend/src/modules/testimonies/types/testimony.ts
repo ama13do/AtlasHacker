@@ -158,6 +158,7 @@ export interface TestimonyDraft {
   documentDescription: string
   evidence: EvidenceType[]
   evidenceOther: string
+  links: string[] // Links como evidencia (publicaciones, notas, videos…)
   files: EvidenceAttachment[]
   // 5–6
   dataText: string // «Datos»

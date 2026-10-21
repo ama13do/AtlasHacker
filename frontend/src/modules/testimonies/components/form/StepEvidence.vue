@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { LIMITS, useTestimonyFormContext } from '@testimonies/composables/useTestimonyForm'
+import { computed, ref } from 'vue'
+import { LIMITS, MAX_LINKS, normalizeLink, useTestimonyFormContext } from '@testimonies/composables/useTestimonyForm'
 import { EVIDENCE_LABELS, EVIDENCE_OPTIONS } from '@testimonies/data/categories'
 import type { DocumentStatus, EvidenceType } from '@testimonies/types/testimony'
 import ChoiceGroup, { type Choice } from '@testimonies/components/form/ChoiceGroup.vue'
@@ -18,6 +18,26 @@ const documentOptions: Choice<DocumentStatus>[] = [
 const evidenceOptions = EVIDENCE_OPTIONS.map((value): Choice<EvidenceType> => ({ value, label: EVIDENCE_LABELS[value] }))
 
 const hasPhotos = computed(() => draft.files.some((a) => a.file.type.startsWith('image/')))
+
+// Links como evidencia: publicaciones de Facebook, notas, videos… solo la URL
+const newLink = ref('')
+const linkError = ref<string | null>(null)
+
+function addLink() {
+  if (!newLink.value.trim()) return
+  const url = normalizeLink(newLink.value)
+  if (!url) {
+    linkError.value = 'Ese link no es válido. Cópialo completo, por ejemplo https://www.facebook.com/…'
+    return
+  }
+  if (!draft.links.includes(url)) draft.links = [...draft.links, url]
+  newLink.value = ''
+  linkError.value = null
+}
+
+function removeLink(url: string) {
+  draft.links = draft.links.filter((l) => l !== url)
+}
 </script>
 
 <template>
@@ -79,6 +99,54 @@ const hasPhotos = computed(() => draft.files.some((a) => a.file.type.startsWith(
     <section class="space-y-5">
       <h3 class="form-group-title">Archivos</h3>
       <EvidenceFiles v-model="draft.files" :evidence="draft.evidence" />
+
+      <div class="space-y-2" :aria-describedby="errors.links ? 'links-error' : undefined">
+        <div class="space-y-1">
+          <div class="flex items-baseline justify-between gap-3">
+            <label for="evidence-link" class="text-sm font-semibold">Agregar links <span class="text-xs font-normal text-fg/40">(opcional)</span></label>
+            <span class="text-xs text-fg/40 tabular-nums">{{ draft.links.length }}/{{ MAX_LINKS }}</span>
+          </div>
+          <p class="text-xs text-fg/50">
+            Pega el link de lo que sea: una publicación de Facebook, un video, una nota, un post… Solo el link.
+          </p>
+          <p class="text-xs font-semibold text-fg/70">Más adelante puedes poner referencias bibliográficas oficiales.</p>
+        </div>
+
+        <ul v-if="draft.links.length" class="space-y-1.5">
+          <li v-for="url in draft.links" :key="url" class="flex items-center gap-2 rounded-xl border border-fg/20 bg-fg/5 px-3 py-2 text-xs">
+            <a :href="url" target="_blank" rel="noopener noreferrer" class="min-w-0 flex-1 truncate underline">{{ url }}</a>
+            <button
+              type="button"
+              class="grid size-7 shrink-0 place-items-center rounded-full hover:bg-surface focus-visible:outline-2 focus-visible:outline-fg"
+              :aria-label="`Quitar ${url}`"
+              @click="removeLink(url)"
+            >
+              <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </li>
+        </ul>
+
+        <div v-if="draft.links.length < MAX_LINKS" class="flex gap-2">
+          <input
+            id="evidence-link"
+            v-model="newLink"
+            type="url"
+            inputmode="url"
+            autocomplete="off"
+            placeholder="https://…"
+            class="field-input min-w-0 flex-1"
+            maxlength="2000"
+            :aria-invalid="!!linkError"
+            @keydown.enter.prevent="addLink"
+            @blur="addLink"
+          />
+          <button type="button" class="btn-hxnf btn-paper btn-sm shrink-0" :disabled="!newLink.trim()" @click="addLink">Agregar</button>
+        </div>
+        <p v-if="linkError" role="status" class="text-sm text-danger">{{ linkError }}</p>
+        <p v-if="errors.links" id="links-error" class="text-sm font-semibold text-danger">{{ errors.links }}</p>
+      </div>
 
       <!-- Huella digital: los metadatos de las fotos (GPS, fecha, modelo del teléfono) -->
       <label

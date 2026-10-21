@@ -247,6 +247,8 @@ export const testimonios = pgTable(
     evidencia_descripcion: text('evidencia_descripcion'),
     evidencia_tipos: tipoEvidencia('evidencia_tipos').array().notNull().default(sql`'{}'::tipo_evidencia[]`),
     evidencia_otro: text('evidencia_otro'),
+    // Links como evidencia (publicaciones de Facebook, notas, videos…): solo la URL
+    enlaces_evidencia: jsonb('enlaces_evidencia').$type<string[]>().notNull().default([]),
 
     // 04 · LOS DATOS DICEN (datos + varias fuentes) · 05 · LA PREGUNTA DEL TRIBUNAL
     dato_fuente_anio: text('dato_fuente_anio'), // «Datos» (texto libre)

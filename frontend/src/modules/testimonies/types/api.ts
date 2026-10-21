@@ -177,6 +177,7 @@ export interface ApiCrearTestimonio {
   evidencia_descripcion?: string
   evidencia_tipos?: ApiTipoEvidencia[]
   evidencia_otro?: string
+  enlaces_evidencia?: string[]
   dato_fuente_anio?: string
   fuentes?: ApiFuente[]
   fuente_pendiente_verificacion?: boolean
@@ -297,6 +298,7 @@ export interface ApiMiTestimonio extends Omit<ApiMiTestimonioResumen, 'categoria
   evidencia_descripcion: string | null
   evidencia_tipos: ApiTipoEvidencia[] | null
   evidencia_otro: string | null
+  enlaces_evidencia: string[] | null
   dato_fuente_anio: string | null
   fuentes: ApiFuente[] | null
   fuente_pendiente_verificacion: boolean
