@@ -9,16 +9,17 @@ import MediaViewer from '@testimonies/components/media/MediaViewer.vue'
 import UploadProgress from '@testimonies/components/UploadProgress.vue'
 import { EVIDENCE_OPTIONS } from '@testimonies/data/categories'
 import { useAuthStore } from '@admin/stores/auth'
-import type { ApiEvidenciaStaff } from '@admin/types/api'
+import type { ApiEnlaceEvidencia, ApiEvidenciaStaff } from '@admin/types/api'
 import { EVIDENCIA_LABELS } from '@admin/data/labels'
 
-// Evidencias de un testimonio: ver (URL temporal); administración las hace públicas/privadas u oculta; borrar, solo superadmin.
-// Subir: administración, o quien capturó la ficha (ownCapture)
-const props = defineProps<{ testimonyId: string; items: ApiEvidenciaStaff[]; ownCapture?: boolean }>()
-const emit = defineEmits<{ changed: [items: ApiEvidenciaStaff[]] }>()
+// Evidencias de un testimonio (archivos y links): ver (URL temporal); hacerlas públicas/privadas: administración o quien
+// capturó la ficha (ownCapture); ocultar, administración; borrar, solo superadmin. Subir: administración o quien capturó la ficha
+const props = defineProps<{ testimonyId: string; items: ApiEvidenciaStaff[]; links?: ApiEnlaceEvidencia[]; ownCapture?: boolean }>()
+const emit = defineEmits<{ changed: [items: ApiEvidenciaStaff[]]; 'links-changed': [links: ApiEnlaceEvidencia[]] }>()
 
 const auth = useAuthStore()
 const canModerate = computed(() => auth.perms.admin)
+const canPublish = computed(() => auth.perms.admin || (!!props.ownCapture && auth.perms.capture))
 
 const busy = ref<string | null>(null)
 const confirming = ref<string | null>(null)
@@ -119,6 +120,18 @@ async function update(e: ApiEvidenciaStaff, changes: { publica?: boolean; activo
   }
 }
 
+async function publishLink(l: ApiEnlaceEvidencia) {
+  busy.value = l.url
+  error.value = null
+  try {
+    emit('links-changed', await adminTestimoniesService.publishLink(props.testimonyId, l.url, !l.publica))
+  } catch (err) {
+    error.value = (err as Partial<ApiError>).message ?? 'No se pudo actualizar.'
+  } finally {
+    busy.value = null
+  }
+}
+
 async function remove(e: ApiEvidenciaStaff) {
   busy.value = e.id
   error.value = null
@@ -159,16 +172,16 @@ async function remove(e: ApiEvidenciaStaff) {
             <button v-if="e.estado_subida === 'subida'" type="button" class="font-semibold text-accent-ink hover:underline disabled:opacity-50" :disabled="busy === e.id" @click="view(e)">
               Ver
             </button>
+            <button
+              v-if="canPublish && e.activo && e.estado_subida === 'subida'"
+              type="button"
+              class="hover:underline disabled:opacity-50"
+              :disabled="busy === e.id"
+              @click="update(e, { publica: !e.publica })"
+            >
+              {{ e.publica ? 'Hacer privada' : 'Hacer pública' }}
+            </button>
             <template v-if="canModerate">
-              <button
-                v-if="e.activo && e.estado_subida === 'subida'"
-                type="button"
-                class="hover:underline disabled:opacity-50"
-                :disabled="busy === e.id"
-                @click="update(e, { publica: !e.publica })"
-              >
-                {{ e.publica ? 'Hacer privada' : 'Hacer pública' }}
-              </button>
               <button type="button" class="hover:underline disabled:opacity-50" :disabled="busy === e.id" @click="update(e, { activo: !e.activo })">
                 {{ e.activo ? 'Ocultar' : 'Mostrar' }}
               </button>
@@ -184,6 +197,22 @@ async function remove(e: ApiEvidenciaStaff) {
         </div>
       </li>
     </ul>
+    <!-- Links de evidencia (publicaciones, videos, notas…): se publican igual que las fotos -->
+    <template v-if="links?.length">
+      <h3 class="text-xs font-black uppercase">Links <span class="font-normal text-fg/50">({{ links.length }})</span></h3>
+      <ul class="space-y-2">
+        <li v-for="l in links" :key="l.url" class="space-y-2 rounded-2xl border-2 border-ink/25 p-3 text-sm">
+          <a :href="l.url" target="_blank" rel="noopener noreferrer" class="block break-all font-semibold underline">{{ l.url }}</a>
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            <span v-if="l.publica" class="rounded-full bg-neon-green px-2 py-0.5 font-semibold text-black">Público</span>
+            <span v-else class="chip bg-card">Privado</span>
+            <button v-if="canPublish" type="button" class="ml-auto hover:underline disabled:opacity-50" :disabled="busy === l.url" @click="publishLink(l)">
+              {{ l.publica ? 'Hacer privado' : 'Hacer público' }}
+            </button>
+          </div>
+        </li>
+      </ul>
+    </template>
     <!-- Subir archivos -->
     <div v-if="canUpload" class="space-y-3 rounded-2xl border-2 border-dashed border-ink/50 p-3">
       <div class="flex flex-wrap items-center gap-2">

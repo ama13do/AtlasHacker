@@ -110,6 +110,14 @@ defineExpose({
         <h3 class="section-title">Evidencias · {{ detail.files.length }}</h3>
         <MediaReel :files="detail.files" :title="title" size="sm" />
       </section>
+      <section v-if="detail.links.length">
+        <h3 class="section-title">Links · {{ detail.links.length }}</h3>
+        <ul class="space-y-1">
+          <li v-for="url in detail.links" :key="url">
+            <a :href="url" target="_blank" rel="noopener noreferrer nofollow" class="break-all underline">{{ url }}</a>
+          </li>
+        </ul>
+      </section>
 
       <!-- Barra de acciones rápidas (100% responsiva): Comentar y Compartir -->
       <div class="grid grid-cols-2 gap-2.5">

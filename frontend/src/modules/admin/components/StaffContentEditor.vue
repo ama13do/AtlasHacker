@@ -35,7 +35,7 @@ const initial = () => ({
 const form = reactive(initial())
 
 // Links como evidencia: uno por renglón
-const initialLinks = (props.testimony.enlaces_evidencia ?? []).join('\n')
+const initialLinks = (props.testimony.enlaces_evidencia ?? []).map((e) => e.url).join('\n')
 const links = ref(initialLinks)
 const linkList = computed(() => links.value.split('\n').map((l) => l.trim()).filter(Boolean))
 const saving = ref(false)

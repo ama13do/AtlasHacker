@@ -128,6 +128,7 @@ export function fromDetail(d: ApiTestimonioDetalle): TestimonyDetail {
       url: e.url,
       description: e.descripcion,
     })),
+    links: d.enlaces ?? [],
     reactionCounts: fromReactionCounts(d.reacciones_conteo),
   }
 }
@@ -304,7 +305,7 @@ export function draftFromMine(t: ApiMiTestimonio): TestimonyDraft {
     documentDescription: t.evidencia_descripcion ?? '',
     evidence: t.evidencia_tipos ?? [],
     evidenceOther: t.evidencia_otro ?? '',
-    links: t.enlaces_evidencia ?? [],
+    links: (t.enlaces_evidencia ?? []).map((e) => e.url),
     files: [],
     dataText: t.dato_fuente_anio ?? '',
     sources: (t.fuentes ?? []).map((f) => ({ id: crypto.randomUUID(), source: f.fuente, year: f.anio ? String(f.anio) : '', link: f.enlace ?? '' })),

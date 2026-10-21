@@ -89,6 +89,7 @@ export interface TestimonyDetail extends TestimonySummary {
   anythingElse?: string // C.11 · Algo más que el Tribunal deba conocer
   evidence: EvidenceType[]
   files: EvidenceFile[]
+  links: string[] // links de evidencia públicos
   reactionCounts: Record<ReactionType, number>
 }
 

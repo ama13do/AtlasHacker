@@ -2,7 +2,7 @@ import { and, asc, desc, eq, getTableColumns, sql, type SQL } from 'drizzle-orm'
 import type { Context } from 'hono';
 import { enSerie, getDb, type Ejecutor } from '../db/client.js';
 import { colDe, geoJson } from '../db/geo.js';
-import { categorias, evidencias, expedientes, testimonios, testimonios_auditoria, usuarios, v_testimonios_publicos } from '../db/schema.js';
+import { categorias, evidencias, expedientes, testimonios, testimonios_auditoria, usuarios, v_testimonios_publicos, type EnlaceEvidencia } from '../db/schema.js';
 import { cifrar, hmac } from '../lib/crypto.js';
 import { E, esViolacionUnica } from '../lib/errors.js';
 import { folioTestimonio } from '../lib/ids.js';
@@ -14,7 +14,7 @@ import type { AppEnv, UsuarioAuth } from '../types.js';
 import { diferencias, registrarBitacora } from './bitacora.js';
 import { obtenerConfiguracion } from './configuracion.js';
 import { crearParticipante } from './participantes.js';
-import { decidirPublicacion } from './reglas.js';
+import { decidirPublicacion, evidenciaPublicaPorDefecto } from './reglas.js';
 
 type Ctx = Context<AppEnv>;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -131,7 +131,7 @@ export async function crearTestimonio(c: Ctx, input: CrearTestimonioInput | Crea
             evidencia_descripcion: input.evidencia_descripcion,
             evidencia_tipos: input.evidencia_tipos ?? [],
             evidencia_otro: input.evidencia_otro,
-            enlaces_evidencia: input.enlaces_evidencia ?? [],
+            enlaces_evidencia: aEnlaces(input.enlaces_evidencia ?? [], [], evidenciaPublicaPorDefecto(cfg.modo_publicacion, decision.estado, input.autoriza_multimedia ?? 'na', 'link')),
             dato_fuente_anio: input.dato_fuente_anio,
             fuentes: input.fuentes ?? [],
             fuente_pendiente_verificacion: input.fuente_pendiente_verificacion ?? false,
@@ -382,6 +382,11 @@ async function aColumnas(input: Record<string, unknown>): Promise<CambiosInterno
   return set as CambiosInternos;
 }
 
+/** Links de evidencia: los que ya estaban conservan si son públicos; los nuevos siguen la regla de las fotos. */
+function aEnlaces(urls: string[], previos: EnlaceEvidencia[], publicaNueva: boolean): EnlaceEvidencia[] {
+  return [...new Set(urls)].map((url) => ({ url, publica: previos.find((e) => e.url === url)?.publica ?? publicaNueva }));
+}
+
 /** Garantiza la coherencia nombre público ↔ «cómo desea aparecer» (también lo exige un CHECK en la base). */
 function coherenciaNombre(actual: { aparecer_como: string; nombre_publico: string | null }, set: CambiosInternos) {
   const aparecer = (set.aparecer_como ?? actual.aparecer_como) as string;
@@ -416,6 +421,10 @@ export async function editarPropio(c: Ctx, participanteId: string, id: string, i
   set.moderado_por = null;
   set.moderado_at = set.estado === 'aprobado' ? new Date() : null;
   if (decision.ubicacion_aproximada) set.ubicacion_aproximada = true; // solo se activa; quitarla es decisión del equipo
+  if (input.enlaces_evidencia) {
+    const multimedia = (set.autoriza_multimedia ?? actual.autoriza_multimedia) as 'si' | 'no' | 'na';
+    set.enlaces_evidencia = aEnlaces(input.enlaces_evidencia, actual.enlaces_evidencia, evidenciaPublicaPorDefecto(cfg.modo_publicacion, set.estado, multimedia, 'link'));
+  }
 
   await persistirCambios(c, id, actual, set, 'testimonio.editar_propio');
   return obtenerPropio(participanteId, id);
@@ -444,6 +453,11 @@ export async function editarStaff(c: Ctx, usuario: UsuarioAuth, id: string, inpu
     set.moderado_por = usuario.id;
     set.moderado_at = new Date();
     if (set.estado !== 'rechazado' && set.motivo_rechazo === undefined) set.motivo_rechazo = null;
+  }
+  if (input.enlaces_evidencia) {
+    const cfg = await obtenerConfiguracion();
+    const multimedia = (set.autoriza_multimedia ?? actual.autoriza_multimedia) as 'si' | 'no' | 'na';
+    set.enlaces_evidencia = aEnlaces(input.enlaces_evidencia, actual.enlaces_evidencia, evidenciaPublicaPorDefecto(cfg.modo_publicacion, (set.estado ?? actual.estado) as string, multimedia, 'link'));
   }
   if (Object.keys(set).length === 0) throw E.invalido('No hay cambios que aplicar');
   await persistirCambios(c, id, actual, set, 'testimonio.editar');
@@ -478,9 +492,24 @@ export async function moderar(c: Ctx, usuario: UsuarioAuth, id: string, accion: 
         .update(evidencias)
         .set({ publica: true })
         .where(and(eq(evidencias.testimonio_id, id), eq(evidencias.activo, true), eq(evidencias.estado_subida, 'subida'), sql`${evidencias.tipo} not in ('recibo_factura','documento_oficial')`));
+      if (actual.enlaces_evidencia.some((e) => !e.publica)) {
+        await db.update(testimonios).set({ enlaces_evidencia: actual.enlaces_evidencia.map((e) => ({ ...e, publica: true })) }).where(eq(testimonios.id, id));
+      }
     }
   }
   return obtenerStaff(id);
+}
+
+/** Hace público o privado un link de evidencia (igual que «Hacer pública» en las fotos). */
+export async function publicarEnlace(c: Ctx, id: string, url: string, publica: boolean) {
+  const db = getDb();
+  const [actual] = await db.select({ folio: testimonios.folio, enlaces: testimonios.enlaces_evidencia }).from(testimonios).where(eq(testimonios.id, id)).limit(1);
+  if (!actual) throw E.noEncontrado('Testimonio');
+  if (!actual.enlaces.some((e) => e.url === url)) throw E.noEncontrado('Link');
+  const enlaces = actual.enlaces.map((e) => (e.url === url ? { ...e, publica } : e));
+  await db.update(testimonios).set({ enlaces_evidencia: enlaces }).where(eq(testimonios.id, id));
+  await registrarBitacora(c, { accion: 'enlace.editar', entidad: 'testimonio', entidadId: id, folio: actual.folio, despues: { url, publica } });
+  return enlaces;
 }
 
 /** Borrado DEFINITIVO de la base de datos (y de R2). Solo con confirmación explícita (el folio). */

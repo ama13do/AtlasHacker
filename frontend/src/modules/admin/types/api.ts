@@ -135,7 +135,7 @@ export interface ApiTestimonioStaff extends Omit<ApiTestimonioStaffFila, 'catego
   evidencia_descripcion: string | null
   evidencia_tipos: string[] | null
   evidencia_otro: string | null
-  enlaces_evidencia: string[] | null
+  enlaces_evidencia: ApiEnlaceEvidencia[] | null
   dato_fuente_anio: string | null
   fuente_pendiente_verificacion: boolean
   pregunta_tribunal: string | null
@@ -160,6 +160,12 @@ export interface ApiTestimonioStaff extends Omit<ApiTestimonioStaffFila, 'catego
 }
 
 // PATCH /api/admin/testimonios/{id} (subconjunto que edita el dashboard)
+// Link de evidencia: como las fotos, cada uno se hace público o privado
+export interface ApiEnlaceEvidencia {
+  url: string
+  publica: boolean
+}
+
 export interface ApiEditarTestimonioStaff {
   categoria?: string
   titulo?: string

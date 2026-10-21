@@ -19,6 +19,7 @@ export const LOG_ACTIONS: Record<string, string> = {
   'evidencia.confirmar': 'Confirmó una evidencia',
   'evidencia.editar': 'Editó una evidencia',
   'evidencia.eliminar': 'Eliminó una evidencia',
+  'enlace.editar': 'Hizo público o privado un link de evidencia',
   'evidencia.ver': 'Abrió una evidencia',
   'comentario.editar': 'Moderó un comentario',
   'comentario.eliminar_permanente': 'Eliminó un comentario para siempre',

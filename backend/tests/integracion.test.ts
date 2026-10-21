@@ -740,7 +740,7 @@ describe('evidencias ya subidas: conteo en el dashboard y visibilidad pública c
     expect(lista).toHaveLength(2);
     const recibo = lista.find((e: any) => e.tipo === 'recibo_factura');
     expect(recibo.publica).toBe(false);
-    expect((await llamar('PATCH', `/api/admin/testimonios/${id}/evidencias/${recibo.id}`, { token: tokens.moderador, body: { publica: true } })).status).toBe(403);
+    expect((await llamar('PATCH', `/api/admin/testimonios/${id}/evidencias/${recibo.id}`, { token: tokens.moderador, body: { publica: true } })).status).toBe(404); // no la capturó
     await llamar('PATCH', `/api/admin/testimonios/${id}/evidencias/${recibo.id}`, { token: tokens.admin, body: { publica: true } });
     expect((await llamar('GET', `/api/testimonios/${id}`)).json.data.evidencias).toHaveLength(2);
     const bit = await llamar('GET', '/api/admin/bitacora?accion=evidencia.editar', { token: tokens.superadmin });

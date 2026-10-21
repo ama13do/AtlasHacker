@@ -93,7 +93,9 @@ export async function detallePublico(id: string) {
     .where(eq(v.id, id))
     .limit(1);
   if (!t) throw E.noEncontrado('Testimonio');
-  return { ...t, evidencias: await evidenciasPublicas(id) };
+  const [l] = await getDb().select({ enlaces: testimonios.enlaces_evidencia }).from(testimonios).where(eq(testimonios.id, id)).limit(1);
+  const enlaces = (l?.enlaces ?? []).filter((e) => e.publica).map((e) => e.url);
+  return { ...t, evidencias: await evidenciasPublicas(id), enlaces };
 }
 
 /* ───────────────────────────────────── Catálogos y estadísticas ───────────────────────────────────── */

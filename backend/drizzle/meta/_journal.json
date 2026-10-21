@@ -43,6 +43,13 @@
       "when": 1792612231932,
       "tag": "0005_enlaces_evidencia",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792613414122,
+      "tag": "0006_enlaces_publicos",
+      "breakpoints": true
     }
   ]
 }

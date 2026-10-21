@@ -144,6 +144,7 @@ export interface ApiTestimonioDetalle {
   publicado_at: string | null
   created_at: string
   evidencias: ApiEvidenciaPublica[]
+  enlaces?: string[] // links de evidencia públicos
 }
 
 // 04 · Los datos dicen: una fuente (Manual C.6)
@@ -298,7 +299,7 @@ export interface ApiMiTestimonio extends Omit<ApiMiTestimonioResumen, 'categoria
   evidencia_descripcion: string | null
   evidencia_tipos: ApiTipoEvidencia[] | null
   evidencia_otro: string | null
-  enlaces_evidencia: string[] | null
+  enlaces_evidencia: { url: string; publica: boolean }[] | null
   dato_fuente_anio: string | null
   fuentes: ApiFuente[] | null
   fuente_pendiente_verificacion: boolean

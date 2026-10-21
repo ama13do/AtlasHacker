@@ -6,6 +6,7 @@ import type {
   AccionModeracion,
   ApiAuditoria,
   ApiEditarTestimonioStaff,
+  ApiEnlaceEvidencia,
   ApiEvidenciaStaff,
   ApiTestimonioStaff,
   ApiTestimonioStaffFila,
@@ -88,6 +89,10 @@ export const adminTestimoniesService = {
     return (
       await adminRequest<ApiEvidenciaStaff[]>({ method: 'patch', url: `${base(id)}/evidencias/${encodeURIComponent(evidenceId)}`, data: changes })
     ).data
+  },
+
+  async publishLink(id: string, url: string, publica: boolean) {
+    return (await adminRequest<ApiEnlaceEvidencia[]>({ method: 'patch', url: `${base(id)}/enlaces`, data: { url, publica } })).data
   },
 
   async deleteEvidence(id: string, evidenceId: string) {

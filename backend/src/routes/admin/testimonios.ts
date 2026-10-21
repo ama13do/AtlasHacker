@@ -11,7 +11,7 @@ import { EditarEvidenciaSchema, EvidenciaParams, PresignEvidenciasSchema } from 
 import { CrearTestimonioStaffSchema, EditarTestimonioStaffSchema, FiltrosStaffQuery } from '../../schemas/testimonios.js';
 import { registrarBitacora } from '../../services/bitacora.js';
 import { actualizarEvidencia, confirmarEvidencia, eliminarEvidencia, listarEvidencias, presignarEvidencias, urlEvidenciaStaff } from '../../services/evidencias.js';
-import { crearTestimonio, editarStaff, eliminarPermanente, listarStaff, moderar, obtenerStaff, type AccionModeracion } from '../../services/testimonios.js';
+import { crearTestimonio, editarStaff, eliminarPermanente, listarStaff, moderar, obtenerStaff, publicarEnlace, type AccionModeracion } from '../../services/testimonios.js';
 import type { UsuarioAuth } from '../../types.js';
 import { nuevoRouter, ok, sinCache } from '../base.js';
 
@@ -221,7 +221,6 @@ adminTestimonios.openapi(
 
 const EV_LEER = { tags: TAG_EVID, security: SEG_USUARIO, middleware: [requiereUsuario('admin', 'moderador', 'lector', 'facilitador')] };
 const EV_CAPTURAR = { tags: TAG_EVID, security: SEG_USUARIO, middleware: [requiereUsuario('admin', 'moderador', 'facilitador')] };
-const EV_ADMIN = { tags: TAG_EVID, security: SEG_USUARIO, middleware: [requiereUsuario('admin')] };
 const EV_SUPERADMIN = { tags: TAG_EVID, security: SEG_USUARIO, middleware: [requiereUsuario('superadmin')] };
 
 adminTestimonios.openapi(
@@ -277,13 +276,33 @@ adminTestimonios.openapi(
 
 adminTestimonios.openapi(
   createRoute({
-    ...EV_ADMIN, method: 'patch', path: '/api/admin/testimonios/{id}/evidencias/{evidenciaId}', summary: 'Hacer pública/privada u ocultar una evidencia',
+    ...EV_CAPTURAR, method: 'patch', path: '/api/admin/testimonios/{id}/evidencias/{evidenciaId}', summary: 'Hacer pública/privada u ocultar una evidencia',
+    description: 'Administración: cualquier cambio. Quien capturó la ficha (facilitador/moderación): solo hacerla pública o privada.',
     request: { params: EvidenciaParams, body: cuerpo(EditarEvidenciaSchema) }, responses: { 200: resp('Actualizada'), ...ERRORES },
   }),
   async (c) => {
     const { id, evidenciaId } = c.req.valid('param');
-    await actualizarEvidencia(c, id, evidenciaId, c.req.valid('json'));
+    const u = c.get('usuario')!;
+    const cambios = c.req.valid('json');
+    await exigirCaptura(u, id);
+    if (!esAdmin(u) && Object.keys(cambios).some((k) => k !== 'publica')) throw E.prohibido('Solo puedes hacer pública o privada la evidencia');
+    await actualizarEvidencia(c, id, evidenciaId, cambios);
     return c.json(ok(await listarEvidencias(id)), 200);
+  },
+);
+
+adminTestimonios.openapi(
+  createRoute({
+    ...EV_CAPTURAR, method: 'patch', path: '/api/admin/testimonios/{id}/enlaces', summary: 'Hacer público/privado un link de evidencia',
+    description: 'Administración en cualquier ficha; facilitador/moderación solo en las que capturó.',
+    request: { params: IdParam, body: cuerpo(z.object({ url: z.string().max(2000), publica: z.boolean() }).openapi('PublicarEnlace')) },
+    responses: { 200: resp('Links actualizados'), ...ERRORES },
+  }),
+  async (c) => {
+    const { id } = c.req.valid('param');
+    await exigirCaptura(c.get('usuario')!, id);
+    const { url, publica } = c.req.valid('json');
+    return c.json(ok(await publicarEnlace(c, id, url, publica)), 200);
   },
 );
 
