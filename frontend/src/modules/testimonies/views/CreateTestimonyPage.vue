@@ -17,6 +17,8 @@ import StepTerritory from '@testimonies/components/form/StepTerritory.vue'
 import StepTestimony from '@testimonies/components/form/StepTestimony.vue'
 import FormStepper from '@testimonies/components/form/FormStepper.vue'
 import SubmitSuccess from '@testimonies/components/form/SubmitSuccess.vue'
+import SubmitCelebration from '@testimonies/components/form/SubmitCelebration.vue'
+import { marchIsUpcoming } from '@/core/config/event'
 import ThemeToggle from '@/shared/components/ThemeToggle.vue'
 import TurnstileWidget from '@/shared/components/TurnstileWidget.vue'
 import type { ApiError } from '@/core/http/client'
@@ -65,6 +67,10 @@ const showRestored = ref(form.restored)
 const submitting = ref(false)
 const submitError = ref<string | null>(null)
 const result = ref<CreateTestimonyResult | null>(null)
+// Ventana de cierre (testimonio guardado, aparta la fecha, redes) encima de la pantalla del folio
+const celebrate = ref(false)
+// Solo en local: ?preview=exito la muestra sin enviar nada (la API de desarrollo es la de producción)
+const previewCelebration = ref(import.meta.env.DEV && route.query.preview === 'exito')
 // Edición guardada
 const saved = ref(false)
 const title = editing ? 'Editar testimonio' : 'Subir testimonio'
@@ -152,7 +158,9 @@ async function onSubmit() {
   const folio = normalizeParticipantFolio(draft.folio) ?? rememberedFolio.value
   try {
     result.value = await store.create({ ...draft, files }, { captchaToken: captchaToken.value, folio })
-    track('generate_lead', { lead_source: 'testimonio', categoria: draft.topic ?? undefined, con_evidencias: files.length > 0, participante_nuevo: !folio })
+    // «success»: la persona llegó al final y su testimonio quedó guardado (conteo de quienes terminan)
+    track('success', { tipo: 'testimonio', categoria: draft.topic ?? undefined, con_evidencias: files.length > 0, participante_nuevo: !folio })
+    celebrate.value = marchIsUpcoming()
     form.reset()
     const uploadFolio = result.value.participantFolio ?? folio
     if (files.length && uploadFolio) upload.start(result.value.id, uploadFolio, files)
@@ -308,6 +316,12 @@ function viewOnMap() {
             :upload="upload"
             @view-on-map="viewOnMap"
             @home="router.push(closeTo)"
+          />
+          <SubmitCelebration
+            v-if="(result && celebrate) || previewCelebration"
+            :published="result?.published ?? false"
+            :has-folio="result ? !!result.participantFolio : true"
+            @close="(celebrate = false), (previewCelebration = false)"
           />
 
           <!-- Edición guardada -->

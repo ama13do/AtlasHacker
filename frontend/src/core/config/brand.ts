@@ -55,3 +55,12 @@ export function phraseFor(category: string): string {
   if (category === 'megaproyectos') return STICKERS.frases.soluciones
   return STICKERS.frases.somosCambio
 }
+
+// Redes oficiales de Hackers x Nuestro Futuro (íconos dibujados en SocialIcon.vue)
+export const SOCIALS = [
+  { id: 'instagram', label: 'Instagram', handle: '@hackersxnf', url: 'https://www.instagram.com/hackersxnf' },
+  { id: 'tiktok', label: 'TikTok', handle: '@movimientohxnf', url: 'https://www.tiktok.com/@movimientohxnf' },
+  { id: 'youtube', label: 'YouTube', handle: '@Hackersxnf', url: 'https://www.youtube.com/@Hackersxnf' },
+  { id: 'facebook', label: 'Facebook', handle: 'Hackers x Nuestro Futuro', url: 'https://www.facebook.com/profile.php?id=61576035510016' },
+] as const
+export type SocialId = (typeof SOCIALS)[number]['id']

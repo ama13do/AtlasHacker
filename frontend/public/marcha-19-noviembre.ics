@@ -1,0 +1,24 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Hackers x Nuestro Futuro//Atlas Hacker//ES
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:marcha-2026-11-19@atlashacker.hxnf.mx
+DTSTAMP:20261023T180000Z
+DTSTART:20261119T170000Z
+DTEND:20261119T210000Z
+SUMMARY:Marcha · Juicios x Nuestro Futuro
+LOCATION:Glorieta de Insurgentes\, frente a la Secretaría de Energía (Av.
+  Insurgentes 20\, CDMX)
+DESCRIPTION:Marcha de Juicios x Nuestro Futuro en la Glorieta de Insurgente
+ s\, frente a la Secretaría de Energía y la Comisión Nacional de Energí
+ a. Sube tu testimonio en atlashacker.hxnf.mx
+URL:https://atlashacker.hxnf.mx
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Mañana es la marcha · Juicios x Nuestro Futuro
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+END:VCALENDAR
