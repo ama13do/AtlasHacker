@@ -2,7 +2,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { track } from '@/core/analytics/analytics'
 import { LOGOS, SOCIALS, type SocialId } from '@/core/config/brand'
-import { googleCalendarUrl, MARCH_EVENT } from '@/core/config/event'
+import { googleCalendarUrl, MARCH_DETAILS, MARCH_EVENT } from '@/core/config/event'
 import MapLogo from '@testimonies/components/MapLogo.vue'
 import SocialIcon from '@/shared/components/SocialIcon.vue'
 
@@ -12,6 +12,7 @@ const props = defineProps<{ published: boolean; hasFolio: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 
 const EVENT = MARCH_EVENT
+const DETAILS = MARCH_DETAILS
 
 // iPhone, iPad y Mac abren el .ics directo en Calendario; los demás van a Google Calendar
 const apple = /iPhone|iPad|Macintosh/i.test(navigator.userAgent)
@@ -120,23 +121,28 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey, true))
               <span class="absolute -top-[11px] -right-[25px] size-5 rounded-full border-[2.5px] border-black bg-white [clip-path:inset(0_50%_0_0)] dark:bg-[#111]" />
             </div>
 
-            <dl class="space-y-1.5 px-3.5 pt-3 text-[13px] leading-snug">
+            <dl v-if="DETAILS" class="space-y-1.5 px-3.5 pt-3 text-[13px] leading-snug">
               <div class="flex gap-2">
                 <dt class="sr-only">Fecha y hora</dt>
                 <svg viewBox="0 0 24 24" class="mt-px size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
-                <dd><strong class="font-black">{{ EVENT.dateLabel }}</strong><span class="block">De {{ EVENT.timeLabel }}</span></dd>
+                <dd><strong class="font-black">{{ EVENT.dateLabel }}</strong><span class="block">De {{ DETAILS.timeLabel }}</span></dd>
               </div>
               <div class="flex gap-2">
                 <dt class="sr-only">Lugar</dt>
                 <svg viewBox="0 0 24 24" class="mt-px size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Z" /><circle cx="12" cy="10" r="2.5" /></svg>
                 <dd>
-                  <strong class="font-black">{{ EVENT.place }}</strong>
-                  <span class="block text-xs text-black/75">{{ EVENT.placeDetail }}<span class="short:hidden">, {{ EVENT.placeNote }}</span></span>
+                  <strong class="font-black">{{ DETAILS.place }}</strong>
+                  <span class="block text-xs text-black/75">{{ DETAILS.placeDetail }}<span class="short:hidden">, {{ DETAILS.placeNote }}</span></span>
                 </dd>
               </div>
             </dl>
+            <!-- Mientras no se anuncian hora y lugar -->
+            <div v-else class="flex gap-2 px-3.5 pt-3 text-[13px] leading-snug">
+              <svg viewBox="0 0 24 24" class="mt-px size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
+              <p><strong class="font-black">{{ EVENT.dateLabel }}</strong><span class="block">La hora y el lugar los anunciamos pronto en nuestras redes.</span></p>
+            </div>
 
-            <div class="grid grid-cols-2 gap-2.5 px-3.5 pt-3 pb-3 short:pt-2.5">
+            <div class="grid gap-2.5 px-3.5 pt-3 pb-3 short:pt-2.5" :class="DETAILS ? 'grid-cols-2' : 'grid-cols-1'">
               <a
                 :href="calendarUrl"
                 target="_blank"
@@ -147,7 +153,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey, true))
                 <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18M12 13v5M9.5 15.5h5" /></svg>
                 Agendar
               </a>
-              <a :href="EVENT.mapsUrl" target="_blank" rel="noopener" class="btn-hxnf btn-paper btn-sm px-2 whitespace-nowrap dark:border-black dark:[--btn-shadow:#000]" @click="clicked('como_llegar')">
+              <a v-if="DETAILS" :href="DETAILS.mapsUrl" target="_blank" rel="noopener" class="btn-hxnf btn-paper btn-sm px-2 whitespace-nowrap dark:border-black dark:[--btn-shadow:#000]" @click="clicked('como_llegar')">
                 <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-8-8 18-2-8z" /></svg>
                 Cómo llegar
               </a>
