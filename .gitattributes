@@ -1,0 +1,2 @@
+# Calendario: el estándar (RFC 5545) exige CRLF; se guarda tal cual
+*.ics -text
