@@ -4,11 +4,11 @@
   "categoria": "Inseguridad energética",
   "obligacionId": "RLSE-150-01",
   "responsable": "CFE",
-  "fragmento": "deben ser atendidos por la Transportista o la Distribuidora quienes deben actuar de manera ordenada y coordinada, en los términos que disponga el CENACE, a efecto de restablecer el servicio en el menor tiempo…",
+  "fragmento": "deben ser atendidos por la Transportista o la Distribuidora quienes deben actuar de manera ordenada y coordinada, en los términos que disponga el CENACE, a efecto de restablecer el servicio en el menor tiempo posible.",
   "fuente": "Reg. LSE, Art. 150",
   "derechos": "Protección de la salud (art. 4º): afectación por vínculo normativo · Vivienda adecuada (art. 4º): en riesgo · Continuidad y accesibilidad del servicio público de electricidad (art. 27): mandato constitucional",
   "salidaId": "PLADESE-3.2.2-01",
-  "salidaFragmento": "debido a los beneficios que aporta a las personas usuarias, como son: incremento en la confiabilidad, aumento en la calidad de la energía eléctrica, reducción en el número de interrupciones, uso eficiente de…",
+  "salidaFragmento": "debido a los beneficios que aporta a las personas usuarias, como son: incremento en la confiabilidad, aumento en la calidad de la energía eléctrica, reducción en el número de interrupciones, uso eficiente de la energía eléctrica, menor costo, uso de energías renovables",
   "salidaFuente": "PLADESE 2025-2039, Sección 3.2.2"
  },
  "IE.CORTE_MANTENIMIENTO": {
@@ -20,7 +20,7 @@
   "fuente": "Reg. LSE, Art. 142, párr. segundo y tercero",
   "derechos": "Protección de la salud (art. 4º): afectación por vínculo normativo · Continuidad y accesibilidad del servicio público de electricidad (art. 27): mandato constitucional",
   "salidaId": "PLADESE-3.2.2-01",
-  "salidaFragmento": "debido a los beneficios que aporta a las personas usuarias, como son: incremento en la confiabilidad, aumento en la calidad de la energía eléctrica, reducción en el número de interrupciones, uso eficiente de…",
+  "salidaFragmento": "debido a los beneficios que aporta a las personas usuarias, como son: incremento en la confiabilidad, aumento en la calidad de la energía eléctrica, reducción en el número de interrupciones, uso eficiente de la energía eléctrica, menor costo, uso de energías renovables",
   "salidaFuente": "PLADESE 2025-2039, Sección 3.2.2"
  },
  "IE.SUSPENSION_INDEBIDA": {
@@ -28,11 +28,11 @@
   "categoria": "Inseguridad energética",
   "obligacionId": "LSE-56-01",
   "responsable": "CFE",
-  "fragmento": "La Transportista y la Distribuidora sólo pueden suspender el servicio a las Usuarias Finales en los casos siguientes: I. Por caso fortuito o fuerza mayor; II. Por mantenimiento programado en las instalaciones,…",
+  "fragmento": "La Transportista y la Distribuidora sólo pueden suspender el servicio a las Usuarias Finales en los casos siguientes: I. Por caso fortuito o fuerza mayor; II. Por mantenimiento programado en las instalaciones, siempre que se haya notificado con anterioridad a la Usuaria Final o su representante;",
   "fuente": "LSE, Art. 56",
   "derechos": "Protección de la salud (art. 4º): afectación por vínculo normativo · Continuidad y accesibilidad del servicio público de electricidad (art. 27): mandato constitucional",
   "salidaId": "PLADESE-3.2.2-01",
-  "salidaFragmento": "debido a los beneficios que aporta a las personas usuarias, como son: incremento en la confiabilidad, aumento en la calidad de la energía eléctrica, reducción en el número de interrupciones, uso eficiente de…",
+  "salidaFragmento": "debido a los beneficios que aporta a las personas usuarias, como son: incremento en la confiabilidad, aumento en la calidad de la energía eléctrica, reducción en el número de interrupciones, uso eficiente de la energía eléctrica, menor costo, uso de energías renovables",
   "salidaFuente": "PLADESE 2025-2039, Sección 3.2.2"
  },
  "IE.DANO_APARATOS": {
@@ -44,7 +44,7 @@
   "fuente": "Reg. LSE, Art. 149",
   "derechos": "Continuidad y accesibilidad del servicio público de electricidad (art. 27): mandato constitucional",
   "salidaId": "PLADESE-3.2.2-01",
-  "salidaFragmento": "debido a los beneficios que aporta a las personas usuarias, como son: incremento en la confiabilidad, aumento en la calidad de la energía eléctrica, reducción en el número de interrupciones, uso eficiente de…",
+  "salidaFragmento": "debido a los beneficios que aporta a las personas usuarias, como son: incremento en la confiabilidad, aumento en la calidad de la energía eléctrica, reducción en el número de interrupciones, uso eficiente de la energía eléctrica, menor costo, uso de energías renovables",
   "salidaFuente": "PLADESE 2025-2039, Sección 3.2.2"
  },
  "IE.SIN_CONEXION": {
@@ -52,7 +52,7 @@
   "categoria": "Inseguridad energética",
   "obligacionId": "LSE-131-01",
   "responsable": "CFE",
-  "fragmento": "La Empresa Pública del Estado está obligada a instalar, conservar y mantener su infraestructura para brindar el Suministro Básico y el Servicio Público de Distribución, así como a prestar sus servicios a las…",
+  "fragmento": "La Empresa Pública del Estado está obligada a instalar, conservar y mantener su infraestructura para brindar el Suministro Básico y el Servicio Público de Distribución, así como a prestar sus servicios a las comunidades rurales y zonas urbanas marginadas",
   "fuente": "LSE, Art. 131",
   "derechos": "Vivienda adecuada (art. 4º): afectación por vínculo normativo · Alimentación (art. 4º): afectación por vínculo normativo · Protección de la salud (art. 4º): afectación por vínculo normativo · Continuidad y accesibilidad del servicio público de electricidad (art. 27): mandato constitucional",
   "salidaId": "PLADESE-2.5.9-02",
@@ -68,7 +68,7 @@
   "fuente": "Reg. LSE, Art. 119",
   "derechos": "Electricidad al menor precio posible, evitando el lucro (art. 28): mandato constitucional",
   "salidaId": "PROCFE-RE-06",
-  "salidaFragmento": "Incorporar tecnologías más eficientes y de menor costo, ciclos combinados de última generación y proyectos renovables, contribuye a la estabilidad tarifaria ante la volatilidad existente en los precios de los…",
+  "salidaFragmento": "Incorporar tecnologías más eficientes y de menor costo, ciclos combinados de última generación y proyectos renovables, contribuye a la estabilidad tarifaria ante la volatilidad existente en los precios de los combustibles.",
   "salidaFuente": "Programa de Desarrollo CFE 2026-2030 (PROCFE), Resumen ejecutivo"
  },
  "IE.QUEJA_SIN_RESPUESTA": {
@@ -80,7 +80,7 @@
   "fuente": "Reg. LSE, Art. 111, fr. IV",
   "derechos": "Se identifican en revisión",
   "salidaId": "PLADESE-3.2.2-01",
-  "salidaFragmento": "debido a los beneficios que aporta a las personas usuarias, como son: incremento en la confiabilidad, aumento en la calidad de la energía eléctrica, reducción en el número de interrupciones, uso eficiente de…",
+  "salidaFragmento": "debido a los beneficios que aporta a las personas usuarias, como son: incremento en la confiabilidad, aumento en la calidad de la energía eléctrica, reducción en el número de interrupciones, uso eficiente de la energía eléctrica, menor costo, uso de energías renovables",
   "salidaFuente": "PLADESE 2025-2039, Sección 3.2.2"
  },
  "IE.POBREZA_ENERGETICA": {
@@ -88,7 +88,7 @@
   "categoria": "Inseguridad energética",
   "obligacionId": "RLSE-36-01",
   "responsable": "SENER",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "fuente": "Reg. LSE, Art. 36",
   "derechos": "Vivienda adecuada (art. 4º): afectación por vínculo normativo · No discriminación por condición social (art. 1º): en riesgo",
   "salidaId": "RLSE-48-01",
@@ -100,11 +100,11 @@
   "categoria": "Inseguridad energética",
   "obligacionId": "LSE-48-01",
   "responsable": "CFE",
-  "fragmento": "La Transportista y la Distribuidora están obligadas a interconectar a sus redes las Centrales Eléctricas cuyos representantes lo soliciten, y a conectar a sus redes los Centros de Carga cuyos representantes lo…",
+  "fragmento": "La Transportista y la Distribuidora están obligadas a interconectar a sus redes las Centrales Eléctricas cuyos representantes lo soliciten, y a conectar a sus redes los Centros de Carga cuyos representantes lo soliciten, en condiciones no indebidamente discriminatorias, cuando ello sea técnicamente factible.",
   "fuente": "LSE, Art. 48",
   "derechos": "Medio ambiente sano (y responsabilidad por daño ambiental) (art. 4º): en riesgo",
   "salidaId": "LSE-26-01",
-  "salidaFragmento": "La Generación Distribuida cuenta con acceso a las Redes Generales de Distribución cuando es técnicamente factible, así como el acceso a los mercados donde pueda vender su producción. Para tal efecto: I. El…",
+  "salidaFragmento": "La Generación Distribuida cuenta con acceso a las Redes Generales de Distribución cuando es técnicamente factible, así como el acceso a los mercados donde pueda vender su producción. Para tal efecto: I. El Plan de Desarrollo del Sector Eléctrico debe considerar la expansión y modernización de las Redes Generales de Distribución que se requieren para interconectar la Generación Distribuida;",
   "salidaFuente": "LSE, Art. 26, fr. I"
  },
  "CC.APAGON_CLIMATICO": {
@@ -116,7 +116,7 @@
   "fuente": "LSE, Art. 12, fr. VII",
   "derechos": "Protección de la salud (art. 4º): afectación por vínculo normativo · Medio ambiente sano (y responsabilidad por daño ambiental) (art. 4º): afectación por vínculo normativo",
   "salidaId": "RLSE-174-01",
-  "salidaFragmento": "que contemplen la operación conjunta, gobernanza local o participación del sector social, en los que se reconozcan las condiciones particulares de las comunidades energéticas, cooperativas, autoridades locales…",
+  "salidaFragmento": "que contemplen la operación conjunta, gobernanza local o participación del sector social, en los que se reconozcan las condiciones particulares de las comunidades energéticas, cooperativas, autoridades locales u otros actores, que promuevan la Justicia Energética.",
   "salidaFuente": "Reg. LSE, Art. 174"
  },
  "CC.CALOR_EXTREMO": {
@@ -124,7 +124,7 @@
   "categoria": "Afectaciones por cambio climático",
   "obligacionId": "RLSE-34-04",
   "responsable": "SENER",
-  "fragmento": "Se entiende por necesidades básicas: el calentamiento de agua, la cocción y conservación de alimentos, la iluminación, la reducción a la exposición de emisiones y contaminantes derivados de energéticos…",
+  "fragmento": "Se entiende por necesidades básicas: el calentamiento de agua, la cocción y conservación de alimentos, la iluminación, la reducción a la exposición de emisiones y contaminantes derivados de energéticos rudimentarios y un hábitat con confort térmico, entre otras.",
   "fuente": "Reg. LSE, Art. 34, párr. segundo",
   "derechos": "Vivienda adecuada (art. 4º): afectación por vínculo normativo · Protección de la salud (art. 4º): afectación por vínculo normativo · Medio ambiente sano (y responsabilidad por daño ambiental) (art. 4º): afectación por vínculo normativo",
   "salidaId": "LSE-28-01",
@@ -160,11 +160,11 @@
   "categoria": "Afectaciones por cambio climático",
   "obligacionId": "LPTE-T6-01",
   "responsable": "SENER",
-  "fragmento": "La Secretaría de Energía dentro de un plazo no mayor a trescientos sesenta y cinco días naturales contados a partir de la entrada en vigor de la presente Ley debe publicar en el Diario Oficial de la…",
+  "fragmento": "La Secretaría de Energía dentro de un plazo no mayor a trescientos sesenta y cinco días naturales contados a partir de la entrada en vigor de la presente Ley debe publicar en el Diario Oficial de la Federación, la Estrategia Nacional de Transición Energética, el Plan para la Transición Energética y el Aprovechamiento Sustentable de la Energía, el Plan de Desarrollo del Sector Eléctrico y el Plan de Desarrollo del Sector Hidrocarburos.",
   "fuente": "LPTE, Transitorio Sexto",
   "derechos": "Medio ambiente sano (y responsabilidad por daño ambiental) (art. 4º): afectación por vínculo normativo",
   "salidaId": "LPTE-25-01",
-  "salidaFragmento": "La Estrategia debe incluir, al menos, las metas de Energías Renovables y demás Energías Limpias, Eficiencia Energética, reducción de la Pobreza Energética, electrificación de los usos finales de la energía y…",
+  "salidaFragmento": "La Estrategia debe incluir, al menos, las metas de Energías Renovables y demás Energías Limpias, Eficiencia Energética, reducción de la Pobreza Energética, electrificación de los usos finales de la energía y reducción de Emisiones Contaminantes que deben reflejar las aportaciones del Sector Energético a los compromisos en materia de cambio climático de México.",
   "salidaFuente": "LPTE, Art. 25"
  },
  "MP.SIN_CONSULTA": {
@@ -172,7 +172,7 @@
   "categoria": "Megaproyectos",
   "obligacionId": "LSE-135-01",
   "responsable": "SENER",
-  "fragmento": "la Secretaría debe llevar a cabo los procedimientos de consulta previa, libre e informada y cualquier otra actividad necesaria para su salvaguarda, en coordinación con la Empresa Pública del Estado o…",
+  "fragmento": "la Secretaría debe llevar a cabo los procedimientos de consulta previa, libre e informada y cualquier otra actividad necesaria para su salvaguarda, en coordinación con la Empresa Pública del Estado o interesados según el caso",
   "fuente": "LSE, Art. 135",
   "derechos": "Se identifican en revisión",
   "salidaId": "ENCC-M1.5-01",
@@ -208,7 +208,7 @@
   "categoria": "Megaproyectos",
   "obligacionId": "LSE-104-01",
   "responsable": "CFE o la empresa que promueve el proyecto",
-  "fragmento": "se deben abstener de realizar, directa o indirectamente, conductas o prácticas abusivas, discriminatorias o que busquen influir indebidamente en la decisión de las personas propietarias o personas titulares de…",
+  "fragmento": "se deben abstener de realizar, directa o indirectamente, conductas o prácticas abusivas, discriminatorias o que busquen influir indebidamente en la decisión de las personas propietarias o personas titulares de los terrenos, bienes o derechos",
   "fuente": "LSE, Art. 104",
   "derechos": "Se identifican en revisión",
   "salidaId": "PND-4.2.2-01",
@@ -220,7 +220,7 @@
   "categoria": "Megaproyectos",
   "obligacionId": "LPTE-9-01",
   "responsable": "SEMARNAT",
-  "fragmento": "Diseñar y aplicar, en el ámbito de su competencia y en coordinación con la Secretaría, los instrumentos de fomento y de normatividad para prevenir, controlar y remediar la contaminación proveniente de la…",
+  "fragmento": "Diseñar y aplicar, en el ámbito de su competencia y en coordinación con la Secretaría, los instrumentos de fomento y de normatividad para prevenir, controlar y remediar la contaminación proveniente de la generación y transmisión de energía eléctrica",
   "fuente": "LPTE, Art. 9, fr. I",
   "derechos": "Medio ambiente sano (y responsabilidad por daño ambiental) (art. 4º): afectación directa",
   "salidaId": "ENCC-M1.5-01",
@@ -232,11 +232,11 @@
   "categoria": "Megaproyectos",
   "obligacionId": "LSE-47-01",
   "responsable": "CFE",
-  "fragmento": "La Transportista y la Distribuidora deben llevar a cabo los proyectos de ampliación y modernización de la Red Nacional de Transmisión y las Redes Generales de Distribución que se incluyan en los programas…",
+  "fragmento": "La Transportista y la Distribuidora deben llevar a cabo los proyectos de ampliación y modernización de la Red Nacional de Transmisión y las Redes Generales de Distribución que se incluyan en los programas correspondientes, previa instrucción de la Secretaría.",
   "fuente": "LSE, Art. 47",
   "derechos": "Continuidad y accesibilidad del servicio público de electricidad (art. 27): mandato constitucional",
   "salidaId": "LSE-26-01",
-  "salidaFragmento": "La Generación Distribuida cuenta con acceso a las Redes Generales de Distribución cuando es técnicamente factible, así como el acceso a los mercados donde pueda vender su producción. Para tal efecto: I. El…",
+  "salidaFragmento": "La Generación Distribuida cuenta con acceso a las Redes Generales de Distribución cuando es técnicamente factible, así como el acceso a los mercados donde pueda vender su producción. Para tal efecto: I. El Plan de Desarrollo del Sector Eléctrico debe considerar la expansión y modernización de las Redes Generales de Distribución que se requieren para interconectar la Generación Distribuida;",
   "salidaFuente": "LSE, Art. 26, fr. I"
  },
  "MP.OPACIDAD": {
@@ -260,7 +260,7 @@
   "fuente": "LSE, Art. 28",
   "derechos": "Medio ambiente sano (y responsabilidad por daño ambiental) (art. 4º): afectación por vínculo normativo · Electricidad al menor precio posible, evitando el lucro (art. 28): mandato constitucional",
   "salidaId": "PLADESE-3.2.2-01",
-  "salidaFragmento": "debido a los beneficios que aporta a las personas usuarias, como son: incremento en la confiabilidad, aumento en la calidad de la energía eléctrica, reducción en el número de interrupciones, uso eficiente de…",
+  "salidaFragmento": "debido a los beneficios que aporta a las personas usuarias, como son: incremento en la confiabilidad, aumento en la calidad de la energía eléctrica, reducción en el número de interrupciones, uso eficiente de la energía eléctrica, menor costo, uso de energías renovables",
   "salidaFuente": "PLADESE 2025-2039, Sección 3.2.2"
  },
  "CC.CALOR_CIUDAD": {

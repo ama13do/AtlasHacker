@@ -120,7 +120,6 @@ const email = computed(() => {
 const emailOpened = (cliente: 'correo' | 'gmail') => track('click_cta', { boton: 'enviar_solicitud_correo', ubicacion: 'guia', cliente })
 
 const fmt = (n: number) => n.toLocaleString('es-MX', { maximumFractionDigits: 1 })
-const excerpt = (s: string, n = 240) => (s.length > n ? s.slice(0, n).replace(/\s+\S*$/, '') + '…' : s)
 
 // Tarjetas de color: siempre con tinta negra (también en oscuro) y sombra lima en oscuro
 const CARD = 'on-light space-y-2 rounded-[22px] border-2 border-black p-4 text-black shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_var(--color-neon-lime)]'
@@ -429,7 +428,7 @@ const HEADING = 'text-base leading-tight font-black uppercase'
               </p>
             </header>
             <div class="on-light space-y-3 bg-white p-4 text-sm text-black">
-              <p class="whitespace-pre-line">{{ excerpt(input.testimony.trim()) }}</p>
+              <p class="whitespace-pre-line">{{ input.testimony.trim() }}</p>
               <div class="space-y-1 rounded-2xl border-2 border-black bg-brand-orange p-3">
                 <p class="text-[11px] font-black tracking-wider uppercase">El Tribunal pregunta</p>
                 <p class="font-semibold">{{ guide.question }}</p>

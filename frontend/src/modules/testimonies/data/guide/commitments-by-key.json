@@ -43,7 +43,7 @@
  },
  "IE.APAGON|Peninsular": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "RLSE-39-01; PROCFE-RE-05; PROCFE-1.5.1-01; PLADESE-3.2.2-01"
@@ -57,7 +57,7 @@
  },
  "IE.APAGON|BCS": {
   "compromiso1": "PLADESE-4.31-01",
-  "fragmento": "Tabla 4.31. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en el Sistema Interconectado Baja California Sur […] Monto de inversión…",
+  "fragmento": "Tabla 4.31. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en el Sistema Interconectado Baja California Sur […] Monto de inversión MDP 7,676.10",
   "responsable": "CFE",
   "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.31",
   "verMas": "RLSE-36-01; RLSE-39-01; PROCFE-RE-05; PROCFE-1.5.1-01"
@@ -253,84 +253,84 @@
  },
  "IE.SIN_CONEXION|Central": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
  },
  "IE.SIN_CONEXION|Oriental": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
  },
  "IE.SIN_CONEXION|Occidental": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
  },
  "IE.SIN_CONEXION|Noroeste": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
  },
  "IE.SIN_CONEXION|Norte": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
  },
  "IE.SIN_CONEXION|Noreste": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
  },
  "IE.SIN_CONEXION|Peninsular": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
  },
  "IE.SIN_CONEXION|Baja California": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
  },
  "IE.SIN_CONEXION|BCS": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
  },
  "IE.COBRO|Central": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "RLSE-40-01; RLSE-34-03; PEF-A23-01; PLADESE-3.2.2-01"
  },
  "IE.COBRO|Oriental": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "RLSE-40-01; RLSE-34-03; PEF-A23-01; PLADESE-3.2.2-01"
  },
  "IE.COBRO|Occidental": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "RLSE-40-01; RLSE-34-03; PEF-A23-01; PLADESE-3.2.2-01"
@@ -358,7 +358,7 @@
  },
  "IE.COBRO|Peninsular": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "RLSE-40-01; RLSE-34-03; PEF-A23-01; PLADESE-3.2.2-01"
@@ -442,21 +442,21 @@
  },
  "IE.POBREZA_ENERGETICA|Central": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "RLSE-40-01; LSE-129-02; RLSE-39-01; PROCFE-RE-05"
  },
  "IE.POBREZA_ENERGETICA|Oriental": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "RLSE-40-01; LSE-129-02; RLSE-39-01; PROCFE-RE-05"
  },
  "IE.POBREZA_ENERGETICA|Occidental": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "RLSE-40-01; LSE-129-02; RLSE-39-01; PROCFE-RE-05"
@@ -484,7 +484,7 @@
  },
  "IE.POBREZA_ENERGETICA|Peninsular": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "RLSE-40-01; LSE-129-02; RLSE-39-01; PROCFE-RE-05"
@@ -610,7 +610,7 @@
  },
  "CC.APAGON_CLIMATICO|Peninsular": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "LGCC-30-01; LGCC-30-02; PROCFE-RE-05"
@@ -624,28 +624,28 @@
  },
  "CC.APAGON_CLIMATICO|BCS": {
   "compromiso1": "PLADESE-4.31-01",
-  "fragmento": "Tabla 4.31. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en el Sistema Interconectado Baja California Sur […] Monto de inversión…",
+  "fragmento": "Tabla 4.31. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en el Sistema Interconectado Baja California Sur […] Monto de inversión MDP 7,676.10",
   "responsable": "CFE",
   "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.31",
   "verMas": "RLSE-36-01; LGCC-30-01; LGCC-30-02; PROCFE-RE-05"
  },
  "CC.CALOR_EXTREMO|Central": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "RLSE-40-01; RLSE-34-03; LGCC-30-01; PEF-A23-01"
  },
  "CC.CALOR_EXTREMO|Oriental": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "RLSE-40-01; RLSE-34-03; LGCC-30-01; PEF-A23-01"
  },
  "CC.CALOR_EXTREMO|Occidental": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "RLSE-40-01; RLSE-34-03; LGCC-30-01; PEF-A23-01"
@@ -673,7 +673,7 @@
  },
  "CC.CALOR_EXTREMO|Peninsular": {
   "compromiso1": "RLSE-36-01",
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36",
   "verMas": "RLSE-40-01; RLSE-34-03; LGCC-30-01; PEF-A23-01"
@@ -876,7 +876,7 @@
  },
  "CC.OMISION_PLANEACION|BCS": {
   "compromiso1": "PLADESE-4.31-01",
-  "fragmento": "Tabla 4.31. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en el Sistema Interconectado Baja California Sur […] Monto de inversión…",
+  "fragmento": "Tabla 4.31. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en el Sistema Interconectado Baja California Sur […] Monto de inversión MDP 7,676.10",
   "responsable": "CFE",
   "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.31",
   "verMas": ""
@@ -1009,63 +1009,63 @@
  },
  "MP.BENEFICIOS_INCUMPLIDOS|Central": {
   "compromiso1": "PND-4.2.2-01",
-  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio climático.",
   "responsable": "SENER",
   "fuente": "PND 2025-2030, Estrategia 4.2.2",
   "verMas": ""
  },
  "MP.BENEFICIOS_INCUMPLIDOS|Oriental": {
   "compromiso1": "PND-4.2.2-01",
-  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio climático.",
   "responsable": "SENER",
   "fuente": "PND 2025-2030, Estrategia 4.2.2",
   "verMas": ""
  },
  "MP.BENEFICIOS_INCUMPLIDOS|Occidental": {
   "compromiso1": "PND-4.2.2-01",
-  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio climático.",
   "responsable": "SENER",
   "fuente": "PND 2025-2030, Estrategia 4.2.2",
   "verMas": ""
  },
  "MP.BENEFICIOS_INCUMPLIDOS|Noroeste": {
   "compromiso1": "PND-4.2.2-01",
-  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio climático.",
   "responsable": "SENER",
   "fuente": "PND 2025-2030, Estrategia 4.2.2",
   "verMas": ""
  },
  "MP.BENEFICIOS_INCUMPLIDOS|Norte": {
   "compromiso1": "PND-4.2.2-01",
-  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio climático.",
   "responsable": "SENER",
   "fuente": "PND 2025-2030, Estrategia 4.2.2",
   "verMas": ""
  },
  "MP.BENEFICIOS_INCUMPLIDOS|Noreste": {
   "compromiso1": "PND-4.2.2-01",
-  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio climático.",
   "responsable": "SENER",
   "fuente": "PND 2025-2030, Estrategia 4.2.2",
   "verMas": ""
  },
  "MP.BENEFICIOS_INCUMPLIDOS|Peninsular": {
   "compromiso1": "PND-4.2.2-01",
-  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio climático.",
   "responsable": "SENER",
   "fuente": "PND 2025-2030, Estrategia 4.2.2",
   "verMas": ""
  },
  "MP.BENEFICIOS_INCUMPLIDOS|Baja California": {
   "compromiso1": "PND-4.2.2-01",
-  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio climático.",
   "responsable": "SENER",
   "fuente": "PND 2025-2030, Estrategia 4.2.2",
   "verMas": ""
  },
  "MP.BENEFICIOS_INCUMPLIDOS|BCS": {
   "compromiso1": "PND-4.2.2-01",
-  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio climático.",
   "responsable": "SENER",
   "fuente": "PND 2025-2030, Estrategia 4.2.2",
   "verMas": ""
@@ -1254,7 +1254,7 @@
  },
  "MP.OBRA_RED_RETRASADA|BCS": {
   "compromiso1": "PLADESE-4.31-01",
-  "fragmento": "Tabla 4.31. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en el Sistema Interconectado Baja California Sur […] Monto de inversión…",
+  "fragmento": "Tabla 4.31. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en el Sistema Interconectado Baja California Sur […] Monto de inversión MDP 7,676.10",
   "responsable": "CFE",
   "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.31",
   "verMas": ""

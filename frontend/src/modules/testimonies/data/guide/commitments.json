@@ -20,7 +20,7 @@
   "fuente": "LSE, Art. 129, párr. segundo"
  },
  "LSE-26-01": {
-  "fragmento": "La Generación Distribuida cuenta con acceso a las Redes Generales de Distribución cuando es técnicamente factible, así como el acceso a los mercados donde pueda vender su…",
+  "fragmento": "La Generación Distribuida cuenta con acceso a las Redes Generales de Distribución cuando es técnicamente factible, así como el acceso a los mercados donde pueda vender su producción. Para tal efecto: I. El Plan de Desarrollo del Sector Eléctrico debe considerar la expansión y modernización de las Redes Generales de Distribución que se requieren para interconectar la Generación Distribuida;",
   "responsable": "SENER",
   "fuente": "LSE, Art. 26, fr. I"
  },
@@ -35,7 +35,7 @@
   "fuente": "NDC 3.0 México, Sector generación eléctrica, línea 2.3.2"
  },
  "NDC-GE-01": {
-  "fragmento": "el Gobierno de México impulsa programas de acceso universal a la energía, que buscan llevar electricidad a más de 500,000 hogares para 2030 y alcanzar una cobertura del 99 % en el…",
+  "fragmento": "el Gobierno de México impulsa programas de acceso universal a la energía, que buscan llevar electricidad a más de 500,000 hogares para 2030 y alcanzar una cobertura del 99 % en el país.",
   "responsable": "SENER  — la NDC no asigna responsables por línea de acción",
   "fuente": "NDC 3.0 México, Sector generación eléctrica (texto introductorio)"
  },
@@ -50,12 +50,12 @@
   "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)"
  },
  "PLADESE-2.5.9-03": {
-  "fragmento": "Para 2025, se tiene programado construir 4,373 acciones de electrificación financiados por el FSUE, y con el apoyo del INPI, por una inversión de 2,402 millones de pesos, para…",
+  "fragmento": "Para 2025, se tiene programado construir 4,373 acciones de electrificación financiados por el FSUE, y con el apoyo del INPI, por una inversión de 2,402 millones de pesos, para beneficiar a 212,860 habitantes",
   "responsable": "SENER",
   "fuente": "PLADESE 2025-2039, Sección 2.5.9"
  },
  "PLADESE-3.2.2-01": {
-  "fragmento": "debido a los beneficios que aporta a las personas usuarias, como son: incremento en la confiabilidad, aumento en la calidad de la energía eléctrica, reducción en el número de…",
+  "fragmento": "debido a los beneficios que aporta a las personas usuarias, como son: incremento en la confiabilidad, aumento en la calidad de la energía eléctrica, reducción en el número de interrupciones, uso eficiente de la energía eléctrica, menor costo, uso de energías renovables",
   "responsable": "SENER",
   "fuente": "PLADESE 2025-2039, Sección 3.2.2"
  },
@@ -100,12 +100,12 @@
   "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.30"
  },
  "PLADESE-4.31-01": {
-  "fragmento": "Tabla 4.31. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en el Sistema Interconectado Baja California Sur […] Monto de inversión…",
+  "fragmento": "Tabla 4.31. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en el Sistema Interconectado Baja California Sur […] Monto de inversión MDP 7,676.10",
   "responsable": "CFE",
   "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.31"
  },
  "PND-4.2.2-01": {
-  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio climático.",
   "responsable": "SENER",
   "fuente": "PND 2025-2030, Estrategia 4.2.2"
  },
@@ -115,7 +115,7 @@
   "fuente": "PND 2025-2030, Indicador 4.4"
  },
  "PROCFE-1.5.1-01": {
-  "fragmento": "Distribución: Desarrollo y ampliación de subestaciones, modernización de redes de distribución y proyectos de electrificación a través del programa “Justicia Energética” por un…",
+  "fragmento": "Distribución: Desarrollo y ampliación de subestaciones, modernización de redes de distribución y proyectos de electrificación a través del programa “Justicia Energética” por un monto total de 2.6 mmdd.",
   "responsable": "CFE",
   "fuente": "Programa de Desarrollo CFE 2026-2030 (PROCFE), Sección 1.5.1"
  },
@@ -125,12 +125,12 @@
   "fuente": "Programa de Desarrollo CFE 2026-2030 (PROCFE), Resumen ejecutivo"
  },
  "PROCFE-RE-06": {
-  "fragmento": "Incorporar tecnologías más eficientes y de menor costo, ciclos combinados de última generación y proyectos renovables, contribuye a la estabilidad tarifaria ante la volatilidad…",
+  "fragmento": "Incorporar tecnologías más eficientes y de menor costo, ciclos combinados de última generación y proyectos renovables, contribuye a la estabilidad tarifaria ante la volatilidad existente en los precios de los combustibles.",
   "responsable": "CFE",
   "fuente": "Programa de Desarrollo CFE 2026-2030 (PROCFE), Resumen ejecutivo"
  },
  "RLSE-174-01": {
-  "fragmento": "que contemplen la operación conjunta, gobernanza local o participación del sector social, en los que se reconozcan las condiciones particulares de las comunidades energéticas,…",
+  "fragmento": "que contemplen la operación conjunta, gobernanza local o participación del sector social, en los que se reconozcan las condiciones particulares de las comunidades energéticas, cooperativas, autoridades locales u otros actores, que promuevan la Justicia Energética.",
   "responsable": "CNE",
   "fuente": "Reg. LSE, Art. 174"
  },
@@ -140,22 +140,22 @@
   "fuente": "Reg. LSE, Art. 34, fr. VI"
  },
  "RLSE-34-04": {
-  "fragmento": "Se entiende por necesidades básicas: el calentamiento de agua, la cocción y conservación de alimentos, la iluminación, la reducción a la exposición de emisiones y contaminantes…",
+  "fragmento": "Se entiende por necesidades básicas: el calentamiento de agua, la cocción y conservación de alimentos, la iluminación, la reducción a la exposición de emisiones y contaminantes derivados de energéticos rudimentarios y un hábitat con confort térmico, entre otras.",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 34, párr. segundo"
  },
  "RLSE-36-01": {
-  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades sociales y de género, la inclusión de pueblos y comunidades indígenas y afromexicanas",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 36"
  },
  "RLSE-39-01": {
-  "fragmento": "La Secretaría debe establecer los mecanismos para garantizar que anualmente los programas de ampliación y modernización de la Red Nacional de Transmisión y de las Redes Generales…",
+  "fragmento": "La Secretaría debe establecer los mecanismos para garantizar que anualmente los programas de ampliación y modernización de la Red Nacional de Transmisión y de las Redes Generales de Distribución, incluyan y ejecuten proyectos que cumplan con los objetivos de Justicia Energética",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 39, párr. segundo"
  },
  "RLSE-40-01": {
-  "fragmento": "La Secretaría debe diseñar e implementar un sistema de indicadores de Justicia Energética que mida el cumplimiento efectivo de los objetivos en las acciones, programas,…",
+  "fragmento": "La Secretaría debe diseñar e implementar un sistema de indicadores de Justicia Energética que mida el cumplimiento efectivo de los objetivos en las acciones, programas, estrategias y en los proyectos financiados, así como publicar anualmente los resultados obtenidos",
   "responsable": "SENER",
   "fuente": "Reg. LSE, Art. 40"
  }
