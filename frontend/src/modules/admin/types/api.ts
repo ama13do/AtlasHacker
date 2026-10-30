@@ -1,3 +1,5 @@
+import type { Complaint, FactKey, Since, Threats } from '@testimonies/data/facts'
+
 // Contratos crudos de /api/auth y /api/admin (ver ../backend/src/routes/auth.ts y routes/admin/*)
 
 export type Rol = 'superadmin' | 'admin' | 'moderador' | 'facilitador' | 'lector'
@@ -157,6 +159,13 @@ export interface ApiTestimonioStaff extends Omit<ApiTestimonioStaffFila, 'catego
   expediente: { id: string; codigo: string; titulo: string; materia: string | null } | null
   evidencias: ApiEvidenciaStaff[]
   tiene_auditoria: boolean
+  // Formulario de 4 pantallas (vacíos en testimonios anteriores)
+  hechos: FactKey[] | null
+  subcategoria: string | null
+  desde_cuando: Since | null
+  sigue_pasando: boolean | null
+  reclamo_previo: Complaint | null
+  amenazas: Threats | null
 }
 
 // PATCH /api/admin/testimonios/{id} (subconjunto que edita el dashboard)

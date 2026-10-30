@@ -2,6 +2,7 @@
 // Se llena desde la API con services/mappers.ts
 
 import type { CoverName } from '@testimonies/data/covers'
+import type { Complaint, FactKey, Since, Threats } from '@testimonies/data/facts'
 import type { ApiTipoEvidencia } from '@testimonies/types/api'
 
 // Slug de la categoría de la API (p. ej. 'megaproyectos'); las categorías vienen de /api/config
@@ -137,47 +138,33 @@ export interface UploadItem {
 }
 
 export interface TestimonyDraft {
-  // Datos generales
+  // 1 · ¿Qué pasa? (el primero es el principal) → categoría (topic), que se asigna sola
+  facts: FactKey[]
   topic: CategorySlug | null
-  title: string
-  place: string
+  // 2 · ¿Dónde y desde cuándo?
   coordinates: [number, number] | null
-  state: string // Entidad (se completa sola al marcar el lugar)
-  municipality: string // Municipio (se completa con la búsqueda / geocodificación inversa)
+  state: string // Estado (se completa al marcar el lugar)
+  municipality: string // Municipio (obligatorio; se completa con la geocodificación inversa)
+  place: string // Comunidad o colonia (opcional)
   locationSource: LocationSource | null
   gpsAccuracy: number | null // metros
-  date: string // YYYY-MM-DD
-  name: string
-  visibility: Visibility
-  facilitator: string
-  // 1–3
+  since: Since | null // ¿Desde cuándo pasa?
+  ongoing: boolean | null // ¿Sigue pasando?
+  // 3 · Cuéntalo
+  title: string
   testimony: string
-  territory: string
-  community: string
-  // 4
-  documentStatus: DocumentStatus | null
-  documentDescription: string
-  evidence: EvidenceType[]
-  evidenceOther: string
+  tribunalQuestion: string // Tu pregunta al Tribunal (opcional)
   links: string[] // Links como evidencia (publicaciones, notas, videos…)
   files: EvidenceAttachment[]
-  // 5–6
-  dataText: string // «Datos»
-  sources: DraftSource[] // Una o varias fuentes
-  dataPendingVerification: boolean
-  tribunalQuestion: string
-  // C.11 · La última pregunta
-  anythingElse: string
-  voiceRecord: string // Cómo quiere que quede registrada su voz (interno)
-  // Consentimiento e información sensible
-  voluntary: boolean
+  // 4 · Dos preguntas
+  complaint: Complaint | null // ¿Ya reclamaste?
+  threats: Threats | null // ¿Te han amenazado? (solo con un proyecto en el territorio)
+  visibility: Visibility
+  name: string
+  facilitator: string // Solo en la captura desde el panel
+  // Autorización de un testimonio anterior que se edita (los nuevos se publican según «cómo apareces»)
   consent: Consent | null
-  mediaConsent: MediaConsent | null // C.10 · Personas fotografiadas autorizaron su imagen
-  voiceImage: VoiceImage | null // C.4 · Transmisión o grabación de voz o imagen
-  sensitive: boolean | null
-  minors: boolean | null // C.10 · Información de niñas, niños o adolescentes
-  stripMetadata: boolean // Borrar la huella digital (metadatos) de las fotos antes de subirlas
-  sensitiveHandling: SensitiveHandling | null
+  voluntary: boolean
   // Folio de participante y contacto (opcionales)
   folio: string
   email: string
@@ -202,6 +189,7 @@ export interface MyTestimony {
   reactions: number
   comments: number
   updatedAt: string
+  hasGuide: boolean // Enviado con el formulario de 4 pantallas: tiene guía
 }
 
 export interface ParticipantProfile {

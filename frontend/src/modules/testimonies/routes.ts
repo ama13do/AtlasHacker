@@ -44,4 +44,11 @@ export const testimoniesRoutes: RouteRecordRaw[] = [
     component: () => import('@testimonies/views/EditTestimonyPage.vue'),
     props: true,
   },
+  {
+    // Guía «En una transición energética justa…» de un testimonio propio
+    path: '/mi-folio/testimonios/:id/guia',
+    name: 'my-testimony-guide',
+    component: () => import('@testimonies/views/TestimonyGuidePage.vue'),
+    props: true,
+  },
 ]

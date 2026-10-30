@@ -13,6 +13,7 @@ import ModerationActions from '@admin/components/ModerationActions.vue'
 import ModerationStatus from '@admin/components/ModerationStatus.vue'
 import StaffContentEditor from '@admin/components/StaffContentEditor.vue'
 import StaffEvidencePanel from '@admin/components/StaffEvidencePanel.vue'
+import { COMPLAINT_LABELS, FACT_LABELS, SINCE_LABELS, SUBCATEGORY_LABELS, THREATS_LABELS } from '@testimonies/data/facts'
 
 const props = defineProps<{ id: string }>()
 
@@ -97,6 +98,23 @@ const evidenceTypes = computed(() => (t.value?.evidencia_tipos ?? []).map((e: st
 
 const DOCUMENT_LABELS = { si: 'Sí', no: 'No', pendiente: 'Pendiente' } as const
 
+// Respuestas del formulario de 4 pantallas (los testimonios anteriores no las tienen)
+const protection = computed(() => t.value?.amenazas === 'si' || t.value?.amenazas === 'prefiero_no_decir')
+const ANSWERS = computed(() => {
+  const v = t.value
+  if (!v) return []
+  return (
+    [
+      ['¿Qué pasa?', (v.hechos ?? []).map((h, i) => `${FACT_LABELS[h] ?? h}${i === 0 ? ' (principal)' : ''}`).join(', ')],
+      ['Subcategoría', v.subcategoria ? (SUBCATEGORY_LABELS[v.subcategoria] ?? v.subcategoria) : ''],
+      ['Desde cuándo', v.desde_cuando ? SINCE_LABELS[v.desde_cuando] : ''],
+      ['¿Sigue pasando?', v.sigue_pasando === null || v.sigue_pasando === undefined ? '' : v.sigue_pasando ? 'Sí' : 'No'],
+      ['¿Ya reclamaste?', v.reclamo_previo ? COMPLAINT_LABELS[v.reclamo_previo] : ''],
+      ['¿Amenazas?', v.amenazas ? THREATS_LABELS[v.amenazas] + (protection.value ? ' · modo protección' : '') : ''],
+    ] as [string, string][]
+  ).filter(([, value]) => value)
+})
+
 const SECTIONS = computed(() =>
   t.value
     ? ([
@@ -140,6 +158,7 @@ const TERRITORY_SECTIONS = computed(() =>
             {{ t.categoria.nombre }}
           </span>
           <span v-if="t.info_sensible" class="rounded-full bg-brand-orange px-2.5 py-0.5 text-xs font-semibold text-black">⚠ Información sensible</span>
+          <span v-if="protection" class="rounded-full bg-danger px-2.5 py-0.5 text-xs font-semibold text-white">Modo protección · amenazas</span>
         </div>
         <h1 class="text-2xl leading-tight font-semibold">{{ t.titulo || 'Sin título' }}</h1>
         <p class="text-sm text-fg/60">
@@ -167,6 +186,12 @@ const TERRITORY_SECTIONS = computed(() =>
             <StaffContentEditor v-if="editing" :testimony="t" @saved="updated" @cancel="editing = false" />
 
             <template v-else>
+              <dl v-if="ANSWERS.length" class="grid gap-x-4 gap-y-1.5 rounded-2xl bg-fg/5 p-4 text-sm sm:grid-cols-[10rem_1fr]">
+                <template v-for="[label, value] in ANSWERS" :key="label">
+                  <dt class="text-fg/60">{{ label }}</dt>
+                  <dd class="font-semibold" :class="{ 'text-danger': label === '¿Amenazas?' && protection }">{{ value }}</dd>
+                </template>
+              </dl>
               <div v-for="[title, text] in SECTIONS" :key="title">
                 <h3 class="mb-1 text-xs font-semibold tracking-wide text-fg/50 uppercase">{{ title }}</h3>
                 <p class="text-sm leading-relaxed whitespace-pre-line text-fg/85">{{ text }}</p>

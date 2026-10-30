@@ -42,6 +42,15 @@ describe('reglas de publicación', () => {
     }
   });
 
+  it('REGLA FIJA: modo protección (amenazas) nunca se publica solo y generaliza la ubicación', () => {
+    for (const modo of ['revisar_todo', 'auto_si_no_sensible', 'auto_todo'] as const) {
+      for (const amenazas of ['si', 'prefiero_no_decir'] as const) {
+        expect(decidirPublicacion(modo, { ...base, amenazas })).toMatchObject({ estado: 'pendiente', ubicacion_aproximada: true });
+      }
+    }
+    expect(decidirPublicacion('auto_todo', { ...base, amenazas: 'no' }).estado).toBe('aprobado');
+  });
+
   it('evidencias: recibos y documentos oficiales nunca se publican solos; multimedia solo en modos automáticos y con autorización', () => {
     expect(evidenciaPublicaPorDefecto('auto_todo', 'aprobado', 'si', 'foto')).toBe(true);
     expect(evidenciaPublicaPorDefecto('auto_todo', 'aprobado', 'si', 'recibo_factura')).toBe(false);

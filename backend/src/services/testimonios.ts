@@ -14,7 +14,7 @@ import type { AppEnv, UsuarioAuth } from '../types.js';
 import { diferencias, registrarBitacora } from './bitacora.js';
 import { obtenerConfiguracion } from './configuracion.js';
 import { crearParticipante } from './participantes.js';
-import { decidirPublicacion, evidenciaPublicaPorDefecto } from './reglas.js';
+import { decidirPublicacion, enModoProteccion, evidenciaPublicaPorDefecto } from './reglas.js';
 
 type Ctx = Context<AppEnv>;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -73,13 +73,15 @@ export async function crearTestimonio(c: Ctx, input: CrearTestimonioInput | Crea
   const expediente = await resolverExpediente(input.expediente);
   const categoria = await resolverCategoria(input.categoria);
 
-  const aparecerComo = input.aparecer_como ?? 'anonimo';
+  // Modo protección: siempre anónimo, aunque se haya pedido aparecer con nombre
+  const aparecerComo = enModoProteccion(input.amenazas) ? 'anonimo' : (input.aparecer_como ?? 'anonimo');
   const infoSensible = input.info_sensible ?? false;
   const decision = decidirPublicacion(cfg.modo_publicacion, {
     autorizacion: input.autorizacion,
     info_sensible: infoSensible,
     sensible_accion: input.sensible_accion,
     info_menores: input.info_menores ?? false,
+    amenazas: input.amenazas,
   });
   const nombrePublico = aparecerComo === 'nombre' ? (input.nombre_publico ?? input.nombre ?? null) : null;
 
@@ -124,6 +126,12 @@ export async function crearTestimonio(c: Ctx, input: CrearTestimonioInput | Crea
             ubicacion: input.ubicacion,
             ubicacion_aproximada: decision.ubicacion_aproximada,
             origen_ubicacion: input.origen_ubicacion ?? 'mapa',
+            hechos: input.hechos ?? [],
+            subcategoria: input.subcategoria,
+            desde_cuando: input.desde_cuando,
+            sigue_pasando: input.sigue_pasando,
+            reclamo_previo: input.reclamo_previo,
+            amenazas: input.amenazas,
             relato: input.relato,
             territorio_dice: input.territorio_dice,
             comunidad_dice: input.comunidad_dice,
@@ -227,6 +235,7 @@ export async function listarPropios(participanteId: string) {
       motivo_rechazo: testimonios.motivo_rechazo,
       lugar_territorio: testimonios.lugar_territorio,
       fecha: testimonios.fecha,
+      hechos: testimonios.hechos,
       categoria_slug: sql<string>`(select slug from categorias c where c.id = ${colDe('testimonios', 'categoria_id')})`,
       reacciones_total: testimonios.reacciones_total,
       comentarios_conteo: testimonios.comentarios_conteo,
@@ -391,7 +400,7 @@ function aEnlaces(urls: string[], previos: EnlaceEvidencia[], publicaNueva: bool
 function coherenciaNombre(actual: { aparecer_como: string; nombre_publico: string | null }, set: CambiosInternos) {
   const aparecer = (set.aparecer_como ?? actual.aparecer_como) as string;
   if (aparecer === 'anonimo') {
-    if (actual.nombre_publico !== null) set.nombre_publico = null;
+    if (actual.nombre_publico !== null || set.nombre_publico) set.nombre_publico = null;
   } else if (!(set.nombre_publico ?? actual.nombre_publico)) throw E.invalido('Para aparecer con nombre indica "nombre_publico"');
 }
 
@@ -403,6 +412,8 @@ export async function editarPropio(c: Ctx, participanteId: string, id: string, i
   if (!actual) throw E.noEncontrado('Testimonio');
 
   const set = await aColumnas(input);
+  const amenazasFinal = (set.amenazas ?? actual.amenazas) as string | null;
+  if (enModoProteccion(amenazasFinal)) set.aparecer_como = 'anonimo';
   coherenciaNombre(actual, set);
   const sensible = set.info_sensible ?? actual.info_sensible;
   const accion = set.sensible_accion ?? actual.sensible_accion;
@@ -415,6 +426,7 @@ export async function editarPropio(c: Ctx, participanteId: string, id: string, i
     info_sensible: sensible,
     sensible_accion: (set.info_sensible === false ? null : accion) as never,
     info_menores: (set.info_menores ?? actual.info_menores) as boolean,
+    amenazas: amenazasFinal as never,
   });
   set.estado = cfg.edicion_requiere_revision ? 'pendiente' : decision.estado;
   set.motivo_rechazo = null;

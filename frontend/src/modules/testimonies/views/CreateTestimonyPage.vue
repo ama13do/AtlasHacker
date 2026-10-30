@@ -1,20 +1,17 @@
 <script setup lang="ts">
 import { track } from '@/core/analytics/analytics'
 import { stripAttachments } from '@testimonies/utils/stripMetadata'
-import { computed, nextTick, onMounted, ref, watch, type Component } from 'vue'
+import { computed, defineAsyncComponent, nextTick, onMounted, ref, watch, type Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { DEFAULT_MAP_SLUG } from '@testimonies/data/maps'
 import { provideTestimonyForm, STEPS, useTestimonyForm } from '@testimonies/composables/useTestimonyForm'
 import { useCategoriesStore } from '@testimonies/stores/categories'
 import { useTestimoniesStore } from '@testimonies/stores/testimonies'
 import type { CreateTestimonyResult, TestimonyDraft } from '@testimonies/types/testimony'
-import StepConsent from '@testimonies/components/form/StepConsent.vue'
-import StepData from '@testimonies/components/form/StepData.vue'
-import StepEvidence from '@testimonies/components/form/StepEvidence.vue'
-import StepGeneral from '@testimonies/components/form/StepGeneral.vue'
-import StepReview from '@testimonies/components/form/StepReview.vue'
-import StepTerritory from '@testimonies/components/form/StepTerritory.vue'
-import StepTestimony from '@testimonies/components/form/StepTestimony.vue'
+import StepPlace from '@testimonies/components/form/StepPlace.vue'
+import StepQuestions from '@testimonies/components/form/StepQuestions.vue'
+import StepStory from '@testimonies/components/form/StepStory.vue'
+import StepWhat from '@testimonies/components/form/StepWhat.vue'
 import FormStepper from '@testimonies/components/form/FormStepper.vue'
 import SubmitSuccess from '@testimonies/components/form/SubmitSuccess.vue'
 import SubmitCelebration from '@testimonies/components/form/SubmitCelebration.vue'
@@ -28,6 +25,10 @@ import { fieldErrorsFromApi } from '@testimonies/utils/apiErrors'
 import { normalizeParticipantFolio } from '@testimonies/utils/folio'
 import { participantService } from '@testimonies/services/participant.service'
 import UploadProgress from '@testimonies/components/UploadProgress.vue'
+import { guideInputOf, hasGuide, type GuideInput } from '@testimonies/utils/guideInput'
+
+// La guía trae los datos del Excel: se carga solo cuando se abre
+const TestimonyGuide = defineAsyncComponent(() => import('@testimonies/components/guide/TestimonyGuide.vue'))
 
 // Sin `edit`: subir un testimonio nuevo. Con `edit`: editar uno propio (desde Mi folio)
 // `panel`: dentro del inicio (barra lateral en escritorio, pantalla completa en móvil), en una sola columna
@@ -38,15 +39,7 @@ const props = defineProps<{
 const editing = !!props.edit
 const panel = props.variant === 'panel'
 
-const STEP_COMPONENTS: Component[] = [
-  StepGeneral,
-  StepTestimony,
-  StepEvidence,
-  StepTerritory,
-  StepData,
-  StepConsent,
-  StepReview,
-]
+const STEP_COMPONENTS: Component[] = [StepWhat, StepPlace, StepStory, StepQuestions]
 
 const router = useRouter()
 const route = useRoute()
@@ -71,6 +64,9 @@ const result = ref<CreateTestimonyResult | null>(null)
 const celebrate = ref(false)
 // Solo en local: ?preview=exito la muestra sin enviar nada (la API de desarrollo es la de producción)
 const previewCelebration = ref(import.meta.env.DEV && route.query.preview === 'exito')
+// Guía después de enviar (con una copia de las respuestas: el borrador se limpia)
+const guideInput = ref<GuideInput | null>(null)
+const showGuide = ref(false)
 // Edición guardada
 const saved = ref(false)
 const title = editing ? 'Editar testimonio' : 'Subir testimonio'
@@ -152,15 +148,15 @@ async function onSubmit() {
 
   submitting.value = true
   submitError.value = null
-  // Se copian antes de limpiar el borrador
-  // «Proteger mi huella digital»: fotos sin metadatos (GPS, fecha, teléfono)
-  const files = draft.stripMetadata ? await stripAttachments(draft.files) : [...draft.files]
+  // Se copian antes de limpiar el borrador. Las fotos van sin metadatos (GPS, fecha, teléfono)
+  const files = await stripAttachments(draft.files)
   const folio = normalizeParticipantFolio(draft.folio) ?? rememberedFolio.value
   try {
     result.value = await store.create({ ...draft, files }, { captchaToken: captchaToken.value, folio })
     // «success»: la persona llegó al final y su testimonio quedó guardado (conteo de quienes terminan)
     track('success', { tipo: 'testimonio', categoria: draft.topic ?? undefined, con_evidencias: files.length > 0, participante_nuevo: !folio })
     celebrate.value = marchIsUpcoming()
+    guideInput.value = guideInputOf(draft)
     form.reset()
     const uploadFolio = result.value.participantFolio ?? folio
     if (files.length && uploadFolio) upload.start(result.value.id, uploadFolio, files)
@@ -177,8 +173,8 @@ async function onSubmit() {
 async function saveEdit(edit: NonNullable<typeof props.edit>) {
   submitting.value = true
   submitError.value = null
-  // «Proteger mi huella digital»: fotos sin metadatos (GPS, fecha, teléfono)
-  const files = draft.stripMetadata ? await stripAttachments(draft.files) : [...draft.files]
+  // Fotos sin metadatos (GPS, fecha, teléfono)
+  const files = await stripAttachments(draft.files)
   try {
     await participantService.updateMine(edit.participantFolio, edit.id, draft)
     saved.value = true
@@ -211,7 +207,7 @@ function handleSubmitError(error: Partial<ApiError>) {
     submitError.value = 'La verificación expiró. Vuelve a verificar e intenta de nuevo.'
   } else if (error.status === 401) {
     // Folio inválido (el escrito o el recordado)
-    form.showErrors(5, { folio: 'Este folio no es válido. Revísalo o envía sin folio.' })
+    form.showErrors(STEPS.length - 1, { folio: 'Este folio no es válido. Revísalo o envía sin folio.' })
     if (!draft.folio.trim()) draft.folio = rememberedFolio.value ?? ''
     submitError.value = 'Tu folio no es válido.'
     focusFirstError()
@@ -227,6 +223,14 @@ function handleSubmitError(error: Partial<ApiError>) {
 function startOver() {
   form.reset()
   showRestored.value = false
+}
+
+const GUIDE_STATUS = { pendiente: 'en revisión, todavía no es público', aprobado: 'publicado en el mapa', rechazado: 'no publicado' } as const
+
+function openGuide(open: boolean) {
+  showGuide.value = open
+  scroller.value?.scrollTo({ top: 0 })
+  if (!panel) window.scrollTo({ top: 0 })
 }
 
 function viewOnMap() {
@@ -254,7 +258,7 @@ function viewOnMap() {
 
         <div class="mt-auto space-y-4">
           <p class="text-xs leading-relaxed text-fg/40">
-            El recibo dice. El territorio dice. La comunidad dice. Los datos dicen. El Tribunal pregunta.
+            Lo que vives cuenta. Tu testimonio se revisa antes de sumarse al mapa.
           </p>
           <div class="flex items-center justify-between gap-3">
             <RouterLink
@@ -310,19 +314,26 @@ function viewOnMap() {
           class="@container flex-1 px-4 py-6"
           :class="panel ? 'min-h-0 overflow-y-auto md:px-5' : 'md:overflow-y-auto md:px-10 md:py-8'"
         >
-          <SubmitSuccess
-            v-if="result"
-            :result="result"
-            :upload="upload"
-            @view-on-map="viewOnMap"
-            @home="router.push(closeTo)"
-          />
-          <SubmitCelebration
-            v-if="(result && celebrate) || previewCelebration"
-            :published="result?.published ?? false"
-            :has-folio="result ? !!result.participantFolio : true"
-            @close="(celebrate = false), (previewCelebration = false)"
-          />
+          <template v-if="result">
+            <div v-if="showGuide && guideInput" class="space-y-6">
+              <UploadProgress :upload="upload" />
+              <TestimonyGuide :input="guideInput" :folio="result.folio" :status="GUIDE_STATUS[result.status]">
+                <div class="mt-6 flex flex-col gap-3 @xl:flex-row">
+                  <button type="button" class="btn-hxnf btn-paper" @click="openGuide(false)">Volver a tu folio</button>
+                  <button v-if="result.published" type="button" class="btn-hxnf btn-lime" @click="viewOnMap">Ver en el mapa</button>
+                </div>
+              </TestimonyGuide>
+            </div>
+            <SubmitSuccess
+              v-else
+              :result="result"
+              :upload="upload"
+              :has-guide="!!guideInput && hasGuide(guideInput)"
+              @guide="openGuide(true)"
+              @view-on-map="viewOnMap"
+              @home="router.push(closeTo)"
+            />
+          </template>
 
           <!-- Edición guardada -->
           <div v-else-if="saved" class="flex flex-col items-center gap-6 py-10 text-center">
@@ -398,6 +409,14 @@ function viewOnMap() {
               </template>
             </section>
           </template>
+
+          <!-- Ventana de cierre (aparta la fecha, redes): encima de lo que haya -->
+          <SubmitCelebration
+            v-if="(result && celebrate) || previewCelebration"
+            :published="result?.published ?? false"
+            :has-folio="result ? !!result.participantFolio : true"
+            @close="(celebrate = false), (previewCelebration = false)"
+          />
         </div>
 
         <!-- Acciones (fijas abajo) -->

@@ -1,0 +1,1451 @@
+{
+ "IE.APAGON|Central": {
+  "compromiso1": "PLADESE-4.24-01",
+  "fragmento": "Tabla 4.24. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Central […] Monto de Inversión MDP 80.28",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.24",
+  "verMas": "RLSE-36-01; RLSE-39-01; PROCFE-RE-05; PROCFE-1.5.1-01"
+ },
+ "IE.APAGON|Oriental": {
+  "compromiso1": "PLADESE-4.25-01",
+  "fragmento": "Tabla 4.25. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Oriental […] Monto de Inversión MDP 969.10",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.25",
+  "verMas": "RLSE-36-01; RLSE-39-01; PROCFE-RE-05; PROCFE-1.5.1-01"
+ },
+ "IE.APAGON|Occidental": {
+  "compromiso1": "PLADESE-4.26-01",
+  "fragmento": "Tabla 4.26. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Occidental […] Monto de inversión MDP 20,681.43",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.26",
+  "verMas": "RLSE-36-01; RLSE-39-01; PROCFE-RE-05; PROCFE-1.5.1-01"
+ },
+ "IE.APAGON|Noroeste": {
+  "compromiso1": "PLADESE-4.27-01",
+  "fragmento": "Tabla 4.27. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Noroeste […] Monto de inversión MDP 3,946.58",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.27",
+  "verMas": "RLSE-36-01; RLSE-39-01; PROCFE-RE-05; PROCFE-1.5.1-01"
+ },
+ "IE.APAGON|Norte": {
+  "compromiso1": "PLADESE-4.28-01",
+  "fragmento": "Tabla 4.28. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Norte […] Monto de inversión MDP 563.44",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.28",
+  "verMas": "RLSE-36-01; RLSE-39-01; PROCFE-RE-05; PROCFE-1.5.1-01"
+ },
+ "IE.APAGON|Noreste": {
+  "compromiso1": "PLADESE-4.29-01",
+  "fragmento": "Tabla 4.29. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Noreste […] Monto de inversión MDP 3,638.20",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.29",
+  "verMas": "RLSE-36-01; RLSE-39-01; PROCFE-RE-05; PROCFE-1.5.1-01"
+ },
+ "IE.APAGON|Peninsular": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "RLSE-39-01; PROCFE-RE-05; PROCFE-1.5.1-01; PLADESE-3.2.2-01"
+ },
+ "IE.APAGON|Baja California": {
+  "compromiso1": "PLADESE-4.30-01",
+  "fragmento": "Tabla 4.30. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Baja California […] Monto de inversión MDP 8,006.50",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.30",
+  "verMas": "RLSE-36-01; RLSE-39-01; PROCFE-RE-05; PROCFE-1.5.1-01"
+ },
+ "IE.APAGON|BCS": {
+  "compromiso1": "PLADESE-4.31-01",
+  "fragmento": "Tabla 4.31. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en el Sistema Interconectado Baja California Sur […] Monto de inversión…",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.31",
+  "verMas": "RLSE-36-01; RLSE-39-01; PROCFE-RE-05; PROCFE-1.5.1-01"
+ },
+ "IE.CORTE_MANTENIMIENTO|Central": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.CORTE_MANTENIMIENTO|Oriental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.CORTE_MANTENIMIENTO|Occidental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.CORTE_MANTENIMIENTO|Noroeste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.CORTE_MANTENIMIENTO|Norte": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.CORTE_MANTENIMIENTO|Noreste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.CORTE_MANTENIMIENTO|Peninsular": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.CORTE_MANTENIMIENTO|Baja California": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.CORTE_MANTENIMIENTO|BCS": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.SUSPENSION_INDEBIDA|Central": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.SUSPENSION_INDEBIDA|Oriental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.SUSPENSION_INDEBIDA|Occidental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.SUSPENSION_INDEBIDA|Noroeste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.SUSPENSION_INDEBIDA|Norte": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.SUSPENSION_INDEBIDA|Noreste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.SUSPENSION_INDEBIDA|Peninsular": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.SUSPENSION_INDEBIDA|Baja California": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.SUSPENSION_INDEBIDA|BCS": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.DANO_APARATOS|Central": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.DANO_APARATOS|Oriental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.DANO_APARATOS|Occidental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.DANO_APARATOS|Noroeste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.DANO_APARATOS|Norte": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.DANO_APARATOS|Noreste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.DANO_APARATOS|Peninsular": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.DANO_APARATOS|Baja California": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.DANO_APARATOS|BCS": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.SIN_CONEXION|Central": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
+ },
+ "IE.SIN_CONEXION|Oriental": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
+ },
+ "IE.SIN_CONEXION|Occidental": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
+ },
+ "IE.SIN_CONEXION|Noroeste": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
+ },
+ "IE.SIN_CONEXION|Norte": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
+ },
+ "IE.SIN_CONEXION|Noreste": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
+ },
+ "IE.SIN_CONEXION|Peninsular": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
+ },
+ "IE.SIN_CONEXION|Baja California": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
+ },
+ "IE.SIN_CONEXION|BCS": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "LSE-129-02; PLADESE-2.5.9-03; RLSE-39-01; PROCFE-RE-05"
+ },
+ "IE.COBRO|Central": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "RLSE-40-01; RLSE-34-03; PEF-A23-01; PLADESE-3.2.2-01"
+ },
+ "IE.COBRO|Oriental": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "RLSE-40-01; RLSE-34-03; PEF-A23-01; PLADESE-3.2.2-01"
+ },
+ "IE.COBRO|Occidental": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "RLSE-40-01; RLSE-34-03; PEF-A23-01; PLADESE-3.2.2-01"
+ },
+ "IE.COBRO|Noroeste": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "RLSE-36-01; RLSE-40-01; RLSE-34-03; PEF-A23-01"
+ },
+ "IE.COBRO|Norte": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "RLSE-36-01; RLSE-40-01; RLSE-34-03; PEF-A23-01"
+ },
+ "IE.COBRO|Noreste": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "RLSE-36-01; RLSE-40-01; RLSE-34-03; PEF-A23-01"
+ },
+ "IE.COBRO|Peninsular": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "RLSE-40-01; RLSE-34-03; PEF-A23-01; PLADESE-3.2.2-01"
+ },
+ "IE.COBRO|Baja California": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "RLSE-36-01; RLSE-40-01; RLSE-34-03; PEF-A23-01"
+ },
+ "IE.COBRO|BCS": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "RLSE-36-01; RLSE-40-01; RLSE-34-03; PEF-A23-01"
+ },
+ "IE.QUEJA_SIN_RESPUESTA|Central": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.QUEJA_SIN_RESPUESTA|Oriental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.QUEJA_SIN_RESPUESTA|Occidental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.QUEJA_SIN_RESPUESTA|Noroeste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.QUEJA_SIN_RESPUESTA|Norte": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.QUEJA_SIN_RESPUESTA|Noreste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.QUEJA_SIN_RESPUESTA|Peninsular": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.QUEJA_SIN_RESPUESTA|Baja California": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.QUEJA_SIN_RESPUESTA|BCS": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "IE.POBREZA_ENERGETICA|Central": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "RLSE-40-01; LSE-129-02; RLSE-39-01; PROCFE-RE-05"
+ },
+ "IE.POBREZA_ENERGETICA|Oriental": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "RLSE-40-01; LSE-129-02; RLSE-39-01; PROCFE-RE-05"
+ },
+ "IE.POBREZA_ENERGETICA|Occidental": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "RLSE-40-01; LSE-129-02; RLSE-39-01; PROCFE-RE-05"
+ },
+ "IE.POBREZA_ENERGETICA|Noroeste": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "RLSE-36-01; RLSE-40-01; LSE-129-02; RLSE-39-01"
+ },
+ "IE.POBREZA_ENERGETICA|Norte": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "RLSE-36-01; RLSE-40-01; LSE-129-02; RLSE-39-01"
+ },
+ "IE.POBREZA_ENERGETICA|Noreste": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "RLSE-36-01; RLSE-40-01; LSE-129-02; RLSE-39-01"
+ },
+ "IE.POBREZA_ENERGETICA|Peninsular": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "RLSE-40-01; LSE-129-02; RLSE-39-01; PROCFE-RE-05"
+ },
+ "IE.POBREZA_ENERGETICA|Baja California": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "RLSE-36-01; RLSE-40-01; LSE-129-02; RLSE-39-01"
+ },
+ "IE.POBREZA_ENERGETICA|BCS": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "RLSE-36-01; RLSE-40-01; LSE-129-02; RLSE-39-01"
+ },
+ "IE.GD_BLOQUEADA|Central": {
+  "compromiso1": "PLADESE-3.2.2-02",
+  "fragmento": "con una capacidad instalada de 5,359 MW en 2025, y de 14,432 MW para 2039.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 3.2.2",
+  "verMas": "LSE-28-01; LSE-26-01; PLADESE-3.2.2-01; NDC-2.3.2-01"
+ },
+ "IE.GD_BLOQUEADA|Oriental": {
+  "compromiso1": "PLADESE-3.2.2-02",
+  "fragmento": "con una capacidad instalada de 5,359 MW en 2025, y de 14,432 MW para 2039.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 3.2.2",
+  "verMas": "LSE-28-01; LSE-26-01; PLADESE-3.2.2-01; NDC-2.3.2-01"
+ },
+ "IE.GD_BLOQUEADA|Occidental": {
+  "compromiso1": "PLADESE-3.2.2-02",
+  "fragmento": "con una capacidad instalada de 5,359 MW en 2025, y de 14,432 MW para 2039.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 3.2.2",
+  "verMas": "LSE-28-01; LSE-26-01; PLADESE-3.2.2-01; NDC-2.3.2-01"
+ },
+ "IE.GD_BLOQUEADA|Noroeste": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "PLADESE-3.2.2-02; LSE-28-01; LSE-26-01; PLADESE-3.2.2-01"
+ },
+ "IE.GD_BLOQUEADA|Norte": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "PLADESE-3.2.2-02; LSE-28-01; LSE-26-01; PLADESE-3.2.2-01"
+ },
+ "IE.GD_BLOQUEADA|Noreste": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "PLADESE-3.2.2-02; LSE-28-01; LSE-26-01; PLADESE-3.2.2-01"
+ },
+ "IE.GD_BLOQUEADA|Peninsular": {
+  "compromiso1": "PLADESE-3.2.2-02",
+  "fragmento": "con una capacidad instalada de 5,359 MW en 2025, y de 14,432 MW para 2039.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 3.2.2",
+  "verMas": "LSE-28-01; LSE-26-01; PLADESE-3.2.2-01; NDC-2.3.2-01"
+ },
+ "IE.GD_BLOQUEADA|Baja California": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "PLADESE-3.2.2-02; LSE-28-01; LSE-26-01; PLADESE-3.2.2-01"
+ },
+ "IE.GD_BLOQUEADA|BCS": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "PLADESE-3.2.2-02; LSE-28-01; LSE-26-01; PLADESE-3.2.2-01"
+ },
+ "CC.APAGON_CLIMATICO|Central": {
+  "compromiso1": "PLADESE-4.24-01",
+  "fragmento": "Tabla 4.24. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Central […] Monto de Inversión MDP 80.28",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.24",
+  "verMas": "RLSE-36-01; LGCC-30-01; LGCC-30-02; PROCFE-RE-05"
+ },
+ "CC.APAGON_CLIMATICO|Oriental": {
+  "compromiso1": "PLADESE-4.25-01",
+  "fragmento": "Tabla 4.25. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Oriental […] Monto de Inversión MDP 969.10",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.25",
+  "verMas": "RLSE-36-01; LGCC-30-01; LGCC-30-02; PROCFE-RE-05"
+ },
+ "CC.APAGON_CLIMATICO|Occidental": {
+  "compromiso1": "PLADESE-4.26-01",
+  "fragmento": "Tabla 4.26. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Occidental […] Monto de inversión MDP 20,681.43",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.26",
+  "verMas": "RLSE-36-01; LGCC-30-01; LGCC-30-02; PROCFE-RE-05"
+ },
+ "CC.APAGON_CLIMATICO|Noroeste": {
+  "compromiso1": "PLADESE-4.27-01",
+  "fragmento": "Tabla 4.27. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Noroeste […] Monto de inversión MDP 3,946.58",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.27",
+  "verMas": "RLSE-36-01; LGCC-30-01; LGCC-30-02; PROCFE-RE-05"
+ },
+ "CC.APAGON_CLIMATICO|Norte": {
+  "compromiso1": "PLADESE-4.28-01",
+  "fragmento": "Tabla 4.28. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Norte […] Monto de inversión MDP 563.44",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.28",
+  "verMas": "RLSE-36-01; LGCC-30-01; LGCC-30-02; PROCFE-RE-05"
+ },
+ "CC.APAGON_CLIMATICO|Noreste": {
+  "compromiso1": "PLADESE-4.29-01",
+  "fragmento": "Tabla 4.29. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Noreste […] Monto de inversión MDP 3,638.20",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.29",
+  "verMas": "RLSE-36-01; LGCC-30-01; LGCC-30-02; PROCFE-RE-05"
+ },
+ "CC.APAGON_CLIMATICO|Peninsular": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "LGCC-30-01; LGCC-30-02; PROCFE-RE-05"
+ },
+ "CC.APAGON_CLIMATICO|Baja California": {
+  "compromiso1": "PLADESE-4.30-01",
+  "fragmento": "Tabla 4.30. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Baja California […] Monto de inversión MDP 8,006.50",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.30",
+  "verMas": "RLSE-36-01; LGCC-30-01; LGCC-30-02; PROCFE-RE-05"
+ },
+ "CC.APAGON_CLIMATICO|BCS": {
+  "compromiso1": "PLADESE-4.31-01",
+  "fragmento": "Tabla 4.31. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en el Sistema Interconectado Baja California Sur […] Monto de inversión…",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.31",
+  "verMas": "RLSE-36-01; LGCC-30-01; LGCC-30-02; PROCFE-RE-05"
+ },
+ "CC.CALOR_EXTREMO|Central": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "RLSE-40-01; RLSE-34-03; LGCC-30-01; PEF-A23-01"
+ },
+ "CC.CALOR_EXTREMO|Oriental": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "RLSE-40-01; RLSE-34-03; LGCC-30-01; PEF-A23-01"
+ },
+ "CC.CALOR_EXTREMO|Occidental": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "RLSE-40-01; RLSE-34-03; LGCC-30-01; PEF-A23-01"
+ },
+ "CC.CALOR_EXTREMO|Noroeste": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "RLSE-36-01; RLSE-40-01; RLSE-34-03; LGCC-30-01"
+ },
+ "CC.CALOR_EXTREMO|Norte": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "RLSE-36-01; RLSE-40-01; RLSE-34-03; LGCC-30-01"
+ },
+ "CC.CALOR_EXTREMO|Noreste": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "RLSE-36-01; RLSE-40-01; RLSE-34-03; LGCC-30-01"
+ },
+ "CC.CALOR_EXTREMO|Peninsular": {
+  "compromiso1": "RLSE-36-01",
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36",
+  "verMas": "RLSE-40-01; RLSE-34-03; LGCC-30-01; PEF-A23-01"
+ },
+ "CC.CALOR_EXTREMO|Baja California": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "RLSE-36-01; RLSE-40-01; RLSE-34-03; LGCC-30-01"
+ },
+ "CC.CALOR_EXTREMO|BCS": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "RLSE-36-01; RLSE-40-01; RLSE-34-03; LGCC-30-01"
+ },
+ "CC.CENTRAL_FOSIL|Central": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "CC.CENTRAL_FOSIL|Oriental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "CC.CENTRAL_FOSIL|Occidental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "CC.CENTRAL_FOSIL|Noroeste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "CC.CENTRAL_FOSIL|Norte": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "CC.CENTRAL_FOSIL|Noreste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "CC.CENTRAL_FOSIL|Peninsular": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "CC.CENTRAL_FOSIL|Baja California": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "CC.CENTRAL_FOSIL|BCS": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "CC.PERDIDAS_DANOS|Central": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.PERDIDAS_DANOS|Oriental": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.PERDIDAS_DANOS|Occidental": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.PERDIDAS_DANOS|Noroeste": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.PERDIDAS_DANOS|Norte": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.PERDIDAS_DANOS|Noreste": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.PERDIDAS_DANOS|Peninsular": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.PERDIDAS_DANOS|Baja California": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.PERDIDAS_DANOS|BCS": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.OMISION_PLANEACION|Central": {
+  "compromiso1": "PLADESE-4.24-01",
+  "fragmento": "Tabla 4.24. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Central […] Monto de Inversión MDP 80.28",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.24",
+  "verMas": ""
+ },
+ "CC.OMISION_PLANEACION|Oriental": {
+  "compromiso1": "PLADESE-4.25-01",
+  "fragmento": "Tabla 4.25. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Oriental […] Monto de Inversión MDP 969.10",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.25",
+  "verMas": ""
+ },
+ "CC.OMISION_PLANEACION|Occidental": {
+  "compromiso1": "PLADESE-4.26-01",
+  "fragmento": "Tabla 4.26. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Occidental […] Monto de inversión MDP 20,681.43",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.26",
+  "verMas": ""
+ },
+ "CC.OMISION_PLANEACION|Noroeste": {
+  "compromiso1": "PLADESE-4.27-01",
+  "fragmento": "Tabla 4.27. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Noroeste […] Monto de inversión MDP 3,946.58",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.27",
+  "verMas": ""
+ },
+ "CC.OMISION_PLANEACION|Norte": {
+  "compromiso1": "PLADESE-4.28-01",
+  "fragmento": "Tabla 4.28. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Norte […] Monto de inversión MDP 563.44",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.28",
+  "verMas": ""
+ },
+ "CC.OMISION_PLANEACION|Noreste": {
+  "compromiso1": "PLADESE-4.29-01",
+  "fragmento": "Tabla 4.29. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Noreste […] Monto de inversión MDP 3,638.20",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.29",
+  "verMas": ""
+ },
+ "CC.OMISION_PLANEACION|Peninsular": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "CC.OMISION_PLANEACION|Baja California": {
+  "compromiso1": "PLADESE-4.30-01",
+  "fragmento": "Tabla 4.30. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Baja California […] Monto de inversión MDP 8,006.50",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.30",
+  "verMas": ""
+ },
+ "CC.OMISION_PLANEACION|BCS": {
+  "compromiso1": "PLADESE-4.31-01",
+  "fragmento": "Tabla 4.31. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en el Sistema Interconectado Baja California Sur […] Monto de inversión…",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.31",
+  "verMas": ""
+ },
+ "MP.SIN_CONSULTA|Central": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_CONSULTA|Oriental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_CONSULTA|Occidental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_CONSULTA|Noroeste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_CONSULTA|Norte": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_CONSULTA|Noreste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_CONSULTA|Peninsular": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_CONSULTA|Baja California": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_CONSULTA|BCS": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_MISSE|Central": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_MISSE|Oriental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_MISSE|Occidental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_MISSE|Noroeste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_MISSE|Norte": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_MISSE|Noreste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_MISSE|Peninsular": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_MISSE|Baja California": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.SIN_MISSE|BCS": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.BENEFICIOS_INCUMPLIDOS|Central": {
+  "compromiso1": "PND-4.2.2-01",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "responsable": "SENER",
+  "fuente": "PND 2025-2030, Estrategia 4.2.2",
+  "verMas": ""
+ },
+ "MP.BENEFICIOS_INCUMPLIDOS|Oriental": {
+  "compromiso1": "PND-4.2.2-01",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "responsable": "SENER",
+  "fuente": "PND 2025-2030, Estrategia 4.2.2",
+  "verMas": ""
+ },
+ "MP.BENEFICIOS_INCUMPLIDOS|Occidental": {
+  "compromiso1": "PND-4.2.2-01",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "responsable": "SENER",
+  "fuente": "PND 2025-2030, Estrategia 4.2.2",
+  "verMas": ""
+ },
+ "MP.BENEFICIOS_INCUMPLIDOS|Noroeste": {
+  "compromiso1": "PND-4.2.2-01",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "responsable": "SENER",
+  "fuente": "PND 2025-2030, Estrategia 4.2.2",
+  "verMas": ""
+ },
+ "MP.BENEFICIOS_INCUMPLIDOS|Norte": {
+  "compromiso1": "PND-4.2.2-01",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "responsable": "SENER",
+  "fuente": "PND 2025-2030, Estrategia 4.2.2",
+  "verMas": ""
+ },
+ "MP.BENEFICIOS_INCUMPLIDOS|Noreste": {
+  "compromiso1": "PND-4.2.2-01",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "responsable": "SENER",
+  "fuente": "PND 2025-2030, Estrategia 4.2.2",
+  "verMas": ""
+ },
+ "MP.BENEFICIOS_INCUMPLIDOS|Peninsular": {
+  "compromiso1": "PND-4.2.2-01",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "responsable": "SENER",
+  "fuente": "PND 2025-2030, Estrategia 4.2.2",
+  "verMas": ""
+ },
+ "MP.BENEFICIOS_INCUMPLIDOS|Baja California": {
+  "compromiso1": "PND-4.2.2-01",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "responsable": "SENER",
+  "fuente": "PND 2025-2030, Estrategia 4.2.2",
+  "verMas": ""
+ },
+ "MP.BENEFICIOS_INCUMPLIDOS|BCS": {
+  "compromiso1": "PND-4.2.2-01",
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "responsable": "SENER",
+  "fuente": "PND 2025-2030, Estrategia 4.2.2",
+  "verMas": ""
+ },
+ "MP.TIERRAS|Central": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.TIERRAS|Oriental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.TIERRAS|Occidental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.TIERRAS|Noroeste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.TIERRAS|Norte": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.TIERRAS|Noreste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.TIERRAS|Peninsular": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.TIERRAS|Baja California": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.TIERRAS|BCS": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.DANO_AMBIENTAL|Central": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.DANO_AMBIENTAL|Oriental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.DANO_AMBIENTAL|Occidental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.DANO_AMBIENTAL|Noroeste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.DANO_AMBIENTAL|Norte": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.DANO_AMBIENTAL|Noreste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.DANO_AMBIENTAL|Peninsular": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.DANO_AMBIENTAL|Baja California": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.DANO_AMBIENTAL|BCS": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.OBRA_RED_RETRASADA|Central": {
+  "compromiso1": "PLADESE-4.24-01",
+  "fragmento": "Tabla 4.24. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Central […] Monto de Inversión MDP 80.28",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.24",
+  "verMas": ""
+ },
+ "MP.OBRA_RED_RETRASADA|Oriental": {
+  "compromiso1": "PLADESE-4.25-01",
+  "fragmento": "Tabla 4.25. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Oriental […] Monto de Inversión MDP 969.10",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.25",
+  "verMas": ""
+ },
+ "MP.OBRA_RED_RETRASADA|Occidental": {
+  "compromiso1": "PLADESE-4.26-01",
+  "fragmento": "Tabla 4.26. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Occidental […] Monto de inversión MDP 20,681.43",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.26",
+  "verMas": ""
+ },
+ "MP.OBRA_RED_RETRASADA|Noroeste": {
+  "compromiso1": "PLADESE-4.27-01",
+  "fragmento": "Tabla 4.27. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Noroeste […] Monto de inversión MDP 3,946.58",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.27",
+  "verMas": ""
+ },
+ "MP.OBRA_RED_RETRASADA|Norte": {
+  "compromiso1": "PLADESE-4.28-01",
+  "fragmento": "Tabla 4.28. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Norte […] Monto de inversión MDP 563.44",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.28",
+  "verMas": ""
+ },
+ "MP.OBRA_RED_RETRASADA|Noreste": {
+  "compromiso1": "PLADESE-4.29-01",
+  "fragmento": "Tabla 4.29. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Noreste […] Monto de inversión MDP 3,638.20",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.29",
+  "verMas": ""
+ },
+ "MP.OBRA_RED_RETRASADA|Peninsular": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.OBRA_RED_RETRASADA|Baja California": {
+  "compromiso1": "PLADESE-4.30-01",
+  "fragmento": "Tabla 4.30. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Baja California […] Monto de inversión MDP 8,006.50",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.30",
+  "verMas": ""
+ },
+ "MP.OBRA_RED_RETRASADA|BCS": {
+  "compromiso1": "PLADESE-4.31-01",
+  "fragmento": "Tabla 4.31. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en el Sistema Interconectado Baja California Sur […] Monto de inversión…",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.31",
+  "verMas": ""
+ },
+ "MP.OPACIDAD|Central": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.OPACIDAD|Oriental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.OPACIDAD|Occidental": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.OPACIDAD|Noroeste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.OPACIDAD|Norte": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.OPACIDAD|Noreste": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.OPACIDAD|Peninsular": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.OPACIDAD|Baja California": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "MP.OPACIDAD|BCS": {
+  "compromiso1": "",
+  "fragmento": "—",
+  "responsable": "",
+  "fuente": "",
+  "verMas": ""
+ },
+ "CC.SIN_RENOVABLES_LOCALES|Central": {
+  "compromiso1": "PLADESE-3.2.2-02",
+  "fragmento": "con una capacidad instalada de 5,359 MW en 2025, y de 14,432 MW para 2039.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 3.2.2",
+  "verMas": "LSE-28-01; LSE-26-01; RLSE-174-01; RLSE-36-01"
+ },
+ "CC.SIN_RENOVABLES_LOCALES|Oriental": {
+  "compromiso1": "PLADESE-3.2.2-02",
+  "fragmento": "con una capacidad instalada de 5,359 MW en 2025, y de 14,432 MW para 2039.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 3.2.2",
+  "verMas": "LSE-28-01; LSE-26-01; RLSE-174-01; RLSE-36-01"
+ },
+ "CC.SIN_RENOVABLES_LOCALES|Occidental": {
+  "compromiso1": "PLADESE-3.2.2-02",
+  "fragmento": "con una capacidad instalada de 5,359 MW en 2025, y de 14,432 MW para 2039.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 3.2.2",
+  "verMas": "LSE-28-01; LSE-26-01; RLSE-174-01; RLSE-36-01"
+ },
+ "CC.SIN_RENOVABLES_LOCALES|Noroeste": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "PLADESE-3.2.2-02; LSE-28-01; LSE-26-01; RLSE-174-01"
+ },
+ "CC.SIN_RENOVABLES_LOCALES|Norte": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "PLADESE-3.2.2-02; LSE-28-01; LSE-26-01; RLSE-174-01"
+ },
+ "CC.SIN_RENOVABLES_LOCALES|Noreste": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "PLADESE-3.2.2-02; LSE-28-01; LSE-26-01; RLSE-174-01"
+ },
+ "CC.SIN_RENOVABLES_LOCALES|Peninsular": {
+  "compromiso1": "PLADESE-3.2.2-02",
+  "fragmento": "con una capacidad instalada de 5,359 MW en 2025, y de 14,432 MW para 2039.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 3.2.2",
+  "verMas": "LSE-28-01; LSE-26-01; RLSE-174-01; RLSE-36-01"
+ },
+ "CC.SIN_RENOVABLES_LOCALES|Baja California": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "PLADESE-3.2.2-02; LSE-28-01; LSE-26-01; RLSE-174-01"
+ },
+ "CC.SIN_RENOVABLES_LOCALES|BCS": {
+  "compromiso1": "PLADESE-1.2-01",
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)",
+  "verMas": "PLADESE-3.2.2-02; LSE-28-01; LSE-26-01; RLSE-174-01"
+ },
+ "CC.CALOR_CIUDAD|Central": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.CALOR_CIUDAD|Oriental": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.CALOR_CIUDAD|Occidental": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.CALOR_CIUDAD|Noroeste": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.CALOR_CIUDAD|Norte": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.CALOR_CIUDAD|Noreste": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.CALOR_CIUDAD|Peninsular": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.CALOR_CIUDAD|Baja California": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ },
+ "CC.CALOR_CIUDAD|BCS": {
+  "compromiso1": "LGCC-30-01",
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I",
+  "verMas": "LGCC-30-02"
+ }
+}

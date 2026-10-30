@@ -2,6 +2,7 @@
 // Solo los usan los servicios y los mappers; el resto de la app trabaja con types/testimony.ts
 
 import type { Point } from 'geojson'
+import type { Complaint, FactKey, Since, Threats } from '@testimonies/data/facts'
 
 export type ApiTipoEvidencia =
   // Manual C.7
@@ -160,6 +161,12 @@ export type ApiVozImagen = 'voz_imagen' | 'solo_voz' | 'ninguna'
 // POST /api/testimonios (CrearTestimonioSchema en el back)
 export interface ApiCrearTestimonio {
   categoria: string
+  hechos?: FactKey[]
+  subcategoria?: string
+  desde_cuando?: Since
+  sigue_pasando?: boolean
+  reclamo_previo?: Complaint
+  amenazas?: Threats
   expediente?: string
   fecha?: string
   titulo?: string
@@ -277,6 +284,7 @@ export interface ApiMiTestimonioResumen {
   motivo_rechazo: string | null
   lugar_territorio: string | null
   fecha: string
+  hechos?: string[] | null // Formulario de 4 pantallas (vacío en los anteriores)
   categoria_slug: string
   reacciones_total: number
   comentarios_conteo: number
@@ -316,6 +324,12 @@ export interface ApiMiTestimonio extends Omit<ApiMiTestimonioResumen, 'categoria
   ubicacion: unknown
   centroide: Point | null
   categoria: { slug: string; nombre: string } | null
+  // Del formulario con «¿Qué pasa?» (null o vacío en testimonios anteriores)
+  hechos?: FactKey[] | null
+  desde_cuando?: Since | null
+  sigue_pasando?: boolean | null
+  reclamo_previo?: Complaint | null
+  amenazas?: Threats | null
 }
 
 // PATCH /api/mis-testimonios/{id}

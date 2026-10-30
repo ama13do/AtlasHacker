@@ -5,6 +5,7 @@ type Entrada = {
   info_sensible: boolean;
   sensible_accion?: 'anonimizar' | 'uso_interno' | 'revision_antes_publicar' | null;
   info_menores?: boolean;
+  amenazas?: 'no' | 'si' | 'prefiero_no_decir' | null;
 };
 
 export type Decision = {
@@ -21,16 +22,21 @@ export type Decision = {
  *     el trigger de es_publico lo vuelven a garantizar en la base de datos).
  *  2. Información sensible con «revisión antes de publicar» o «uso interno» → siempre queda pendiente.
  *  2b. Información de niñas, niños o adolescentes (Manual C.10) → siempre queda pendiente.
+ *  2c. Modo protección (amenazas «sí» o «prefiero no decir») → siempre queda pendiente y con ubicación aproximada.
  *  3. Información sensible con «anonimizar» → se oculta el nombre (vista pública) y la ubicación se generaliza.
  */
 export function decidirPublicacion(modo: ModoPublicacion, t: Entrada): Decision {
-  const aproximada = t.info_sensible && t.sensible_accion === 'anonimizar';
+  const proteccion = enModoProteccion(t.amenazas);
+  const aproximada = proteccion || (t.info_sensible && t.sensible_accion === 'anonimizar');
 
   if (t.autorizacion === 'solo_documentacion_interna' || t.autorizacion === 'no_autoriza') {
     return { estado: 'pendiente', ubicacion_aproximada: aproximada, razon: 'sin autorización de publicación' };
   }
   if (t.info_sensible && (t.sensible_accion === 'revision_antes_publicar' || t.sensible_accion === 'uso_interno')) {
     return { estado: 'pendiente', ubicacion_aproximada: aproximada, razon: 'información sensible: requiere revisión' };
+  }
+  if (proteccion) {
+    return { estado: 'pendiente', ubicacion_aproximada: true, razon: 'modo protección (amenazas): requiere revisión' };
   }
   if (t.info_menores) {
     return { estado: 'pendiente', ubicacion_aproximada: aproximada, razon: 'información de menores: requiere revisión' };
@@ -40,6 +46,11 @@ export function decidirPublicacion(modo: ModoPublicacion, t: Entrada): Decision 
     return { estado: 'pendiente', ubicacion_aproximada: aproximada, razon: 'modo auto_si_no_sensible con información sensible' };
   }
   return { estado: 'aprobado', ubicacion_aproximada: aproximada, razon: `publicación automática (${modo})` };
+}
+
+/** «¿Te han amenazado?» = sí o prefiero no decir: anonimato obligatorio, ubicación aproximada y revisión. */
+export function enModoProteccion(amenazas?: string | null): boolean {
+  return amenazas === 'si' || amenazas === 'prefiero_no_decir';
 }
 
 const TIPOS_CON_DATOS_PERSONALES = new Set(['recibo_factura', 'documento_oficial', 'recibo', 'factura', 'oficio', 'contrato', 'registro_oficial']);

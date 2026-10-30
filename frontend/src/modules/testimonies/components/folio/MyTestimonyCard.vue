@@ -68,6 +68,9 @@ const actionClass =
       <RouterLink v-if="testimony.public" :to="{ name: 'map', params: { mapa: DEFAULT_MAP_SLUG }, query: { t: testimony.id } }" :class="actionClass">
         Ver en el mapa
       </RouterLink>
+      <RouterLink v-if="testimony.hasGuide" :to="{ name: 'my-testimony-guide', params: { id: testimony.id } }" :class="actionClass">
+        Ver guía
+      </RouterLink>
       <RouterLink
         v-if="canEdit"
         :to="{ name: 'my-testimony-edit', params: { id: testimony.id } }"

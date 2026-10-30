@@ -84,6 +84,13 @@ export const ORIGENES_TESTIMONIO = ['web', 'facilitador', 'importacion'] as cons
 export const ORIGENES_UBICACION = ['gps', 'mapa', 'manual', 'importada'] as const;
 export const ESTADOS_SUBIDA = ['pendiente', 'subida'] as const;
 export const ACTORES = ['usuario', 'participante', 'anonimo', 'sistema'] as const;
+// «¿Qué pasa?» del formulario (prototipo v2): la persona toca uno o varios hechos; el primero es el principal y de él
+// salen la subcategoría y la categoría (el formulario las calcula y las manda).
+export const HECHOS = ['apagones', 'cortes_sin_aviso', 'recibo_impagable', 'sin_luz', 'calor_clima', 'paneles_bloqueados', 'proyecto_territorio', 'otro'] as const;
+export const DESDE_CUANDO = ['este_anio', 'uno_a_tres_anios', 'mas_de_tres_anios'] as const;
+export const RECLAMOS = ['no', 'si_sin_respuesta', 'si_con_respuesta'] as const;
+/** «¿Te han amenazado?» (solo con un proyecto en el territorio). «si» o «prefiero_no_decir» activan el modo protección. */
+export const AMENAZAS = ['no', 'si', 'prefiero_no_decir'] as const;
 
 export const rolUsuario = pgEnum('rol_usuario', ROLES);
 export const estadoModeracion = pgEnum('estado_moderacion', ESTADOS_MODERACION);
@@ -98,6 +105,9 @@ export const tipoReaccion = pgEnum('tipo_reaccion', TIPOS_REACCION);
 export const origenTestimonio = pgEnum('origen_testimonio', ORIGENES_TESTIMONIO);
 export const origenUbicacion = pgEnum('origen_ubicacion', ORIGENES_UBICACION);
 export const estadoSubida = pgEnum('estado_subida', ESTADOS_SUBIDA);
+export const desdeCuando = pgEnum('desde_cuando', DESDE_CUANDO);
+export const reclamoPrevio = pgEnum('reclamo_previo', RECLAMOS);
+export const amenazasRecibidas = pgEnum('amenazas', AMENAZAS);
 export const actorTipo = pgEnum('actor_tipo', ACTORES);
 
 const ts = (nombre: string) => timestamp(nombre, { withTimezone: true, mode: 'date' });
@@ -238,6 +248,15 @@ export const testimonios = pgTable(
     ubicacion_publica: geometria('ubicacion_publica'), // trigger
     centroide_publico: punto('centroide_publico'), // trigger
     origen_ubicacion: origenUbicacion('origen_ubicacion').notNull().default('mapa'),
+
+    // ¿Qué pasa? (hechos en el orden en que se tocaron) y la subcategoría de la principal (p. ej. IE.APAGON).
+    // ¿Desde cuándo pasa?, ¿sigue pasando?, ¿ya reclamaste? y ¿te han amenazado? Son privados (no van a la vista pública)
+    hechos: text('hechos').array().notNull().default(sql`'{}'::text[]`),
+    subcategoria: text('subcategoria'),
+    desde_cuando: desdeCuando('desde_cuando'),
+    sigue_pasando: boolean('sigue_pasando'),
+    reclamo_previo: reclamoPrevio('reclamo_previo'),
+    amenazas: amenazasRecibidas('amenazas'),
 
     // 1 · EL TESTIMONIO · 2 · EL TERRITORIO DICE · 3 · LA COMUNIDAD DICE
     relato: text('relato').notNull(),

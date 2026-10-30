@@ -1,0 +1,162 @@
+{
+ "ENCC-M1.8-01": {
+  "fragmento": "Fomentar el desarrollo tecnológico nacional y proyectos comunitarios de generación de energía, que promuevan una participación activa de los distintos grupos sociales",
+  "responsable": "SENER",
+  "fuente": "ENCC 2025 (Visión 10-20-40), Línea de acción M1.8"
+ },
+ "LGCC-30-01": {
+  "fragmento": "Elaborar y publicar los atlas de riesgo que consideren los escenarios de vulnerabilidad actual y futura ante el cambio climático",
+  "responsable": "Dependencias y entidades APF centralizada y paraestatal",
+  "fuente": "LGCC, Art. 30, fr. I"
+ },
+ "LGCC-30-02": {
+  "fragmento": "Mejorar los sistemas de alerta temprana y las capacidades para pronosticar escenarios climáticos actuales y futuros;",
+  "responsable": "Dependencias y entidades APF",
+  "fuente": "LGCC, Art. 30, fr. IX"
+ },
+ "LSE-129-02": {
+  "fragmento": "La Secretaría debe establecer y supervisar la administración de un Fondo de Servicio Universal Energético, con el propósito de financiar las acciones de Justicia Energética",
+  "responsable": "SENER",
+  "fuente": "LSE, Art. 129, párr. segundo"
+ },
+ "LSE-26-01": {
+  "fragmento": "La Generación Distribuida cuenta con acceso a las Redes Generales de Distribución cuando es técnicamente factible, así como el acceso a los mercados donde pueda vender su…",
+  "responsable": "SENER",
+  "fuente": "LSE, Art. 26, fr. I"
+ },
+ "LSE-28-01": {
+  "fragmento": "La Secretaría debe fomentar el otorgamiento de créditos y otros esquemas para el financiamiento de Centrales Eléctricas de Generación Distribuida con Energía Limpia.",
+  "responsable": "SENER",
+  "fuente": "LSE, Art. 28"
+ },
+ "NDC-2.3.2-01": {
+  "fragmento": "Incrementar la generación distribuida residencial en usuarios con demanda baja en baja tensión, nivel 1.",
+  "responsable": "SENER  — la NDC no asigna responsables por línea de acción",
+  "fuente": "NDC 3.0 México, Sector generación eléctrica, línea 2.3.2"
+ },
+ "NDC-GE-01": {
+  "fragmento": "el Gobierno de México impulsa programas de acceso universal a la energía, que buscan llevar electricidad a más de 500,000 hogares para 2030 y alcanzar una cobertura del 99 % en el…",
+  "responsable": "SENER  — la NDC no asigna responsables por línea de acción",
+  "fuente": "NDC 3.0 México, Sector generación eléctrica (texto introductorio)"
+ },
+ "PEF-A23-01": {
+  "fragmento": "Subsidios a las Tarifas Eléctricas 87,768,800,000",
+  "responsable": "SHCP",
+  "fuente": "PEF 2026, Ramo 23 (Otras Provisiones Económicas)"
+ },
+ "PLADESE-1.2-01": {
+  "fragmento": "Programa de paneles solares para viviendas en el norte del país.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 1.2 (Alcances)"
+ },
+ "PLADESE-2.5.9-03": {
+  "fragmento": "Para 2025, se tiene programado construir 4,373 acciones de electrificación financiados por el FSUE, y con el apoyo del INPI, por una inversión de 2,402 millones de pesos, para…",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 2.5.9"
+ },
+ "PLADESE-3.2.2-01": {
+  "fragmento": "debido a los beneficios que aporta a las personas usuarias, como son: incremento en la confiabilidad, aumento en la calidad de la energía eléctrica, reducción en el número de…",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 3.2.2"
+ },
+ "PLADESE-3.2.2-02": {
+  "fragmento": "con una capacidad instalada de 5,359 MW en 2025, y de 14,432 MW para 2039.",
+  "responsable": "SENER",
+  "fuente": "PLADESE 2025-2039, Sección 3.2.2"
+ },
+ "PLADESE-4.24-01": {
+  "fragmento": "Tabla 4.24. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Central […] Monto de Inversión MDP 80.28",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.24"
+ },
+ "PLADESE-4.25-01": {
+  "fragmento": "Tabla 4.25. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Oriental […] Monto de Inversión MDP 969.10",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.25"
+ },
+ "PLADESE-4.26-01": {
+  "fragmento": "Tabla 4.26. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Occidental […] Monto de inversión MDP 20,681.43",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.26"
+ },
+ "PLADESE-4.27-01": {
+  "fragmento": "Tabla 4.27. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Noroeste […] Monto de inversión MDP 3,946.58",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.27"
+ },
+ "PLADESE-4.28-01": {
+  "fragmento": "Tabla 4.28. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Norte […] Monto de inversión MDP 563.44",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.28"
+ },
+ "PLADESE-4.29-01": {
+  "fragmento": "Tabla 4.29. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Noreste […] Monto de inversión MDP 3,638.20",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.29"
+ },
+ "PLADESE-4.30-01": {
+  "fragmento": "Tabla 4.30. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en la GCR Baja California […] Monto de inversión MDP 8,006.50",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.30"
+ },
+ "PLADESE-4.31-01": {
+  "fragmento": "Tabla 4.31. Metas físicas e inversión preliminar identificados para los proyectos Estratégicos de la CFE en el Sistema Interconectado Baja California Sur […] Monto de inversión…",
+  "responsable": "CFE",
+  "fuente": "PLADESE 2025-2039, Sección 4.4, Tabla 4.31"
+ },
+ "PND-4.2.2-01": {
+  "fragmento": "Impulsar proyectos de generación de energías limpias en coordinación con ejidos y comunidades, alineados con los compromisos internacionales de México, para mitigar el cambio…",
+  "responsable": "SENER",
+  "fuente": "PND 2025-2030, Estrategia 4.2.2"
+ },
+ "PND-4.4-01": {
+  "fragmento": "Grado de electrificación en localidades de menos de 2,500 habitantes.",
+  "responsable": "SENER",
+  "fuente": "PND 2025-2030, Indicador 4.4"
+ },
+ "PROCFE-1.5.1-01": {
+  "fragmento": "Distribución: Desarrollo y ampliación de subestaciones, modernización de redes de distribución y proyectos de electrificación a través del programa “Justicia Energética” por un…",
+  "responsable": "CFE",
+  "fuente": "Programa de Desarrollo CFE 2026-2030 (PROCFE), Sección 1.5.1"
+ },
+ "PROCFE-RE-05": {
+  "fragmento": "A esto se suma el programa “Justicia Energética”, que amplía el acceso al servicio eléctrico en las regiones menos atendidas.",
+  "responsable": "CFE",
+  "fuente": "Programa de Desarrollo CFE 2026-2030 (PROCFE), Resumen ejecutivo"
+ },
+ "PROCFE-RE-06": {
+  "fragmento": "Incorporar tecnologías más eficientes y de menor costo, ciclos combinados de última generación y proyectos renovables, contribuye a la estabilidad tarifaria ante la volatilidad…",
+  "responsable": "CFE",
+  "fuente": "Programa de Desarrollo CFE 2026-2030 (PROCFE), Resumen ejecutivo"
+ },
+ "RLSE-174-01": {
+  "fragmento": "que contemplen la operación conjunta, gobernanza local o participación del sector social, en los que se reconozcan las condiciones particulares de las comunidades energéticas,…",
+  "responsable": "CNE",
+  "fuente": "Reg. LSE, Art. 174"
+ },
+ "RLSE-34-03": {
+  "fragmento": "Promoción de mecanismos, acciones e instrumentos para el establecimiento de precios y tarifas finales de Suministro Básico, en atención a condiciones económicas particulares;",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 34, fr. VI"
+ },
+ "RLSE-34-04": {
+  "fragmento": "Se entiende por necesidades básicas: el calentamiento de agua, la cocción y conservación de alimentos, la iluminación, la reducción a la exposición de emisiones y contaminantes…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 34, párr. segundo"
+ },
+ "RLSE-36-01": {
+  "fragmento": "La Secretaría debe formular programas anuales de electrificación social y estrategias de Justicia Energética que prioricen el acceso equitativo, la reducción de desigualdades…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 36"
+ },
+ "RLSE-39-01": {
+  "fragmento": "La Secretaría debe establecer los mecanismos para garantizar que anualmente los programas de ampliación y modernización de la Red Nacional de Transmisión y de las Redes Generales…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 39, párr. segundo"
+ },
+ "RLSE-40-01": {
+  "fragmento": "La Secretaría debe diseñar e implementar un sistema de indicadores de Justicia Energética que mida el cumplimiento efectivo de los objetivos en las acciones, programas,…",
+  "responsable": "SENER",
+  "fuente": "Reg. LSE, Art. 40"
+ }
+}

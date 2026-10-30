@@ -8,7 +8,7 @@ import {
   toUpdatePayload,
 } from '@testimonies/services/mappers'
 import type { ApiMiEvidencia, ApiMiPerfil, ApiMiTestimonio, ApiMiTestimonioResumen } from '@testimonies/types/api'
-import type { MyEvidence, MyTestimony, ParticipantProfile, PersonalData, TestimonyDraft } from '@testimonies/types/testimony'
+import type { ModerationStatus, MyEvidence, MyTestimony, ParticipantProfile, PersonalData, TestimonyDraft } from '@testimonies/types/testimony'
 
 // Zona "Mi folio": la persona se identifica con su folio en la cabecera X-Folio (401 si falta o no es válido)
 
@@ -47,9 +47,9 @@ export const participantService = {
   },
 
   // Ficha propia lista para el wizard de edición
-  async getMineAsDraft(folio: string, id: string): Promise<{ folio: string; draft: TestimonyDraft }> {
+  async getMineAsDraft(folio: string, id: string): Promise<{ folio: string; status: ModerationStatus; active: boolean; draft: TestimonyDraft }> {
     const { data } = await http.get<ApiResponse<ApiMiTestimonio>>(mine(id), auth(folio))
-    return { folio: data.data.folio, draft: draftFromMine(data.data) }
+    return { folio: data.data.folio, status: data.data.estado, active: data.data.activo, draft: draftFromMine(data.data) }
   },
 
   // Tras editar, vuelve a revisión (según la configuración del dashboard)

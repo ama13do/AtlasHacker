@@ -1,0 +1,63 @@
+{
+ "sigue_pasando": " · sigue pasando",
+ "quien": "Responsable: {responsable}. Qué debía hacer: «{fragmento}» ({fuente})",
+ "responsable_adicional": {
+  "Gobierno estatal": " · También debe responder el gobierno estatal (Ley General de Cambio Climático, art. 8)",
+  "Gobierno municipal": " · También debe responder el gobierno municipal (Ley General de Cambio Climático, art. 9)",
+  "Ambos": " · También deben responder el gobierno estatal y el municipal (Ley General de Cambio Climático, arts. 8 y 9)"
+ },
+ "derecho_revision": " (art. 4º): en riesgo, identificado en revisión",
+ "salida": "«{fragmento}» ({fuente})",
+ "boton_solicitud": "Enviar tu pregunta como solicitud de información a {responsable}",
+ "pregunta_sugerida": "¿Qué acciones, fechas y presupuesto existen para atender {etiqueta} en {municipio}, {estado}?",
+ "solicitud": "Con fundamento en el artículo 6º, apartado A, de la Constitución, solicito a {responsable} información pública que responda: «{pregunta}». En particular: presupuesto asignado y ejercido, calendario y resultados medibles en el municipio de {municipio}, {estado}, en relación con {fuente}.",
+ "compromiso_pregunta": "¿Ha llegado a tu comunidad?",
+ "reclamo": {
+  "Sí, y no me respondieron": "Si tu queja fue ante CFE desde el 04-10-2025 y pasaron 10 días hábiles sin respuesta, lo que dijiste se presume cierto (Reglamento LSE, arts. 110 y 111).",
+  "No|IE": "Puedes presentar una queja ante CFE dentro del año siguiente al hecho; debe responderte en 10 días hábiles (Reglamento LSE, arts. 109-111).",
+  "otro": "—"
+ },
+ "avisos": {
+  "base": "Este testimonio no es una queja formal ni una declaración jurídica.",
+  "antes_2025": "Lo ocurrido antes de 2025 sólo se vincula con la Constitución y la Ley General de Cambio Climático.",
+  "cifras": "Este testimonio contiene cifras que no han sido verificadas.",
+  "hxnf": "Hackers x Nuestro Futuro participa en una solución de este caso."
+ },
+ "mapa_publico": {
+  "proteccion": "sólo estado, anónimo",
+  "municipio": "centro del municipio",
+  "cuadricula": "cuadrícula de ~1 km",
+  "con_nombre": ", con nombre",
+  "anonimo": ", anónimo"
+ },
+ "grados": {
+  "violacion": "Violación declarada por la autoridad (ver Mi folio)",
+  "A": "Tu derecho pudo ser afectado directamente",
+  "B": "Tu derecho puede estar afectado: una norma conecta tu situación con este derecho",
+  "C": "Tu derecho podría estar en riesgo (los derechos dependen unos de otros)",
+  "M": "La Constitución ordena esto y tu testimonio documenta que no se cumple aquí",
+  "por_confirmar": " · por confirmar en revisión"
+ },
+ "grados_en_tabla": {
+  "afectación directa": "A",
+  "afectación por vínculo normativo": "B",
+  "en riesgo": "C",
+  "mandato constitucional": "M"
+ },
+ "estados_hallazgo": {
+  "E3": "E3 · Omisión documentada (requiere revisión HxNF)",
+  "cerrado": "Cerrado · implementación acreditada",
+  "E2": "E2 · Sin evidencia de implementación",
+  "E1": "E1 · Compromiso identificado"
+ },
+ "violacion_regla": "Sólo con una resolución se permite la palabra 'violación' en el resultado (R16).",
+ "ui4": {
+  "ubicacion_proteccion": "Sólo el estado (",
+  "ubicacion_municipio": "Centro del municipio de ",
+  "ubicacion_cuadricula": "Cuadrícula de ~1 km dentro de ",
+  "nombre_obligatorio": "Anónimo (obligatorio)",
+  "publicacion_diferida": "Diferida 7 a 14 días con revisión de riesgo",
+  "publicacion_estandar": "Tras revisión estándar",
+  "fotos": "Sin metadatos; rostros, placas y números de servicio difuminados"
+ }
+}

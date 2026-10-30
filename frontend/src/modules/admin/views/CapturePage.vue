@@ -14,19 +14,16 @@ import { toCreatePayload } from '@testimonies/services/mappers'
 import { useCategoriesStore } from '@testimonies/stores/categories'
 import { fieldErrorsFromApi } from '@testimonies/utils/apiErrors'
 import FormStepper from '@testimonies/components/form/FormStepper.vue'
-import StepConsent from '@testimonies/components/form/StepConsent.vue'
-import StepData from '@testimonies/components/form/StepData.vue'
-import StepEvidence from '@testimonies/components/form/StepEvidence.vue'
-import StepGeneral from '@testimonies/components/form/StepGeneral.vue'
-import StepReview from '@testimonies/components/form/StepReview.vue'
-import StepTerritory from '@testimonies/components/form/StepTerritory.vue'
-import StepTestimony from '@testimonies/components/form/StepTestimony.vue'
+import StepPlace from '@testimonies/components/form/StepPlace.vue'
+import StepQuestions from '@testimonies/components/form/StepQuestions.vue'
+import StepStory from '@testimonies/components/form/StepStory.vue'
+import StepWhat from '@testimonies/components/form/StepWhat.vue'
 import UploadProgress from '@testimonies/components/UploadProgress.vue'
 
 // Capturar una ficha en papel (POST /api/admin/testimonios): los mismos pasos que el formulario público,
 // sin captcha. La persona puede ser nueva (la API emite su folio una sola vez) o una que ya tiene folio.
 
-const STEP_COMPONENTS: Component[] = [StepGeneral, StepTestimony, StepEvidence, StepTerritory, StepData, StepConsent, StepReview]
+const STEP_COMPONENTS: Component[] = [StepWhat, StepPlace, StepStory, StepQuestions]
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 const route = useRoute()
@@ -98,8 +95,8 @@ async function onSubmit() {
 
   submitting.value = true
   submitError.value = null
-  // «Proteger mi huella digital»: fotos sin metadatos (GPS, fecha, teléfono)
-  const files = draft.stripMetadata ? await stripAttachments(draft.files) : [...draft.files]
+  // Fotos sin metadatos (GPS, fecha, teléfono)
+  const files = await stripAttachments(draft.files)
   try {
     result.value = await adminTestimoniesService.create({
       ...toCreatePayload(draft),

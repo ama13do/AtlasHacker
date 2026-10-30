@@ -1,6 +1,5 @@
-import { asText } from '@testimonies/utils/text'
+import { asksThreats, classifyFacts, FACT_KEYS, protectionMode } from '@testimonies/data/facts'
 import type {
-  ApiFuente,
   ApiCategoria,
   ApiComentario,
   ApiCrearTestimonio,
@@ -24,7 +23,6 @@ import type {
   ParticipantProfile,
   PersonalData,
   ReactionType,
-  SensitiveHandling,
   TestimonyDetail,
   TestimonyDraft,
   TestimonySummary,
@@ -142,62 +140,50 @@ const CONSENT: Record<Consent, ApiCrearTestimonio['autorizacion']> = {
   'no-publicar': 'no_autoriza',
 }
 
-const SENSITIVE: Record<SensitiveHandling, NonNullable<ApiCrearTestimonio['sensible_accion']>> = {
-  anonimizar: 'anonimizar',
-  interno: 'uso_interno',
-  revision: 'revision_antes_publicar',
-}
-
 // Quita las llaves sin valor para no mandar strings vacíos
 function compact<T extends object>(value: T): T {
   return Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined)) as T
 }
 
-// 04 · Fuentes con algo escrito (las filas vacías del formulario no se envían)
-function sourcesOf(d: TestimonyDraft): ApiFuente[] {
-  return d.sources
-    .filter((s) => asText(s.source).trim())
-    .map((s) => compact({ fuente: asText(s.source).trim(), anio: asText(s.year).trim() ? Number(s.year) : undefined, enlace: clean(asText(s.link)) }))
+// El formulario no pregunta la autorización: se publica (tras revisión) como la persona eligió aparecer.
+// Un testimonio anterior que se edita y era solo para documentación interna (o no autorizado) lo sigue siendo
+function authorizationOf(d: TestimonyDraft): ApiCrearTestimonio['autorizacion'] {
+  if (d.consent === 'interno' || d.consent === 'no-publicar') return CONSENT[d.consent]
+  return d.visibility === 'nombre' && !protectionMode(d.facts, d.threats) ? 'publico_con_nombre' : 'publico_anonimo'
 }
 
 // El borrador ya pasó la validación del wizard: los campos obligatorios existen
 export function toCreatePayload(d: TestimonyDraft): ApiCrearTestimonio {
-  const fuentes = sourcesOf(d)
-  const hasData = !!clean(d.dataText) || fuentes.length > 0
   const contact = compact({ correo: clean(d.email), telefono: clean(d.phone) })
+  const protection = protectionMode(d.facts, d.threats)
+  const hasEvidence = d.files.length > 0 || d.links.length > 0
 
   return compact({
     categoria: d.topic!,
-    fecha: d.date || undefined,
+    hechos: d.facts.length ? [...d.facts] : undefined,
+    subcategoria: classifyFacts(d.facts)?.subcategory,
+    desde_cuando: d.since ?? undefined,
+    sigue_pasando: d.ongoing ?? undefined,
+    reclamo_previo: d.complaint ?? undefined,
+    amenazas: asksThreats(d.facts) ? (d.threats ?? undefined) : undefined,
     titulo: clean(d.title),
     lugar_territorio: clean(d.place),
     entidad: clean(d.state),
     municipio: clean(d.municipality),
     ubicacion: { type: 'Point', coordinates: [d.coordinates![0], d.coordinates![1]] },
     origen_ubicacion: d.locationSource ?? 'mapa',
-    aparecer_como: d.visibility,
+    aparecer_como: protection ? 'anonimo' : d.visibility,
     nombre: clean(d.name),
     facilitador_nombre: clean(d.facilitator),
     relato: d.testimony.trim(),
-    territorio_dice: clean(d.territory),
-    comunidad_dice: clean(d.community),
-    tiene_evidencia: d.documentStatus ?? undefined,
-    evidencia_descripcion: clean(d.documentDescription),
-    evidencia_tipos: d.evidence.length ? [...d.evidence] : undefined,
-    evidencia_otro: d.evidence.includes('otro') ? clean(d.evidenceOther) : undefined,
-    enlaces_evidencia: d.links.length ? [...d.links] : undefined,
-    dato_fuente_anio: clean(d.dataText),
-    fuentes: fuentes.length ? fuentes : undefined,
-    fuente_pendiente_verificacion: hasData ? d.dataPendingVerification : undefined,
     pregunta_tribunal: clean(d.tribunalQuestion),
-    algo_mas: clean(d.anythingElse),
-    registro_voz: clean(d.voiceRecord),
-    autorizacion: CONSENT[d.consent!],
-    autoriza_multimedia: d.mediaConsent ?? undefined,
-    autoriza_voz_imagen: d.voiceImage ?? undefined,
-    info_sensible: d.sensitive ?? false,
-    info_menores: d.minors ?? false,
-    sensible_accion: d.sensitive && d.sensitiveHandling ? SENSITIVE[d.sensitiveHandling] : undefined,
+    tiene_evidencia: hasEvidence ? 'si' : 'no',
+    evidencia_tipos: d.files.length ? [...new Set(d.files.map((f) => f.type))] : undefined,
+    enlaces_evidencia: d.links.length ? [...d.links] : undefined,
+    autorizacion: authorizationOf(d),
+    // Modo protección: la información es de riesgo y siempre se revisa antes de publicar
+    info_sensible: protection,
+    sensible_accion: protection ? 'revision_antes_publicar' : undefined,
     consentimiento_aceptado: true,
     contacto: Object.keys(contact).length ? contact : undefined,
     auditoria: compact({
@@ -237,6 +223,7 @@ export function fromMine(t: ApiMiTestimonioResumen): MyTestimony {
     reactions: t.reacciones_total,
     comments: t.comentarios_conteo,
     updatedAt: t.updated_at,
+    hasGuide: !!t.hechos?.length,
   }
 }
 
@@ -277,80 +264,65 @@ const CONSENT_FROM_API = Object.fromEntries(Object.entries(CONSENT).map(([k, v])
   ApiCrearTestimonio['autorizacion'],
   Consent
 >
-const SENSITIVE_FROM_API = Object.fromEntries(Object.entries(SENSITIVE).map(([k, v]) => [v, k])) as Record<
-  NonNullable<ApiCrearTestimonio['sensible_accion']>,
-  SensitiveHandling
->
 
-// Ficha propia → borrador del wizard (para editar). Archivos, folio y contacto no se editan aquí
+// Ficha propia → borrador del wizard (para editar). Archivos, folio y contacto no se editan aquí.
+// Las respuestas del formato anterior (territorio, comunidad, datos…) no se tocan: siguen en la base
 export function draftFromMine(t: ApiMiTestimonio): TestimonyDraft {
   const point = t.centroide?.coordinates
   return {
+    facts: (t.hechos ?? []).filter((f) => FACT_KEYS.includes(f)),
     topic: t.categoria?.slug ?? null,
-    title: t.titulo ?? '',
-    place: t.lugar_territorio ?? '',
     coordinates: point ? [point[0], point[1]] : null,
     state: t.entidad ?? '',
     municipality: t.municipio ?? '',
+    place: t.lugar_territorio ?? '',
     locationSource: t.origen_ubicacion === 'gps' ? 'gps' : 'mapa',
     gpsAccuracy: null,
-    date: t.fecha,
-    name: t.nombre_publico ?? '',
-    visibility: t.aparecer_como,
-    facilitator: t.facilitador_nombre ?? '',
+    since: t.desde_cuando ?? null,
+    ongoing: t.sigue_pasando ?? null,
+    title: t.titulo ?? '',
     testimony: t.relato,
-    territory: t.territorio_dice ?? '',
-    community: t.comunidad_dice ?? '',
-    documentStatus: t.tiene_evidencia,
-    documentDescription: t.evidencia_descripcion ?? '',
-    evidence: t.evidencia_tipos ?? [],
-    evidenceOther: t.evidencia_otro ?? '',
+    tribunalQuestion: t.pregunta_tribunal ?? '',
     links: (t.enlaces_evidencia ?? []).map((e) => e.url),
     files: [],
-    dataText: t.dato_fuente_anio ?? '',
-    sources: (t.fuentes ?? []).map((f) => ({ id: crypto.randomUUID(), source: f.fuente, year: f.anio ? String(f.anio) : '', link: f.enlace ?? '' })),
-    anythingElse: t.algo_mas ?? '',
-    voiceRecord: t.registro_voz ?? '',
-    dataPendingVerification: t.fuente_pendiente_verificacion,
-    tribunalQuestion: t.pregunta_tribunal ?? '',
-    voluntary: true,
+    complaint: t.reclamo_previo ?? null,
+    threats: t.amenazas ?? null,
+    // «Con mi nombre» solo si además lo había autorizado (antes eran dos preguntas): así no se publica un nombre sin pedirlo
+    visibility: t.aparecer_como === 'nombre' && t.autorizacion === 'publico_con_nombre' ? 'nombre' : 'anonimo',
+    name: t.nombre_publico ?? '',
+    facilitator: t.facilitador_nombre ?? '',
     consent: CONSENT_FROM_API[t.autorizacion] ?? null,
-    mediaConsent: t.autoriza_multimedia,
-    voiceImage: t.autoriza_voz_imagen,
-    sensitive: t.info_sensible,
-    minors: t.info_menores ?? false,
-    stripMetadata: true,
-    sensitiveHandling: t.sensible_accion ? SENSITIVE_FROM_API[t.sensible_accion] : null,
+    voluntary: true,
     folio: '',
     email: '',
     phone: '',
   }
 }
 
-// Borrador editado → PATCH. Sin consentimiento, contacto ni auditoría (eso no se edita)
+// Borrador editado → PATCH: solo lo que pregunta el formulario (sin consentimiento, contacto ni auditoría).
+// La evidencia, la información sensible y la fecha de un testimonio anterior se conservan
 export function toUpdatePayload(d: TestimonyDraft): ApiEditarMiTestimonio {
   const {
     consentimiento_aceptado: _c,
     contacto: _contact,
     auditoria: _a,
     expediente: _e,
+    tiene_evidencia: _t,
+    evidencia_tipos: _et,
+    info_sensible: infoSensible,
+    sensible_accion: sensibleAccion,
     nombre,
     ...rest
   } = toCreatePayload(d)
   return compact({
     ...rest,
-    nombre_publico: d.visibility === 'nombre' ? nombre : undefined,
+    nombre_publico: rest.aparecer_como === 'nombre' ? nombre : undefined,
+    // Solo se activa; quitarla es decisión del equipo
+    ...(infoSensible ? { info_sensible: true, sensible_accion: sensibleAccion } : {}),
     // Vaciar un campo opcional también debe guardarse
     titulo: d.title.trim(),
-    territorio_dice: d.territory.trim(),
-    comunidad_dice: d.community.trim(),
-    evidencia_descripcion: d.documentDescription.trim(),
-    evidencia_tipos: [...d.evidence],
-    enlaces_evidencia: [...d.links],
-    dato_fuente_anio: d.dataText.trim(),
-    fuentes: sourcesOf(d),
+    lugar_territorio: d.place.trim(),
     pregunta_tribunal: d.tribunalQuestion.trim(),
-    algo_mas: d.anythingElse.trim(),
-    registro_voz: d.voiceRecord.trim(),
+    enlaces_evidencia: [...d.links],
   })
 }

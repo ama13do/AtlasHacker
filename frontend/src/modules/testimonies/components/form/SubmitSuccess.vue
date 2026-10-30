@@ -6,8 +6,8 @@ import type { CreateTestimonyResult } from '@testimonies/types/testimony'
 import UploadProgress from '@testimonies/components/UploadProgress.vue'
 import { MASCOTS } from '@/core/config/brand'
 
-const props = defineProps<{ result: CreateTestimonyResult; upload: EvidenceUpload }>()
-defineEmits<{ viewOnMap: []; home: [] }>()
+const props = defineProps<{ result: CreateTestimonyResult; upload: EvidenceUpload; hasGuide?: boolean }>()
+defineEmits<{ viewOnMap: []; home: []; guide: [] }>()
 
 const STATUS = { pendiente: 'En revisión', aprobado: 'Publicado', rechazado: 'No publicado' } as const
 
@@ -96,6 +96,17 @@ async function copyFolio() {
       </div>
     </dl>
 
+    <!-- Guía: qué debería pasar en su caso y qué puede hacer -->
+    <section
+      v-if="hasGuide"
+      class="on-light light-box w-full max-w-sm space-y-3 rounded-[22px] border-2 border-black bg-neon-lime p-4 text-left text-black shadow-brut"
+      aria-labelledby="guide-cta"
+    >
+      <h3 id="guide-cta" class="text-base leading-tight font-black uppercase">¿Qué debería pasar en tu caso?</h3>
+      <p class="text-sm">Tus derechos, quién debía evitarlo, qué se comprometió el gobierno y una solicitud de información lista para presentar.</p>
+      <button type="button" class="btn-hxnf btn-ink w-full" @click="$emit('guide')">Ver tu guía</button>
+    </section>
+
     <div class="flex w-full max-w-sm flex-col gap-3">
       <button
         v-if="result.published"
@@ -127,3 +138,15 @@ async function copyFolio() {
     <p class="text-xs tracking-widest text-fg/50 uppercase">Escucha · Registra · Verifica · Protege</p>
   </div>
 </template>
+
+<style scoped>
+/* Dentro de un recuadro claro, los botones conservan borde y sombra negros también en modo oscuro */
+:root[data-theme='dark'] .light-box .btn-hxnf {
+  --btn-shadow: #000;
+  border-color: #000;
+}
+:root[data-theme='dark'] .light-box .btn-ink {
+  background-color: #000;
+  color: #fff;
+}
+</style>

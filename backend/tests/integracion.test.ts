@@ -446,6 +446,47 @@ describe('consentimiento e información sensible', () => {
     expect((await llamar('POST', '/api/testimonios', { body: ficha({ info_sensible: true }) })).status).toBe(400);
   });
 
+  it('«¿Qué pasa?» y las preguntas nuevas se guardan privadas; con amenazas entra el modo protección', async () => {
+    const r = await llamar('POST', '/api/testimonios', {
+      body: ficha({
+        hechos: ['proyecto_territorio', 'calor_clima'],
+        subcategoria: 'MP.SIN_MISSE',
+        desde_cuando: 'uno_a_tres_anios',
+        sigue_pasando: true,
+        reclamo_previo: 'si_sin_respuesta',
+        amenazas: 'si',
+        aparecer_como: 'nombre',
+        nombre: 'Rosa Pérez',
+        autorizacion: 'publico_anonimo',
+      }),
+    });
+    expect(r.status).toBe(201);
+    const id = r.json.data.testimonio.id;
+    expect(r.json.data.testimonio).toMatchObject({ estado: 'pendiente', publicado: false });
+    // Mi folio sabe qué testimonios tienen guía (los del formulario de 4 pantallas)
+    const mios = (await llamar('GET', '/api/mis-testimonios', { folio: r.json.data.participante.folio })).json.data;
+    expect(mios[0].hechos).toEqual(['proyecto_territorio', 'calor_clima']);
+    const t = (await llamar('GET', `/api/admin/testimonios/${id}`, { token: tokens.admin })).json.data;
+    expect(t).toMatchObject({
+      hechos: ['proyecto_territorio', 'calor_clima'],
+      subcategoria: 'MP.SIN_MISSE',
+      desde_cuando: 'uno_a_tres_anios',
+      sigue_pasando: true,
+      reclamo_previo: 'si_sin_respuesta',
+      amenazas: 'si',
+      aparecer_como: 'anonimo',
+      nombre_publico: null,
+      ubicacion_aproximada: true,
+    });
+    await llamar('POST', `/api/admin/testimonios/${id}/aprobar`, { token: tokens.admin, body: {} });
+    const d = (await llamar('GET', `/api/testimonios/${id}`)).json.data;
+    expect(d.aproximada).toBe(true);
+    for (const campo of ['hechos', 'subcategoria', 'desde_cuando', 'sigue_pasando', 'reclamo_previo', 'amenazas']) expect(d).not.toHaveProperty(campo);
+    // valores fuera del catálogo
+    expect((await llamar('POST', '/api/testimonios', { body: ficha({ hechos: ['inventado'] }) })).status).toBe(400);
+    expect((await llamar('POST', '/api/testimonios', { body: ficha({ subcategoria: 'apagon' }) })).status).toBe(400);
+  });
+
   it('«solo documentación interna» y «no autorizo» se aprueban pero NUNCA se publican', async () => {
     for (const autorizacion of ['solo_documentacion_interna', 'no_autoriza']) {
       const r = await llamar('POST', '/api/testimonios', { body: ficha({ autorizacion }) });
