@@ -2,6 +2,8 @@
  * Sube los secretos del .env a AWS Systems Manager Parameter Store (SecureString, cifrados con KMS).
  *   npm run secretos:subir -- --stage prod --set CORS_ORIGINS=https://atlashacker.vercel.app
  * --set CLAVE=valor (repetible) sube ese valor en lugar del del .env (p. ej. CORS solo con el dominio de producción).
+ * --solo A,B,C sube solo esas claves y deja las demás como están en SSM, p. ej. para encender el asistente de IA:
+ *   npm run secretos:subir -- --stage prod --solo ASISTENTE_IA_ACTIVO,GROQ_API_KEY,GROQ_MODEL,OPENROUTER_API_KEY,OPENROUTER_MODEL --set ASISTENTE_IA_ACTIVO=true
  * La Lambda los lee en runtime desde /atlashacker/<stage>/<NOMBRE> (ver SSM_PREFIX en serverless.yml),
  * así NO quedan como variables de entorno visibles en la consola de Lambda.
  *
@@ -26,6 +28,11 @@ process.argv.forEach((a, j) => {
   }
 });
 
+const s = process.argv.indexOf('--solo');
+const solo = s >= 0 ? new Set((process.argv[s + 1] ?? '').split(',').map((c) => c.trim()).filter(Boolean)) : null;
+const desconocidas = solo ? [...solo].filter((c) => !CLAVES.includes(c)) : [];
+if (desconocidas.length) throw new Error(`Claves desconocidas en --solo: ${desconocidas.join(', ')}`);
+
 const i = process.argv.indexOf('--stage');
 const stage = i >= 0 ? process.argv[i + 1] : 'dev';
 const region = process.env.AWS_REGION ?? 'us-west-2';
@@ -34,6 +41,7 @@ const ssm = new SSMClient({ region });
 
 let subidos = 0;
 for (const clave of CLAVES) {
+  if (solo && !solo.has(clave)) continue;
   const valor = sobrescritos[clave] ?? process.env[clave];
   if (!valor) {
     console.log(`  - ${clave}: (vacío, se omite)`);
