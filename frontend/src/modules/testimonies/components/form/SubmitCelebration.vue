@@ -2,21 +2,16 @@
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { track } from '@/core/analytics/analytics'
 import { LOGOS, SOCIALS, type SocialId } from '@/core/config/brand'
-import { googleCalendarUrl, MARCH_DETAILS, MARCH_EVENT } from '@/core/config/event'
+import { TRIAL_ANNOUNCEMENT } from '@/core/config/event'
 import MapLogo from '@testimonies/components/MapLogo.vue'
 import SocialIcon from '@/shared/components/SocialIcon.vue'
 
-// Cierre del envío: confirma que el testimonio quedó guardado, invita a la marcha («Aparta la fecha») y a
-// seguir las redes. Se muestra encima de la pantalla del folio, que queda detrás al cerrar
+// Cierre del envío: confirma que el testimonio quedó guardado, anuncia el juicio a la CFE en enero (sin fecha exacta)
+// e invita a seguir las redes. Se muestra encima de la pantalla del folio, que queda detrás al cerrar
 const props = defineProps<{ published: boolean; hasFolio: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 
-const EVENT = MARCH_EVENT
-const DETAILS = MARCH_DETAILS
-
-// iPhone, iPad y Mac abren el .ics directo en Calendario; los demás van a Google Calendar
-const apple = /iPhone|iPad|Macintosh/i.test(navigator.userAgent)
-const calendarUrl = apple ? EVENT.ics : googleCalendarUrl()
+const EVENT = TRIAL_ANNOUNCEMENT
 
 // Confeti de la marca alrededor de la palomita: ángulo, distancia, color y forma de cada pieza
 const COLORS = ['var(--color-neon-lime)', 'var(--color-neon-green)', 'var(--color-brand-pink)', 'var(--color-brand-orange)', 'var(--color-brand-blue)']
@@ -92,76 +87,27 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey, true))
             </p>
           </div>
 
-          <!-- Boleto: aparta la fecha -->
+          <!-- Boleto: el juicio a la CFE en enero (sin día) -->
           <article
             class="on-light tm-stagger relative mt-3 shrink-0 -rotate-1 rounded-[20px] border-[2.5px] border-black bg-neon-lime text-left shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_#fff]"
             style="--i: 4"
             aria-labelledby="event-title"
           >
             <span class="absolute -top-3 left-4 rotate-2 rounded-full border-2 border-black bg-black px-2.5 py-0.5 text-[10px] font-black tracking-[0.14em] text-neon-lime uppercase">
-              Aparta la fecha
+              {{ EVENT.badge }}
             </span>
 
-            <div class="flex items-center gap-3 px-3.5 pt-5 pb-3 short:pt-4 short:pb-2.5">
-              <!-- Fecha en bloque, como hoja de calendario -->
+            <div class="flex items-center gap-3 px-3.5 pt-5 pb-3.5 short:pt-4 short:pb-3">
+              <!-- Mes en bloque, como hoja de calendario -->
               <div class="flex w-14 shrink-0 flex-col items-center overflow-hidden rounded-xl border-[2.5px] border-black bg-white">
-                <span class="w-full bg-black text-center text-[10px] font-black tracking-[0.18em] text-neon-lime uppercase">{{ EVENT.weekday }}</span>
-                <span class="text-[1.9rem] leading-none font-black tabular-nums">{{ EVENT.day }}</span>
-                <span class="pb-1 text-xs font-black tracking-widest uppercase">{{ EVENT.month }}</span>
+                <span class="w-full bg-black text-center text-[10px] font-black tracking-[0.18em] text-neon-lime">{{ EVENT.year }}</span>
+                <span class="py-1.5 text-xl leading-none font-black tracking-wide uppercase">{{ EVENT.month }}</span>
               </div>
               <div class="min-w-0">
                 <h3 id="event-title" class="text-[15px] leading-tight font-black text-balance uppercase">{{ EVENT.headline }}</h3>
                 <MapLogo :logo="LOGOS.juicios" tone="ink" alt="Juicios x Nuestro Futuro" class="mt-1.5 h-5 w-auto short:hidden" />
               </div>
             </div>
-
-            <!-- Corte perforado del boleto -->
-            <div class="relative mx-3.5 border-t-[2.5px] border-dashed border-black/70" aria-hidden="true">
-              <span class="absolute -top-[11px] -left-[25px] size-5 rounded-full border-[2.5px] border-black bg-white [clip-path:inset(0_0_0_50%)] dark:bg-[#111]" />
-              <span class="absolute -top-[11px] -right-[25px] size-5 rounded-full border-[2.5px] border-black bg-white [clip-path:inset(0_50%_0_0)] dark:bg-[#111]" />
-            </div>
-
-            <dl v-if="DETAILS" class="space-y-1.5 px-3.5 pt-3 text-[13px] leading-snug">
-              <div class="flex gap-2">
-                <dt class="sr-only">Fecha y hora</dt>
-                <svg viewBox="0 0 24 24" class="mt-px size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
-                <dd><strong class="font-black">{{ EVENT.dateLabel }}</strong><span class="block">De {{ DETAILS.timeLabel }}</span></dd>
-              </div>
-              <div class="flex gap-2">
-                <dt class="sr-only">Lugar</dt>
-                <svg viewBox="0 0 24 24" class="mt-px size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11Z" /><circle cx="12" cy="10" r="2.5" /></svg>
-                <dd>
-                  <strong class="font-black">{{ DETAILS.place }}</strong>
-                  <span class="block text-xs text-black/75">{{ DETAILS.placeDetail }}<span class="short:hidden">, {{ DETAILS.placeNote }}</span></span>
-                </dd>
-              </div>
-            </dl>
-            <!-- Mientras no se anuncian hora y lugar -->
-            <div v-else class="flex gap-2 px-3.5 pt-3 text-[13px] leading-snug">
-              <svg viewBox="0 0 24 24" class="mt-px size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
-              <p><strong class="font-black">{{ EVENT.dateLabel }}</strong><span class="block">La hora y el lugar los anunciamos pronto en nuestras redes.</span></p>
-            </div>
-
-            <div class="grid gap-2.5 px-3.5 pt-3 pb-3 short:pt-2.5" :class="DETAILS ? 'grid-cols-2' : 'grid-cols-1'">
-              <a
-                :href="calendarUrl"
-                target="_blank"
-                rel="noopener"
-                class="btn-hxnf btn-ink btn-sm px-2 whitespace-nowrap dark:border-black dark:bg-black dark:text-white"
-                @click="clicked('agregar_calendario', { calendario: apple ? 'ics' : 'google' })"
-              >
-                <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18M12 13v5M9.5 15.5h5" /></svg>
-                Agendar
-              </a>
-              <a v-if="DETAILS" :href="DETAILS.mapsUrl" target="_blank" rel="noopener" class="btn-hxnf btn-paper btn-sm px-2 whitespace-nowrap dark:border-black dark:[--btn-shadow:#000]" @click="clicked('como_llegar')">
-                <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-8-8 18-2-8z" /></svg>
-                Cómo llegar
-              </a>
-            </div>
-            <p v-if="!apple" class="-mt-1 px-3.5 pb-2.5 text-center text-[11px] text-black/70 short:hidden">
-              ¿Otro calendario?
-              <a :href="EVENT.ics" download class="font-bold underline underline-offset-2" @click="clicked('agregar_calendario', { calendario: 'ics' })">Descarga el evento</a>
-            </p>
           </article>
 
           <!-- Redes -->

@@ -552,6 +552,19 @@ describe('consentimiento e información sensible', () => {
     expect(v.json.data).toMatchObject({ revision_subcategoria: null, precision_publica: null, categoria: { slug: 'inseguridad-energetica' } });
     const bit = (await llamar('GET', '/api/admin/bitacora?accion=testimonio.revision', { token: tokens.superadmin })).json.data;
     expect(bit.length).toBeGreaterThanOrEqual(2);
+
+    // Central fósil: centro del municipio, como los megaproyectos
+    const fosil = await llamar('PATCH', url, { token: tokens.moderador, body: { revision_subcategoria: 'CC.CENTRAL_FOSIL' } });
+    expect(fosil.json.data).toMatchObject({ precision_publica: 'municipio', categoria: { slug: 'afectaciones-cambio-climatico' } });
+    await llamar('PATCH', url, { token: tokens.moderador, body: { revision_subcategoria: null } });
+
+    // Sin consulta indígena o presión por tierras: nunca con nombre
+    const conNombre = await llamar('POST', '/api/testimonios', {
+      body: ficha({ categoria: 'inseguridad-energetica', hechos: ['apagones'], subcategoria: 'IE.APAGON', aparecer_como: 'nombre', nombre: 'Rosa Pérez', autorizacion: 'publico_con_nombre' }),
+    });
+    const idNombre = conNombre.json.data.testimonio.id as string;
+    const anon = await llamar('PATCH', `/api/admin/testimonios/${idNombre}/revision`, { token: tokens.moderador, body: { revision_subcategoria: 'MP.TIERRAS' } });
+    expect(anon.json.data).toMatchObject({ aparecer_como: 'anonimo', precision_publica: 'municipio' });
   });
 
   it('seguimiento de compromisos: la persona responde (E1/E2/E3/cerrado) y moderación confirma la omisión', async () => {

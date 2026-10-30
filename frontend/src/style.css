@@ -67,6 +67,11 @@
   --color-brand-orange: #ff8636;
   --color-brand-blue: #2e7dfc;
   --color-brand-pink: #fd8cbb;
+  /* Tintes claros de los acentos: tarjetas de la guía (siempre con tinta negra, también en oscuro) */
+  --color-tint-pink: #ffd9e8;
+  --color-tint-blue: #d9e6ff;
+  --color-tint-orange: #ffdfc9;
+  --color-tint-green: #d2f6da;
 
   --animate-pin-bob: pin-bob 2.4s ease-in-out infinite;
   --animate-hover-bob: hover-bob 3.2s ease-in-out infinite;

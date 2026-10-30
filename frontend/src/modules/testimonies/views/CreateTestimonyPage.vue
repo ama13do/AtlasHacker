@@ -15,7 +15,7 @@ import StepWhat from '@testimonies/components/form/StepWhat.vue'
 import FormStepper from '@testimonies/components/form/FormStepper.vue'
 import SubmitSuccess from '@testimonies/components/form/SubmitSuccess.vue'
 import SubmitCelebration from '@testimonies/components/form/SubmitCelebration.vue'
-import { marchIsUpcoming } from '@/core/config/event'
+import { trialIsUpcoming } from '@/core/config/event'
 import ThemeToggle from '@/shared/components/ThemeToggle.vue'
 import TurnstileWidget from '@/shared/components/TurnstileWidget.vue'
 import type { ApiError } from '@/core/http/client'
@@ -156,7 +156,7 @@ async function onSubmit() {
     result.value = await store.create({ ...draft, files }, { captchaToken: captchaToken.value, folio })
     // «success»: la persona llegó al final y su testimonio quedó guardado (conteo de quienes terminan)
     track('success', { tipo: 'testimonio', categoria: draft.topic ?? undefined, con_evidencias: files.length > 0, participante_nuevo: !folio })
-    celebrate.value = marchIsUpcoming()
+    celebrate.value = trialIsUpcoming()
     guideInput.value = guideInputOf(draft)
     guideFolio.value = folio ?? null
     form.reset()

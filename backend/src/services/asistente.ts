@@ -2,13 +2,50 @@ import { env } from '../config/env.js';
 import { E } from '../lib/errors.js';
 
 /**
- * Asistente para escribir la pregunta al Tribunal (prototipo: components/AsistentePregunta.tsx), vía OpenRouter.
- * Apagado salvo que estén ASISTENTE_IA_ACTIVO=true, OPENROUTER_API_KEY y OPENROUTER_MODEL. No guarda nada:
- * ni la conversación ni el contexto pasan por la base de datos.
+ * Sugiere la pregunta al Tribunal a partir del testimonio (prototipo: components/AsistentePregunta.tsx). No es un chat:
+ * la persona pide una sugerencia y, si no le gusta, otra.
+ * Pregunta primero a Groq y, si falla o tarda, a OpenRouter. Apagado salvo ASISTENTE_IA_ACTIVO=true y al menos
+ * una clave. No guarda nada: ni las sugerencias ni el contexto pasan por la base de datos.
  */
-export function asistenteDisponible(): boolean {
+type Proveedor = { nombre: string; url: string; clave: string; modelo: string; extra?: Record<string, unknown>; ms: number };
+
+// Los modelos que razonan antes de responder: el razonamiento no va en la respuesta
+function razonamientoGroq(modelo: string): Record<string, unknown> | undefined {
+  if (modelo.startsWith('openai/gpt-oss')) return { reasoning_effort: 'low', include_reasoning: false };
+  if (modelo.startsWith('qwen/')) return { reasoning_format: 'hidden' };
+  return undefined;
+}
+
+// La Lambda corta a los 15 s: Groq responde en 1–3 s, así que el respaldo todavía tiene tiempo
+function proveedores(): Proveedor[] {
   const e = env();
-  return e.ASISTENTE_IA_ACTIVO && Boolean(e.OPENROUTER_API_KEY) && Boolean(e.OPENROUTER_MODEL);
+  const lista: Proveedor[] = [];
+  if (e.GROQ_API_KEY) {
+    lista.push({
+      nombre: 'Groq',
+      url: 'https://api.groq.com/openai/v1/chat/completions',
+      clave: e.GROQ_API_KEY,
+      modelo: e.GROQ_MODEL,
+      extra: razonamientoGroq(e.GROQ_MODEL),
+      ms: 6_000,
+    });
+  }
+  if (e.OPENROUTER_API_KEY) {
+    lista.push({
+      nombre: 'OpenRouter',
+      url: 'https://openrouter.ai/api/v1/chat/completions',
+      clave: e.OPENROUTER_API_KEY,
+      modelo: e.OPENROUTER_MODEL,
+      // Sin razonamiento: si no, el modelo gasta los tokens pensando y la respuesta llega vacía
+      extra: { reasoning: { enabled: false } },
+      ms: 7_000,
+    });
+  }
+  return lista;
+}
+
+export function asistenteDisponible(): boolean {
+  return env().ASISTENTE_IA_ACTIVO && proveedores().length > 0;
 }
 
 export type ContextoPregunta = {
@@ -23,15 +60,15 @@ export type ContextoPregunta = {
 export type MensajeAsistente = { role: 'user' | 'assistant'; content: string };
 
 function instrucciones(t: ContextoPregunta) {
-  return `Eres el asistente del Atlas Hacker de Hackers x Nuestro Futuro. Ayudas a una persona a escribir UNA pregunta clara para el Tribunal Popular de Juicios x Nuestro Futuro. Esa pregunta se convertirá en una solicitud de información pública a la autoridad responsable, así que debe pedir información que exista en documentos: acciones, fechas, presupuesto, responsables, resultados.
+  return `Eres el asistente del Atlas Hacker de Hackers x Nuestro Futuro. Sugieres UNA pregunta clara para el Tribunal Popular de Juicios x Nuestro Futuro a partir del testimonio de una persona. Esa pregunta se convertirá en una solicitud de información pública a la autoridad responsable, así que debe pedir información que exista en documentos: acciones, fechas, presupuesto, responsables, resultados.
 
 Reglas:
-- Español de México, palabras sencillas, sin jerga legal. Máximo 3 frases por turno.
-- Haz una sola pregunta a la vez para entender qué quiere saber la persona.
-- Respeta su intención y su voz. No cambies el sentido de lo que quiere preguntar.
-- No inventes cifras, leyes, artículos, programas ni nombres de funcionarios. No des asesoría legal ni prometas resultados.
-- No pidas datos personales. Si la persona comparte nombres o datos que la identifiquen, sugiere quitarlos de la pregunta.
-- Cuando tengas una propuesta, escríbela entre <pregunta> y </pregunta>, una sola pregunta de máximo 60 palabras, que mencione el lugar. Luego pregunta si le sirve o si quiere cambiar algo.
+- Responde SOLO con la pregunta entre <pregunta> y </pregunta>, sin saludo ni explicación.
+- Una sola pregunta de máximo 60 palabras, en español de México, con palabras sencillas y sin jerga legal. Menciona el lugar.
+- Si hay un borrador de pregunta, respeta su intención y su voz: mejóralo sin cambiar lo que quiere saber.
+- Si te piden otra, propón una distinta a las anteriores (otro ángulo: presupuesto, fechas, responsables o resultados).
+- No inventes cifras, leyes, artículos, programas, dependencias ni nombres de funcionarios. No des asesoría legal ni prometas resultados.
+- No incluyas nombres de personas ni datos que identifiquen a alguien.
 
 Contexto del testimonio:
 - Qué pasa: ${t.hechos?.join(', ') || '(sin elegir)'}
@@ -42,32 +79,29 @@ Contexto del testimonio:
 - Borrador de pregunta: ${t.pregunta || '(vacío)'}`;
 }
 
-export async function responderAsistente(contexto: ContextoPregunta, mensajes: MensajeAsistente[]): Promise<string> {
-  if (!asistenteDisponible()) throw E.noDisponible('El asistente no está disponible');
-  const e = env();
-  let r: Response;
-  try {
-    r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${e.OPENROUTER_API_KEY}`, 'Content-Type': 'application/json', 'X-Title': 'Atlas Hacker' },
-      body: JSON.stringify({
-        model: e.OPENROUTER_MODEL,
-        messages: [{ role: 'system', content: instrucciones(contexto) }, ...mensajes],
-        max_tokens: 400,
-        temperature: 0.4,
-      }),
-      signal: AbortSignal.timeout(12_000), // la Lambda corta a los 15 s
-    });
-  } catch (err) {
-    console.error('asistente: OpenRouter no respondió', (err as Error).message);
-    throw E.noDisponible('El asistente no está disponible ahora');
-  }
-  if (!r.ok) {
-    console.error('asistente: OpenRouter respondió', r.status);
-    throw r.status === 429 ? E.limite('Muchas consultas seguidas. Espera un momento.') : E.noDisponible('El asistente no está disponible ahora');
-  }
+async function preguntar(p: Proveedor, mensajes: { role: string; content: string }[]): Promise<string> {
+  const r = await fetch(p.url, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${p.clave}`, 'Content-Type': 'application/json', 'X-Title': 'Atlas Hacker' },
+    body: JSON.stringify({ model: p.modelo, messages: mensajes, max_tokens: 400, temperature: 0.7, ...p.extra }),
+    signal: AbortSignal.timeout(p.ms),
+  });
+  if (!r.ok) throw new Error(`respondió ${r.status}`);
   const datos = (await r.json()) as { choices?: { message?: { content?: string } }[] };
   const texto = datos.choices?.[0]?.message?.content?.trim();
-  if (!texto) throw E.noDisponible('El asistente no está disponible ahora');
+  if (!texto) throw new Error('respuesta vacía');
   return texto;
+}
+
+export async function responderAsistente(contexto: ContextoPregunta, mensajes: MensajeAsistente[]): Promise<string> {
+  if (!asistenteDisponible()) throw E.noDisponible('El asistente no está disponible');
+  const conversacion = [{ role: 'system', content: instrucciones(contexto) }, ...mensajes];
+  for (const p of proveedores()) {
+    try {
+      return await preguntar(p, conversacion);
+    } catch (err) {
+      console.error(`asistente: ${p.nombre} falló`, (err as Error).message);
+    }
+  }
+  throw E.noDisponible('El asistente no está disponible ahora. Intenta en un momento.');
 }

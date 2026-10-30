@@ -14,7 +14,7 @@ import type { AppEnv, UsuarioAuth } from '../types.js';
 import { diferencias, registrarBitacora } from './bitacora.js';
 import { obtenerConfiguracion } from './configuracion.js';
 import { crearParticipante } from './participantes.js';
-import { decidirPublicacion, enModoProteccion, evidenciaPublicaPorDefecto, precisionPublica, revisionDeRiesgo } from './reglas.js';
+import { decidirPublicacion, enModoProteccion, evidenciaPublicaPorDefecto, precisionPublica, revisionDeRiesgo, SIEMPRE_ANONIMO } from './reglas.js';
 import { listarSeguimiento } from './seguimiento.js';
 
 type Ctx = Context<AppEnv>;
@@ -421,7 +421,7 @@ export async function editarPropio(c: Ctx, participanteId: string, id: string, i
 
   const set = await aColumnas(input);
   const amenazasFinal = (set.amenazas ?? actual.amenazas) as string | null;
-  if (enModoProteccion(amenazasFinal)) set.aparecer_como = 'anonimo';
+  if (enModoProteccion(amenazasFinal) || SIEMPRE_ANONIMO.has(actual.revision_subcategoria ?? '')) set.aparecer_como = 'anonimo';
   coherenciaNombre(actual, set);
   const sensible = set.info_sensible ?? actual.info_sensible;
   const accion = set.sensible_accion ?? actual.sensible_accion;
@@ -507,8 +507,13 @@ export async function revisarTestimonio(c: Ctx, id: string, input: RevisionTesti
   if (input.revision_subcategoria !== undefined) {
     const sp = input.revision_subcategoria ?? actual.subcategoria;
     if (sp) set.categoria_id = (await resolverCategoria(CATEGORIA_POR_PREFIJO[sp.slice(0, 2)]!, false)).id;
-    set.precision_publica = precisionPublica({ amenazas: actual.amenazas, subcategoria: sp });
+    set.precision_publica = precisionPublica({ amenazas: actual.amenazas, hechos: actual.hechos, subcategoria: sp });
     if (set.precision_publica) set.ubicacion_aproximada = true;
+    // Sin consulta indígena o presión por tierras: nunca con nombre
+    if (sp && SIEMPRE_ANONIMO.has(sp) && actual.aparecer_como !== 'anonimo') {
+      set.aparecer_como = 'anonimo';
+      set.nombre_publico = null;
+    }
   }
   await persistirCambios(c, id, actual, set, 'testimonio.revision');
   return obtenerStaff(id);

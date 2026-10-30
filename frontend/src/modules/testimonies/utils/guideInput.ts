@@ -4,7 +4,19 @@ import type { TestimonyDraft } from '@testimonies/types/testimony'
 
 export type GuideInput = Pick<
   TestimonyDraft,
-  'facts' | 'state' | 'municipality' | 'place' | 'since' | 'ongoing' | 'title' | 'testimony' | 'tribunalQuestion' | 'complaint' | 'threats' | 'visibility'
+  | 'facts'
+  | 'state'
+  | 'municipality'
+  | 'place'
+  | 'since'
+  | 'ongoing'
+  | 'title'
+  | 'testimony'
+  | 'tribunalQuestion'
+  | 'complaint'
+  | 'threats'
+  | 'visibility'
+  | 'name'
 >
 
 // Ajustes del revisor (panel de moderación): corrigen la guía sin tocar lo que escribió la persona
@@ -32,6 +44,7 @@ export function guideInputOf(d: GuideInput): GuideInput {
     complaint: d.complaint,
     threats: d.threats,
     visibility: d.visibility,
+    name: d.name,
   }
 }
 

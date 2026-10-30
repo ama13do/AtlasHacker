@@ -77,6 +77,7 @@ const guideInput = computed<GuideInput>(() => ({
   complaint: t.value.reclamo_previo,
   threats: t.value.amenazas,
   visibility: t.value.aparecer_como === 'nombre' ? 'nombre' : 'anonimo',
+  name: t.value.nombre_publico ?? '',
 }))
 const review = computed(() => ({
   subcategory: t.value.revision_subcategoria,

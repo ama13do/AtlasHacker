@@ -49,10 +49,13 @@ const esquema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().optional(),
   R2_BUCKET_NAME: z.string().optional(),
 
-  // Asistente de IA para la pregunta al Tribunal (OpenRouter). Apagado salvo que estén las tres variables.
+  // Asistente de IA para la pregunta al Tribunal: Groq primero y OpenRouter de respaldo si Groq falla.
+  // Apagado salvo que ASISTENTE_IA_ACTIVO=true y haya al menos una de las dos claves
   ASISTENTE_IA_ACTIVO: z.stringbool().default(false),
+  GROQ_API_KEY: z.string().optional(),
+  GROQ_MODEL: z.string().default('qwen/qwen3.8-27b'), // id de console.groq.com/docs/models
   OPENROUTER_API_KEY: z.string().optional(),
-  OPENROUTER_MODEL: z.string().optional(), // id de openrouter.ai/models, p. ej. un modelo Claude Haiku
+  OPENROUTER_MODEL: z.string().default('anthropic/claude-haiku-5.5'), // id de openrouter.ai/models
 
   // Si se define, los secretos se leen en runtime desde AWS SSM Parameter Store (/prefijo/NOMBRE)
   SSM_PREFIX: z.string().optional(),

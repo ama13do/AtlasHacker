@@ -46,6 +46,19 @@ export interface RegionFigures {
   fossils: number
   shared: boolean // La cifra prevista es de toda la GCR Baja California
 }
+export interface RegionDetail extends RegionFigures {
+  name: string
+  renewableShare: number // % renovable de lo previsto (0–100)
+  rank: number // Lugar en generación distribuida 2024 entre todas las regiones (1 = más)
+  regions: number
+  states: string[] // Estados que el Excel asigna a esta región [INFERENCIA]
+  investment: { amount: string; source: string } | null // Proyectos estratégicos de la CFE (PLADESE, tablas 4.24–4.31)
+}
+export interface Recipient {
+  label: string
+  email: string
+  name: string // Cómo se nombra en la solicitud («solicito a …»)
+}
 
 const SUBS = subcategories as Record<string, Subcategory>
 const RIGHTS = rightsTable as Record<string, string>
@@ -119,6 +132,82 @@ export const allRegionFigures = () =>
 
 export const REGION_NAMES: Record<string, string> = { BCS: 'Baja California Sur' }
 
+// Inversión preliminar de los proyectos estratégicos de la CFE por región (compromisos PLADESE-4.24 a 4.31 del Excel)
+const INVESTMENT_BY_REGION: Record<string, string> = {
+  Central: 'PLADESE-4.24-01',
+  Oriental: 'PLADESE-4.25-01',
+  Occidental: 'PLADESE-4.26-01',
+  Noroeste: 'PLADESE-4.27-01',
+  Norte: 'PLADESE-4.28-01',
+  Noreste: 'PLADESE-4.29-01',
+  'Baja California': 'PLADESE-4.30-01',
+  BCS: 'PLADESE-4.31-01',
+}
+
+// Todo sale del Excel: cifras de la tabla GCR, estados por región y montos de las tablas del PLADESE
+export function regionDetail(region: string): RegionDetail | null {
+  const figures = regionFigures(region)
+  if (!figures) return null
+  const ranking = allRegionFigures().sort((a, b) => b.installed2024 - a.installed2024)
+  const planned = figures.renewables + figures.fossils
+  const c = COMMITMENTS[INVESTMENT_BY_REGION[region] ?? '']
+  const amount = c?.fragmento.match(/MDP ([\d,.]+)/i)?.[1]
+  return {
+    ...figures,
+    name: REGION_NAMES[region] ?? region,
+    renewableShare: planned ? Math.round((figures.renewables / planned) * 100) : 0,
+    rank: ranking.findIndex((r) => r.region === region) + 1,
+    regions: ranking.length,
+    states: Object.keys(STATE_REGION)
+      .filter((s) => STATE_REGION[s] === region)
+      .sort((a, b) => a.localeCompare(b, 'es')),
+    investment: c && amount ? { amount, source: c.fuente } : null,
+  }
+}
+
+// Correo de la solicitud: unidades de transparencia que publican su correo para recibir solicitudes
+// (cfe.gob.mx → Transparencia → Datos de contacto; cenace.gob.mx → Transparencia → Acceso a la información;
+// transparencia.energia.gob.mx → Datos de contacto; transparencia.cne.gob.mx; SEMARNAT: sus avisos de privacidad)
+export const TRANSPARENCY = {
+  CFE: { label: 'Unidad de Transparencia de la CFE', email: 'informacion.publica@cfe.mx', name: 'la Comisión Federal de Electricidad (CFE)' },
+  CENACE: {
+    label: 'Unidad de Transparencia del CENACE',
+    email: 'unidad.transparencia@cenace.gob.mx',
+    name: 'el Centro Nacional de Control de Energía (CENACE)',
+  },
+  SENER: { label: 'Unidad de Transparencia de la SENER', email: 'unidadtransparencia@energia.gob.mx', name: 'la Secretaría de Energía (SENER)' },
+  CNE: { label: 'Unidad de Transparencia de la CNE', email: 'transparencia@cne.gob.mx', name: 'la Comisión Nacional de Energía (CNE)' },
+  SEMARNAT: {
+    label: 'Unidad de Transparencia de la SEMARNAT',
+    email: 'utransparencia@semarnat.gob.mx',
+    name: 'la Secretaría de Medio Ambiente y Recursos Naturales (SEMARNAT)',
+  },
+} satisfies Record<string, Recipient>
+// Copia oculta para que Hackers x Nuestro Futuro dé seguimiento
+export const FOLLOW_UP_BCC = 'hxnf@practica.lat'
+// Apagones, cortes y obras de red: el CENACE coordina el restablecimiento del servicio y la planeación de la red
+const GRID_CASES = new Set(['IE.APAGON', 'IE.CORTE_MANTENIMIENTO', 'CC.APAGON_CLIMATICO', 'MP.OBRA_RED_RETRASADA'])
+
+// Siempre la CFE; además el CENACE en casos de red y la dependencia que el Excel marca como responsable
+function recipientsFor(principal: string, responsable: string): Recipient[] {
+  const list: Recipient[] = [TRANSPARENCY.CFE]
+  if (GRID_CASES.has(principal)) list.push(TRANSPARENCY.CENACE)
+  if (/SENER/.test(responsable)) list.push(TRANSPARENCY.SENER)
+  if (/CNE/.test(responsable)) list.push(TRANSPARENCY.CNE)
+  if (/SEMARNAT/.test(responsable)) list.push(TRANSPARENCY.SEMARNAT)
+  return list
+}
+
+// «la CFE, al CENACE y a la SENER» (va después de «solicito a»)
+function addressees(list: Recipient[]): string {
+  const names = list.map((r, i) => (i ? `a ${r.name}`.replace(/^a el /, 'al ') : r.name))
+  return names.length > 1 ? `${names.slice(0, -1).join(', ')} y ${names.at(-1)}` : names[0]!
+}
+
+// Deber general de las autoridades (Excel, regla R15: siempre se muestra junto a los derechos)
+export const AUTHORITIES_DUTY =
+  'Las autoridades deben promover, respetar, proteger y garantizar tus derechos, y prevenir, investigar, sancionar y reparar sus violaciones (art. 1º de la Constitución).'
+
 const HYDROCARBONS = /gasoduct|oleoduct|fracking|fractura hidr|hidrocarbur|pozo petroler|petrol[ée]r|\bpemex\b/i
 
 export function buildGuide(t: GuideInput, review?: GuideReview | null) {
@@ -139,10 +228,20 @@ export function buildGuide(t: GuideInput, review?: GuideReview | null) {
 
   const protection = protectionMode(t.facts, t.threats)
   const riskReview = needsRiskReview(t, principal)
+  // Megaproyecto o central fósil (principal o secundario): centro del municipio (UI-4)
+  const municipalCenter = !protection && riskReview
+  // Sin consulta indígena o presión por tierras: nunca con nombre
+  const anonymous = protection || t.visibility !== 'nombre' || ['MP.SIN_CONSULTA', 'MP.TIERRAS'].includes(principal)
   const m = texts.mapa_publico
   const publicMap = protection
     ? 'Solo el estado, anónimo'
-    : (principal.startsWith('MP.') ? 'Centro del municipio' : 'Cuadrícula de ~1 km') + (t.visibility === 'nombre' ? m.con_nombre : m.anonimo)
+    : (municipalCenter ? 'Centro del municipio' : 'Cuadrícula de ~1 km') + (anonymous ? m.anonimo : m.con_nombre)
+  const municipality = t.municipality.trim()
+  const publicPlace = protection
+    ? `Solo el estado (${t.state})`
+    : `${municipalCenter ? 'Centro del municipio de' : 'Cuadrícula de ~1 km dentro de'} ${[municipality, t.state].filter(Boolean).join(', ')}`
+
+  const recipients = recipientsFor(principal, sub.responsable)
 
   let rightsText = RIGHTS[`${principal}|${climate === principal ? '' : climate}`] ?? sub.derechos
   if (review?.right) rightsText += ` · ${reviewRight(review.right)}`
@@ -157,6 +256,9 @@ export function buildGuide(t: GuideInput, review?: GuideReview | null) {
       : t.complaint === 'no' && principal.startsWith('IE.')
         ? texts.reclamo['No|IE']
         : null
+
+  const requestFor = (responsable: string) =>
+    fill(texts.solicitud, { responsable, pregunta: question, municipio: municipality, estado: t.state, fuente: sub.fuente })
 
   const notices = [texts.avisos.base]
   if (t.ongoing === false && t.since === 'mas_de_tres_anios') notices.push(texts.avisos.antes_2025)
@@ -175,6 +277,8 @@ export function buildGuide(t: GuideInput, review?: GuideReview | null) {
     protection,
     riskReview,
     publicMap,
+    publicPlace,
+    author: anonymous ? 'Anónimo' : t.name.trim() || 'Anónimo',
     rights: parseRights(rightsText),
     responsible: sub.responsable,
     // « · También debe responder el gobierno estatal (LGCC, art. 8)» → sin el separador inicial
@@ -183,17 +287,18 @@ export function buildGuide(t: GuideInput, review?: GuideReview | null) {
     renewable: { text: sub.salidaFragmento, source: sub.salidaFuente },
     question,
     questionSuggested: !t.tribunalQuestion.trim(),
-    request: fill(texts.solicitud, {
-      responsable: sub.responsable,
-      pregunta: question,
-      municipio: t.municipality.trim(),
-      estado: t.state,
-      fuente: sub.fuente,
-    }),
+    request: requestFor(sub.responsable),
+    // Por correo se dirige a quien la recibe (CFE, CENACE en casos de red y la dependencia responsable)
+    email: {
+      to: recipients,
+      subject: `Solicitud de acceso a la información pública: ${[municipality, t.state].filter(Boolean).join(', ')}`,
+      body: requestFor(addressees(recipients)),
+    },
     commitment: commitment(firstId),
     moreCommitments: moreIds.map(commitment).filter((c): c is Commitment => c !== null),
     region,
     regionText: REGIONS[region] ?? '',
+    regionDetail: regionDetail(region),
     complaintTitle: t.complaint === 'no' ? 'Si quieres reclamar' : 'Si ya reclamaste',
     complaint,
     notices,

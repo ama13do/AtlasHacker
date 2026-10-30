@@ -77,8 +77,9 @@ function removeLink(url: string) {
         />
       </FormField>
 
-      <div class="space-y-2 rounded-[22px] border-2 border-ink bg-card p-4 shadow-brut">
-        <p class="chip w-fit bg-black text-[11px] tracking-wider text-white uppercase dark:bg-white dark:text-black">Tu pregunta al Tribunal · opcional</p>
+      <!-- La pregunta al Tribunal destaca en naranja: se vuelve la solicitud de información -->
+      <div class="on-light light-box space-y-2 rounded-[22px] border-2 border-black bg-brand-orange p-4 shadow-[4px_4px_0_0_#000] dark:shadow-[4px_4px_0_0_var(--color-neon-lime)]">
+        <p class="chip w-fit border-black bg-black text-[11px] tracking-wider text-white uppercase">Tu pregunta al Tribunal · opcional</p>
         <FormField
           id="tribunalQuestion"
           v-slot="field"
@@ -104,7 +105,16 @@ function removeLink(url: string) {
     <section class="space-y-5">
       <h3 class="form-group-title">Fotos o documentos <span class="normal-case">(opcional)</span></h3>
       <EvidenceFiles v-model="draft.files" :evidence="[]" />
-      <p class="text-xs text-fg/60">Quitamos la ubicación y los datos ocultos de tus fotos antes de subirlas.</p>
+
+      <!-- Huella digital: siempre se borran los metadatos de las fotos (GPS, fecha, modelo del teléfono) -->
+      <div class="on-light flex items-start gap-3 rounded-2xl border-2 border-black bg-neon-lime p-3.5 text-sm shadow-brut-sm">
+        <svg viewBox="0 0 24 24" class="mt-0.5 size-5 shrink-0" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z" /><path d="m9 12 2 2 4-4" /></svg>
+        <p>
+          <span class="block font-bold">Protegemos tu huella digital</span>
+          <span class="block text-xs opacity-80">Quitamos tus datos personales ocultos de las fotos antes de subirlas: ubicación GPS, fecha y hora, y modelo del teléfono.</span>
+        </p>
+      </div>
+      <p class="text-xs text-fg/60">El equipo revisa a mano las fotos antes de publicarlas, para que no se vean rostros, placas ni números de servicio.</p>
 
       <div class="space-y-2" :aria-describedby="errors.links ? 'links-error' : undefined">
         <div class="space-y-1">
@@ -153,3 +163,11 @@ function removeLink(url: string) {
     </section>
   </div>
 </template>
+
+<style scoped>
+/* Dentro de un recuadro de color, los botones conservan borde y sombra negros también en modo oscuro */
+:root[data-theme='dark'] .light-box :deep(.btn-hxnf) {
+  --btn-shadow: #000;
+  border-color: #000;
+}
+</style>

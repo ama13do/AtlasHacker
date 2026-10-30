@@ -65,8 +65,7 @@ function typeFor(file: File): EvidenceType {
 
 const newId = () => crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`
 
-function onChange(e: Event) {
-  const selected = Array.from((e.target as HTMLInputElement).files ?? [])
+function addFiles(selected: File[]) {
   const problems: string[] = []
   const added: EvidenceAttachment[] = []
   let bytes = usedBytes.value
@@ -88,6 +87,26 @@ function onChange(e: Event) {
   message.value = problems.length ? problems.join(' ') : null
   model.value = [...model.value, ...added]
   if (input.value) input.value.value = ''
+}
+
+const onChange = (e: Event) => addFiles(Array.from((e.target as HTMLInputElement).files ?? []))
+
+// Arrastrar y soltar archivos sobre la zona (en computadora)
+const dragging = ref(false)
+let dragDepth = 0
+function onDragEnter(e: DragEvent) {
+  if (!e.dataTransfer?.types.includes('Files')) return
+  dragDepth++
+  dragging.value = true
+}
+function onDragLeave() {
+  dragDepth = Math.max(0, dragDepth - 1)
+  if (!dragDepth) dragging.value = false
+}
+function onDrop(e: DragEvent) {
+  dragDepth = 0
+  dragging.value = false
+  addFiles(Array.from(e.dataTransfer?.files ?? []))
 }
 
 function remove(id: string) {
@@ -154,12 +173,18 @@ function setType(id: string, type: EvidenceType) {
 
     <label
       v-if="model.length < limits.maxFiles"
-      class="relative flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-fg/30 px-4 py-4 text-sm @3xl:flex-col @3xl:py-10 font-semibold transition hover:border-neon-lime hover:text-accent-ink has-focus-visible:outline-2 has-focus-visible:outline-fg"
+      class="relative flex cursor-pointer flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed px-4 py-5 text-center text-sm font-semibold transition @3xl:py-10 has-focus-visible:outline-2 has-focus-visible:outline-fg"
+      :class="dragging ? 'border-ink bg-neon-lime/40 light:bg-neon-lime/60' : 'border-fg/30 hover:border-neon-lime hover:text-accent-ink'"
+      @dragenter.prevent="onDragEnter"
+      @dragover.prevent
+      @dragleave.prevent="onDragLeave"
+      @drop.prevent="onDrop"
     >
-      <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <svg viewBox="0 0 24 24" class="size-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
       </svg>
-      Elegir archivos
+      <span>{{ dragging ? 'Suelta aquí tus archivos' : 'Elegir archivos' }}</span>
+      <span class="hidden text-xs font-normal text-fg/60 pointer-fine:block">o arrástralos aquí</span>
       <input ref="input" type="file" class="sr-only" multiple :accept="accept" @change="onChange" />
     </label>
 

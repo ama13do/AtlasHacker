@@ -1,28 +1,27 @@
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue'
+import { computed, ref } from 'vue'
 import type { ApiError } from '@/core/http/client'
 import { FACT_LABELS, SINCE_LABELS } from '@testimonies/data/facts'
 import { testimoniesService, type AssistantMessage } from '@testimonies/services/testimonies.service'
 import { useCategoriesStore } from '@testimonies/stores/categories'
 import type { TestimonyDraft } from '@testimonies/types/testimony'
 
-// Asistente para escribir la pregunta al Tribunal (prototipo: AsistentePregunta). Solo aparece si la API lo tiene
-// encendido (OpenRouter); la persona decide si usa la propuesta
+// Sugiere la pregunta al Tribunal con IA (prototipo: AsistentePregunta). No es un chat: un botón para sugerir y otro para
+// regenerar. Solo aparece si la API lo tiene encendido (Groq, con OpenRouter de respaldo); la persona decide si la usa
 const props = defineProps<{ draft: TestimonyDraft }>()
 const emit = defineEmits<{ use: [question: string] }>()
 
 const categories = useCategoriesStore()
 const enabled = computed(() => categories.config?.assistant === true)
 
-const open = ref(false)
-const messages = ref<AssistantMessage[]>([])
-const text = ref('')
+// Sugerencias anteriores: se mandan para que «Regenerar» proponga otra distinta (la API acepta hasta 16 mensajes)
+const MAX_PREVIOUS = 5
+const previous = ref<string[]>([])
+const suggestion = ref<string | null>(null)
 const busy = ref(false)
 const error = ref<string | null>(null)
-const end = ref<HTMLElement | null>(null)
 
-const extract = (s: string) => s.match(/<pregunta>([\s\S]*?)<\/pregunta>/)?.[1]?.trim() ?? null
-const clean = (s: string) => s.replace(/<\/?pregunta>/g, '')
+const extract = (s: string) => (s.match(/<pregunta>([\s\S]*?)<\/pregunta>/)?.[1] ?? s.replace(/<\/?pregunta>/g, '')).trim()
 
 const context = () => ({
   hechos: props.draft.facts.map((f) => FACT_LABELS[f]),
@@ -34,70 +33,47 @@ const context = () => ({
   pregunta: props.draft.tribunalQuestion.trim() || undefined,
 })
 
-async function send(content: string) {
+async function suggest() {
   if (busy.value) return
-  const next = [...messages.value, { role: 'user' as const, content }]
-  messages.value = next
-  text.value = ''
+  const seen = suggestion.value ? [...previous.value, suggestion.value].slice(-MAX_PREVIOUS) : []
+  const messages: AssistantMessage[] = [{ role: 'user', content: 'Sugiere una pregunta.' }]
+  for (const q of seen) messages.push({ role: 'assistant', content: `<pregunta>${q}</pregunta>` }, { role: 'user', content: 'Dame otra distinta.' })
   error.value = null
   busy.value = true
   try {
-    messages.value = [...next, { role: 'assistant', content: await testimoniesService.askAssistant(context(), next) }]
+    const next = extract(await testimoniesService.askAssistant(context(), messages))
+    previous.value = seen
+    suggestion.value = next || null
+    if (!next) error.value = 'No salió una sugerencia. Intenta de nuevo.'
   } catch (e) {
     const status = (e as Partial<ApiError>).status
-    error.value = status === 429 ? 'Muchas consultas seguidas. Espera un momento.' : 'El asistente no está disponible ahora. Puedes escribir tu pregunta por tu cuenta.'
-    messages.value = next.slice(0, -1)
+    error.value = status === 429 ? 'Muchas consultas seguidas. Espera un momento.' : 'Ahora no pudimos sugerir una pregunta. Puedes escribirla por tu cuenta.'
   } finally {
     busy.value = false
-    await nextTick()
-    end.value?.scrollIntoView({ block: 'nearest' })
   }
 }
 </script>
 
 <template>
-  <div v-if="enabled">
-    <button v-if="!open" type="button" class="btn-hxnf btn-paper btn-sm" @click="open = true">¿No sabes cómo preguntarlo? Te ayudo</button>
-    <div v-else class="space-y-3 rounded-2xl border-2 border-ink/30 p-3" aria-label="Asistente para tu pregunta">
-      <p class="text-xs text-fg/70">
-        Te ayudo a escribir tu pregunta; tú decides cuál usar. Lo que escribas aquí lo procesa una inteligencia artificial: no pongas
-        nombres ni datos personales.
-      </p>
-      <div class="max-h-72 space-y-2 overflow-y-auto" aria-live="polite">
-        <button
-          v-if="!messages.length"
-          type="button"
-          class="btn-hxnf btn-ink btn-sm"
-          :disabled="busy"
-          @click="send(draft.tribunalQuestion.trim() ? 'Ayúdame a mejorar mi pregunta.' : 'Ayúdame a escribir mi pregunta.')"
-        >
-          Empezar
+  <div v-if="enabled" class="space-y-3">
+    <button v-if="!suggestion" type="button" class="btn-hxnf btn-paper btn-sm" :disabled="busy" @click="suggest">
+      <svg viewBox="0 0 24 24" class="size-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.94 14.06 4 20M14.5 4l1.1 2.9L18.5 8l-2.9 1.1L14.5 12l-1.1-2.9L10.5 8l2.9-1.1zM19 14l.6 1.4L21 16l-1.4.6L19 18l-.6-1.4L17 16l1.4-.6z" /></svg>
+      {{ busy ? 'Pensando…' : 'Sugerir pregunta para el tribunal' }}
+    </button>
+
+    <div v-else class="space-y-3 rounded-2xl border-2 border-ink bg-card p-3" aria-live="polite">
+      <p class="text-xs font-bold tracking-wide text-fg/60 uppercase">Sugerencia</p>
+      <p class="text-sm leading-relaxed" :class="busy && 'opacity-50'">{{ suggestion }}</p>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" class="btn-hxnf btn-ink btn-sm" :disabled="busy" @click="emit('use', suggestion!)">Usar esta pregunta</button>
+        <button type="button" class="btn-hxnf btn-paper btn-sm" :disabled="busy" @click="suggest">
+          <svg viewBox="0 0 24 24" class="size-4" :class="busy && 'animate-spin'" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8" /><path d="M21 3v5h-5" /></svg>
+          {{ busy ? 'Pensando…' : 'Regenerar' }}
         </button>
-        <div
-          v-for="(m, i) in messages"
-          :key="i"
-          class="rounded-2xl px-3 py-2 text-sm whitespace-pre-line"
-          :class="m.role === 'user' ? 'ml-8 bg-fg/10' : 'mr-8 border-2 border-ink bg-card'"
-        >
-          {{ m.role === 'assistant' ? clean(m.content) : m.content }}
-          <button
-            v-if="m.role === 'assistant' && extract(m.content)"
-            type="button"
-            class="btn-hxnf btn-ink btn-sm mt-2"
-            @click="emit('use', extract(m.content)!)"
-          >
-            Usar esta pregunta
-          </button>
-        </div>
-        <p v-if="busy" class="text-sm text-fg/60" role="status">Pensando…</p>
-        <div ref="end" />
       </div>
-      <p v-if="error" class="text-sm text-danger" role="alert">{{ error }}</p>
-      <form v-if="messages.length" class="flex gap-2" @submit.prevent="text.trim() && send(text.trim())">
-        <label for="assistant-text" class="sr-only">Responde al asistente</label>
-        <input id="assistant-text" v-model="text" type="text" maxlength="1500" class="field-input min-w-0 flex-1 text-sm" placeholder="Escribe aquí…" />
-        <button type="submit" class="btn-hxnf btn-ink btn-sm shrink-0" :disabled="busy || !text.trim()">Enviar</button>
-      </form>
     </div>
+
+    <p v-if="error" class="text-sm text-danger" role="alert">{{ error }}</p>
+    <p class="text-xs text-fg/60">La sugerencia la escribe una inteligencia artificial con lo que contaste; tú decides si la usas.</p>
   </div>
 </template>

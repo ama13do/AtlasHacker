@@ -105,8 +105,11 @@ async function copyFolio() {
       aria-labelledby="guide-cta"
     >
       <h3 id="guide-cta" class="text-base leading-tight font-black uppercase">¿Qué debería pasar en tu caso?</h3>
-      <p class="text-sm">Tus derechos, quién debía evitarlo, qué se comprometió el gobierno y una solicitud de información lista para presentar.</p>
-      <button type="button" class="btn-hxnf btn-ink w-full" @click="$emit('guide')">Ver tu guía</button>
+      <p class="text-sm">Tus derechos, quién debía evitarlo, qué se comprometió el gobierno y una solicitud de información lista para enviar.</p>
+      <button type="button" class="btn-hxnf btn-ink w-full rounded-2xl py-3 text-balance" @click="$emit('guide')">
+        En una transición energética justa, las cosas deberían suceder así
+        <svg viewBox="0 0 24 24" class="size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </button>
     </section>
 
     <div class="flex w-full max-w-sm flex-col gap-3">

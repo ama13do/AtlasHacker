@@ -61,24 +61,29 @@ export function enModoProteccion(amenazas?: string | null): boolean {
 
 type Caso = { amenazas?: string | null; hechos?: readonly string[] | null; subcategoria?: string | null };
 
+// Megaproyecto (MP.*) o central fósil, como hecho principal, secundario o corregido por el revisor
+const esProyectoORiesgo = (t: Caso) =>
+  Boolean(t.hechos?.includes('proyecto_territorio')) ||
+  Boolean(t.subcategoria && (t.subcategoria.startsWith('MP.') || t.subcategoria === 'CC.CENTRAL_FOSIL'));
+
 /**
- * Precisión del pin público (Excel de metodología, UI-4): con amenazas solo se muestra el estado; en megaproyectos,
- * el centro del municipio. null = cuadrícula de ~1 km (o exacta en testimonios del formulario anterior).
+ * Precisión del pin público (Excel de metodología, UI-4 y «Propuesta de interfaz» C): con amenazas solo se muestra
+ * el estado; en megaproyectos y centrales fósiles, el centro del municipio. null = cuadrícula de ~1 km (o exacta en
+ * testimonios del formulario anterior).
  */
 export function precisionPublica(t: Caso): 'estado' | 'municipio' | null {
   if (enModoProteccion(t.amenazas)) return 'estado';
-  if (t.subcategoria?.startsWith('MP.')) return 'municipio';
+  if (esProyectoORiesgo(t)) return 'municipio';
   return null;
 }
 
 /** Revisión de riesgo (7 a 14 días): amenazas, un proyecto en el territorio o una central fósil. */
 export function revisionDeRiesgo(t: Caso): boolean {
-  return (
-    enModoProteccion(t.amenazas) ||
-    Boolean(t.hechos?.includes('proyecto_territorio')) ||
-    Boolean(t.subcategoria && (t.subcategoria.startsWith('MP.') || t.subcategoria === 'CC.CENTRAL_FOSIL'))
-  );
+  return enModoProteccion(t.amenazas) || esProyectoORiesgo(t);
 }
+
+/** Subcategorías en las que nunca se publica el nombre (Excel, «Propuesta de interfaz» C: anónimo por defecto). */
+export const SIEMPRE_ANONIMO = new Set(['MP.SIN_CONSULTA', 'MP.TIERRAS']);
 
 const TIPOS_CON_DATOS_PERSONALES = new Set(['recibo_factura', 'documento_oficial', 'recibo', 'factura', 'oficio', 'contrato', 'registro_oficial']);
 
