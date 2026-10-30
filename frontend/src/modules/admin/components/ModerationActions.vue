@@ -91,12 +91,26 @@ const btn = 'rounded-full px-4 py-2 text-sm font-semibold transition focus-visib
       <p v-if="notPublishable" class="font-semibold">
         Por su autorización, este testimonio se aprobará pero no se mostrará en el mapa.
       </p>
-      <p v-else>Se publicará en el mapa{{ t.ubicacion_aproximada ? ' con ubicación aproximada (~1 km)' : '' }}.</p>
+      <p v-else>
+        Se publicará en el mapa{{
+          t.precision_publica === 'estado'
+            ? ' solo con el estado'
+            : t.precision_publica === 'municipio'
+              ? ' en el centro del municipio'
+              : t.ubicacion_aproximada
+                ? ' con ubicación aproximada (~1 km)'
+                : ''
+        }}.
+      </p>
       <label class="flex cursor-pointer items-center gap-2">
         <input v-model="publishMedia" type="checkbox" class="size-4 accent-neon-lime" />
         Publicar fotos, audio y video ({{ t.autoriza_multimedia === 'si' ? 'la persona lo autorizó' : 'la persona NO lo autorizó' }})
       </label>
       <p class="text-xs text-fg/60">Recibos y documentos oficiales nunca se publican automáticamente.</p>
+      <p v-if="t.evidencias.length || t.enlaces_evidencia?.length" class="rounded-lg border border-brand-orange/50 bg-brand-orange/10 px-2 py-1.5 text-xs light:bg-brand-orange/20">
+        Antes de publicar, revisa cada foto y video a mano: rostros, placas de vehículos y números de servicio (medidor,
+        contrato). Si aparecen, no los publiques; las fotos ya se suben sin metadatos, pero no se difuminan.
+      </p>
       <div class="flex gap-2">
         <button type="button" :class="[btn, 'bg-neon-green text-black']" :disabled="busy" @click="run('aprobar')">Confirmar aprobación</button>
         <button type="button" class="text-sm text-fg/60 hover:underline" @click="panel = null">Cancelar</button>

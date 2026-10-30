@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { LIMITS, MAX_LINKS, normalizeLink, useTestimonyFormContext } from '@testimonies/composables/useTestimonyForm'
+import AssistantQuestion from '@testimonies/components/form/AssistantQuestion.vue'
 import EvidenceFiles from '@testimonies/components/form/EvidenceFiles.vue'
 import FormField from '@testimonies/components/form/FormField.vue'
 
@@ -96,6 +97,7 @@ function removeLink(url: string) {
             :aria-describedby="field.describedby"
           />
         </FormField>
+        <AssistantQuestion :draft="draft" @use="draft.tribunalQuestion = $event.slice(0, LIMITS.long)" />
       </div>
     </section>
 

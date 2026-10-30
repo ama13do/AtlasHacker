@@ -9,6 +9,7 @@ import { useAuthStore } from '@admin/stores/auth'
 import type { ApiTestimonioStaff } from '@admin/types/api'
 import { AUTORIZACION_LABELS, EVIDENCIA_LABELS, MULTIMEDIA_LABELS, VOZ_IMAGEN_LABELS, ORIGEN_LABELS, SENSIBLE_LABELS, fmtDate } from '@admin/data/labels'
 import AuditPanel from '@admin/components/AuditPanel.vue'
+import GuideReviewPanel from '@admin/components/GuideReviewPanel.vue'
 import ModerationActions from '@admin/components/ModerationActions.vue'
 import ModerationStatus from '@admin/components/ModerationStatus.vue'
 import StaffContentEditor from '@admin/components/StaffContentEditor.vue'
@@ -239,6 +240,8 @@ const TERRITORY_SECTIONS = computed(() =>
             </template>
           </section>
 
+          <GuideReviewPanel v-if="t.hechos?.length" :testimony="t" @updated="(next, message) => updated(next, message)" />
+
           <StaffEvidencePanel
             :testimony-id="t.id"
             :items="t.evidencias"
@@ -298,6 +301,9 @@ const TERRITORY_SECTIONS = computed(() =>
               />
               <span>Mostrar ubicación aproximada (~1 km) en el mapa público</span>
             </label>
+            <p v-if="t.precision_publica" class="text-xs text-fg/60">
+              El pin público va al {{ t.precision_publica === 'estado' ? 'centro del estado (modo protección)' : 'centro del municipio (megaproyecto)' }}.
+            </p>
           </section>
 
           <!-- Notas internas -->

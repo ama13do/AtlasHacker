@@ -1,4 +1,5 @@
 import type { Complaint, FactKey, Since, Threats } from '@testimonies/data/facts'
+import type { ApiSeguimiento } from '@testimonies/types/api'
 
 // Contratos crudos de /api/auth y /api/admin (ver ../backend/src/routes/auth.ts y routes/admin/*)
 
@@ -166,7 +167,22 @@ export interface ApiTestimonioStaff extends Omit<ApiTestimonioStaffFila, 'catego
   sigue_pasando: boolean | null
   reclamo_previo: Complaint | null
   amenazas: Threats | null
+  // Pin público: centro del estado (protección) o del municipio (megaproyecto); null = exacta o ~1 km
+  precision_publica: 'estado' | 'municipio' | null
+  // Ajustes del revisor y seguimiento de compromisos de la guía
+  revision_subcategoria: string | null
+  revision_derecho: string | null
+  revision_gobierno: 'estatal' | 'municipal' | 'ambos' | null
+  revision_compromiso: string | null
+  aviso_hxnf: boolean
+  aviso_cifras: boolean
+  seguimiento: ApiSeguimiento[]
 }
+
+// PATCH /api/admin/testimonios/{id}/revision (null = vuelve a lo automático)
+export type ApiRevisionTestimonio = Partial<
+  Pick<ApiTestimonioStaff, 'revision_subcategoria' | 'revision_derecho' | 'revision_gobierno' | 'revision_compromiso' | 'aviso_hxnf' | 'aviso_cifras'>
+>
 
 // PATCH /api/admin/testimonios/{id} (subconjunto que edita el dashboard)
 // Link de evidencia: como las fotos, cada uno se hace público o privado

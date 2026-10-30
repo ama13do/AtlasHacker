@@ -8,6 +8,7 @@ import type {
   ApiEditarTestimonioStaff,
   ApiEnlaceEvidencia,
   ApiEvidenciaStaff,
+  ApiRevisionTestimonio,
   ApiTestimonioStaff,
   ApiTestimonioStaffFila,
   ApiCapturaRespuesta,
@@ -64,6 +65,22 @@ export const adminTestimoniesService = {
 
   async update(id: string, changes: ApiEditarTestimonioStaff) {
     return (await adminRequest<ApiTestimonioStaff>({ method: 'patch', url: base(id), data: changes })).data
+  },
+
+  // Ajustes del revisor para la guía (moderación y administración)
+  async review(id: string, changes: ApiRevisionTestimonio) {
+    return (await adminRequest<ApiTestimonioStaff>({ method: 'patch', url: `${base(id)}/revision`, data: changes })).data
+  },
+
+  // Confirmar (o retirar) una omisión documentada (E3) del seguimiento
+  async confirmOmission(id: string, commitmentId: string, confirmada: boolean) {
+    return (
+      await adminRequest<ApiTestimonioStaff['seguimiento']>({
+        method: 'post',
+        url: `${base(id)}/seguimiento/${encodeURIComponent(commitmentId)}/confirmar`,
+        data: { confirmada },
+      })
+    ).data
   },
 
   // Irreversible: exige el folio exacto como confirmación (solo admin)

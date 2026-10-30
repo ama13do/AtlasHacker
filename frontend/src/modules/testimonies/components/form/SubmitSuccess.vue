@@ -5,8 +5,9 @@ import { useParticipantFolio } from '@testimonies/composables/useParticipantFoli
 import type { CreateTestimonyResult } from '@testimonies/types/testimony'
 import UploadProgress from '@testimonies/components/UploadProgress.vue'
 import { MASCOTS } from '@/core/config/brand'
+import { RISK_REVIEW_NOTICE } from '@testimonies/utils/guideInput'
 
-const props = defineProps<{ result: CreateTestimonyResult; upload: EvidenceUpload; hasGuide?: boolean }>()
+const props = defineProps<{ result: CreateTestimonyResult; upload: EvidenceUpload; hasGuide?: boolean; riskReview?: boolean }>()
 defineEmits<{ viewOnMap: []; home: []; guide: [] }>()
 
 const STATUS = { pendiente: 'En revisión', aprobado: 'Publicado', rechazado: 'No publicado' } as const
@@ -48,6 +49,7 @@ async function copyFolio() {
     <div class="space-y-2">
       <h2 class="text-2xl font-black uppercase"><span class="hl-box hl-lime" style="--hl-rot: -1deg">Gracias por tu testimonio</span></h2>
       <p class="text-fg/70">{{ result.message }}</p>
+      <p v-if="riskReview && result.status === 'pendiente'" class="mx-auto max-w-sm text-sm font-semibold">{{ RISK_REVIEW_NOTICE }}</p>
     </div>
 
     <!-- Folio de participante (una sola vez) -->

@@ -192,6 +192,22 @@ export interface MyTestimony {
   hasGuide: boolean // Enviado con el formulario de 4 pantallas: tiene guía
 }
 
+// Seguimiento de un compromiso de gobierno (guía): E1 identificado · E2 sin evidencia · E3 omisión documentada
+export type FindingState = 'E1' | 'E2' | 'E3' | 'cerrado'
+export type CommitmentArrived = 'si' | 'no' | 'no_lo_conocia'
+export type AuthorityAnswer = 'pendiente' | 'acredita' | 'no_acredita' | 'sin_respuesta'
+export interface FollowUp {
+  commitmentId: string
+  arrived: CommitmentArrived | null // null = sin responder
+  requestFolio: string // Folio de la solicitud de información ('' = no la presentó)
+  answer: AuthorityAnswer
+  state: FindingState
+  confirmed: boolean // Omisión (E3) confirmada por moderación
+  confirmedBy: string | null
+  confirmedAt: string | null
+}
+export type FollowUpChanges = Partial<{ llego: CommitmentArrived | null; folio_solicitud: string | null; respuesta: AuthorityAnswer }>
+
 export interface ParticipantProfile {
   hint: string // Últimos caracteres del folio
   publicProfile: boolean

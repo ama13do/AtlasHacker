@@ -108,6 +108,19 @@ export const estadoSubida = pgEnum('estado_subida', ESTADOS_SUBIDA);
 export const desdeCuando = pgEnum('desde_cuando', DESDE_CUANDO);
 export const reclamoPrevio = pgEnum('reclamo_previo', RECLAMOS);
 export const amenazasRecibidas = pgEnum('amenazas', AMENAZAS);
+
+// Precisión de la ubicación pública (Excel UI-4): con amenazas, solo el estado; megaproyectos, el centro del
+// municipio. null = la de siempre (exacta, o ~1 km si ubicacion_aproximada)
+export const PRECISIONES_PUBLICAS = ['municipio', 'estado'] as const;
+export const precisionPublica = pgEnum('precision_publica', PRECISIONES_PUBLICAS);
+// Ajustes de quien revisa sobre la guía: también responde el gobierno estatal, el municipal o ambos
+export const GOBIERNOS_ADICIONALES = ['estatal', 'municipal', 'ambos'] as const;
+export const gobiernoAdicional = pgEnum('gobierno_adicional', GOBIERNOS_ADICIONALES);
+// Seguimiento de compromisos (Excel UI-3): ¿llegó a la comunidad? y respuesta de la autoridad a la solicitud
+export const LLEGO_COMPROMISO = ['si', 'no', 'no_lo_conocia'] as const;
+export const llegoCompromiso = pgEnum('llego_compromiso', LLEGO_COMPROMISO);
+export const RESPUESTAS_AUTORIDAD = ['pendiente', 'acredita', 'no_acredita', 'sin_respuesta'] as const;
+export const respuestaAutoridad = pgEnum('respuesta_autoridad', RESPUESTAS_AUTORIDAD);
 export const actorTipo = pgEnum('actor_tipo', ACTORES);
 
 const ts = (nombre: string) => timestamp(nombre, { withTimezone: true, mode: 'date' });
@@ -247,6 +260,7 @@ export const testimonios = pgTable(
     ubicacion_aproximada: boolean('ubicacion_aproximada').notNull().default(false),
     ubicacion_publica: geometria('ubicacion_publica'), // trigger
     centroide_publico: punto('centroide_publico'), // trigger
+    precision_publica: precisionPublica('precision_publica'), // trigger: centro del estado o del municipio
     origen_ubicacion: origenUbicacion('origen_ubicacion').notNull().default('mapa'),
 
     // ¿Qué pasa? (hechos en el orden en que se tocaron) y la subcategoría de la principal (p. ej. IE.APAGON).
@@ -257,6 +271,14 @@ export const testimonios = pgTable(
     sigue_pasando: boolean('sigue_pasando'),
     reclamo_previo: reclamoPrevio('reclamo_previo'),
     amenazas: amenazasRecibidas('amenazas'),
+
+    // Ajustes de quien revisa (moderación o administración) sobre la guía de la persona. Privados
+    revision_subcategoria: text('revision_subcategoria'), // corrige la subcategoría automática
+    revision_derecho: text('revision_derecho'), // derecho adicional identificado en revisión
+    revision_gobierno: gobiernoAdicional('revision_gobierno'),
+    revision_compromiso: text('revision_compromiso'), // compromiso que se destaca (p. ej. PROCFE-RE-05)
+    aviso_hxnf: boolean('aviso_hxnf').notNull().default(false), // HxNF participa en una solución
+    aviso_cifras: boolean('aviso_cifras').notNull().default(false), // contiene cifras no verificadas
 
     // 1 · EL TESTIMONIO · 2 · EL TERRITORIO DICE · 3 · LA COMUNIDAD DICE
     relato: text('relato').notNull(),
@@ -332,6 +354,29 @@ export const testimonios = pgTable(
     check('chk_sensible_accion', sql`NOT ${t.info_sensible} OR ${t.sensible_accion} IS NOT NULL`),
     check('chk_nombre_publico', sql`${t.aparecer_como} = 'nombre' OR ${t.nombre_publico} IS NULL`),
   ],
+);
+
+/**
+ * Seguimiento de compromisos de gobierno de un testimonio (Excel UI-3, «Mi folio»). La persona responde si el
+ * compromiso llegó a su comunidad y si pidió información; quien revisa confirma la omisión documentada (E3).
+ */
+export const seguimiento_compromisos = pgTable(
+  'seguimiento_compromisos',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    testimonio_id: uuid('testimonio_id').notNull().references(() => testimonios.id, { onDelete: 'cascade' }),
+    compromiso_id: text('compromiso_id').notNull(), // p. ej. PLADESE-4.29-01 (catálogo del Excel)
+    llego: llegoCompromiso('llego'), // null = sin responder
+    solicitud: boolean('solicitud').notNull().default(false), // ¿presentó solicitud de información?
+    folio_solicitud: text('folio_solicitud'),
+    respuesta: respuestaAutoridad('respuesta').notNull().default('pendiente'),
+    omision_confirmada: boolean('omision_confirmada').notNull().default(false),
+    confirmado_por: uuid('confirmado_por').references(() => usuarios.id, { onDelete: 'set null' }),
+    confirmado_at: ts('confirmado_at'),
+    created_at: creado(),
+    updated_at: actualizado(),
+  },
+  (t) => [uniqueIndex('uq_seguimiento_compromiso').on(t.testimonio_id, t.compromiso_id)],
 );
 
 /** Auditoría OPCIONAL del envío (se activa en configuración): lo necesario para validar un testimonio. */
@@ -538,6 +583,8 @@ export const v_testimonios_publicos = pgView('v_testimonios_publicos', {
   // Agregadas en 0002 (al final: CREATE OR REPLACE VIEW solo admite columnas nuevas al final)
   fuentes: jsonb('fuentes').$type<{ fuente: string; anio?: number; enlace?: string }[]>(),
   algo_mas: text('algo_mas'),
+  // Agregada en 0008: con amenazas solo se ve el estado; en megaproyectos, el municipio (sin la comunidad)
+  precision_publica: precisionPublica('precision_publica'),
 }).existing();
 
 export type Testimonio = typeof testimonios.$inferSelect;

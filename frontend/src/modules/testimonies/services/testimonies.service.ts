@@ -34,9 +34,30 @@ export interface PublicConfig {
   realtime: boolean
   canEdit: boolean // La persona puede editar sus testimonios (Mi folio)
   canWithdraw: boolean // …y darlos de baja
+  assistant: boolean // Asistente de IA para la pregunta al Tribunal
+}
+
+export interface AssistantMessage {
+  role: 'user' | 'assistant'
+  content: string
+}
+export interface AssistantContext {
+  hechos?: string[]
+  lugar?: string
+  desde_cuando?: string
+  sigue_pasando?: string
+  titulo?: string
+  relato?: string
+  pregunta?: string
 }
 
 export const testimoniesService = {
+  // Asistente de IA para la pregunta al Tribunal (solo si la API lo tiene encendido). No se guarda la conversación
+  async askAssistant(contexto: AssistantContext, mensajes: AssistantMessage[]): Promise<string> {
+    const { data } = await http.post<ApiResponse<{ texto: string }>>('/api/asistente/pregunta', { contexto, mensajes })
+    return data.data.texto
+  },
+
   async getConfig(): Promise<PublicConfig> {
     const { data } = await http.get<ApiResponse<ApiConfig>>('/api/config')
     const c = data.data.configuracion
@@ -56,6 +77,7 @@ export const testimoniesService = {
       realtime: c.mapa_tiempo_real,
       canEdit: c.participantes_pueden_editar,
       canWithdraw: c.participantes_pueden_eliminar,
+      assistant: c.asistente_ia === true,
     }
   },
 

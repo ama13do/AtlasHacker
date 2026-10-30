@@ -8,10 +8,11 @@ import { PaginacionOffset } from '../../lib/paginacion.js';
 import { esAdmin, requiereUsuario } from '../../middleware/seguridad.js';
 import { ERRORES, IdParam, SEG_USUARIO, Uuid, cuerpo, resp } from '../../schemas/comunes.js';
 import { EditarEvidenciaSchema, EvidenciaParams, PresignEvidenciasSchema } from '../../schemas/evidencias.js';
-import { CrearTestimonioStaffSchema, EditarTestimonioStaffSchema, FiltrosStaffQuery } from '../../schemas/testimonios.js';
+import { CompromisoParam, CrearTestimonioStaffSchema, EditarTestimonioStaffSchema, FiltrosStaffQuery, RevisionTestimonioSchema } from '../../schemas/testimonios.js';
 import { registrarBitacora } from '../../services/bitacora.js';
 import { actualizarEvidencia, confirmarEvidencia, eliminarEvidencia, listarEvidencias, presignarEvidencias, urlEvidenciaStaff } from '../../services/evidencias.js';
-import { crearTestimonio, editarStaff, eliminarPermanente, listarStaff, moderar, obtenerStaff, publicarEnlace, type AccionModeracion } from '../../services/testimonios.js';
+import { confirmarOmision } from '../../services/seguimiento.js';
+import { crearTestimonio, editarStaff, eliminarPermanente, listarStaff, moderar, obtenerStaff, publicarEnlace, revisarTestimonio, type AccionModeracion } from '../../services/testimonios.js';
 import type { UsuarioAuth } from '../../types.js';
 import { nuevoRouter, ok, sinCache } from '../base.js';
 
@@ -138,6 +139,35 @@ adminTestimonios.openapi(
     request: { params: IdParam, body: cuerpo(EditarTestimonioStaffSchema) }, responses: { 200: resp('Testimonio actualizado'), ...ERRORES },
   }),
   async (c) => c.json(ok(await editarStaff(c, c.get('usuario')!, c.req.valid('param').id, c.req.valid('json'))), 200),
+);
+
+adminTestimonios.openapi(
+  createRoute({
+    ...APROBAR, method: 'patch', path: '/api/admin/testimonios/{id}/revision', summary: 'Ajustes del revisor para la guía',
+    description:
+      'Admin y moderación. Subcategoría corregida (mueve también la categoría y, si es megaproyecto, el pin público al centro del municipio), derecho adicional, ' +
+      'gobierno que también debe responder, compromiso destacado y avisos (HxNF participa / cifras no verificadas). `null` vuelve a lo automático.',
+    request: { params: IdParam, body: cuerpo(RevisionTestimonioSchema) }, responses: { 200: resp('Testimonio actualizado'), ...ERRORES },
+  }),
+  async (c) => {
+    const { id } = c.req.valid('param');
+    await exigirAcceso(c.get('usuario')!, id);
+    return c.json(ok(await revisarTestimonio(c, id, c.req.valid('json'))), 200);
+  },
+);
+
+adminTestimonios.openapi(
+  createRoute({
+    ...APROBAR, method: 'post', path: '/api/admin/testimonios/{id}/seguimiento/{compromisoId}/confirmar', summary: 'Confirmar (o retirar) una omisión documentada (E3)',
+    description: 'Admin y moderación. Solo se confirma si la persona registró una solicitud y la autoridad no acreditó implementación o no respondió.',
+    request: { params: CompromisoParam, body: cuerpo(z.object({ confirmada: z.boolean() })) }, responses: { 200: resp('Seguimiento actualizado'), ...ERRORES },
+  }),
+  async (c) => {
+    const u = c.get('usuario')!;
+    const { id, compromisoId } = c.req.valid('param');
+    await exigirAcceso(u, id);
+    return c.json(ok(await confirmarOmision(c, u, id, compromisoId, c.req.valid('json').confirmada)), 200);
+  },
 );
 
 /* ───────────────────────────────────────────────── Moderación ───────────────────────────────────────────────── */

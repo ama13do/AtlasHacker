@@ -8,6 +8,7 @@ import { aportePublico, huellaDispositivo, limite } from '../middleware/segurida
 import { ERRORES, IdParam, SEG_FOLIO_OPCIONAL, Uuid, cuerpo, resp } from '../schemas/comunes.js';
 import { PaginacionCursor } from '../lib/paginacion.js';
 import { CrearTestimonioSchema, FiltrosPublicosQuery, MapaQuery } from '../schemas/testimonios.js';
+import { asistenteDisponible, responderAsistente } from '../services/asistente.js';
 import { configuracionPublica, obtenerConfiguracion } from '../services/configuracion.js';
 import { catalogosPublicos, colaboradoresPublicos, detallePublico, estadisticasPublicas, listarPublicos, mapaPublico } from '../services/publico.js';
 import { comentar, likeComentario, listarComentariosPublicos, misReacciones, quitarLikeComentario, quitarReaccion, reaccionar } from '../services/social.js';
@@ -38,7 +39,7 @@ publico.openapi(
     cachePublico(c, 60);
     const datos = await enCache('config', 60, async () => {
       const [cat, cfg] = await enSerie(() => catalogosPublicos(), () => obtenerConfiguracion());
-      return { ...cat, configuracion: configuracionPublica(cfg) };
+      return { ...cat, configuracion: { ...configuracionPublica(cfg), asistente_ia: asistenteDisponible() } };
     });
     return c.json(ok(datos), 200);
   },
@@ -255,4 +256,37 @@ publico.openapi(
     request: { params: IdParam }, responses: { 200: resp('Tipos de reacción ya dados'), ...ERRORES },
   }),
   async (c) => c.json(ok(await misReacciones(c.req.valid('param').id, huellaDispositivo(c))), 200),
+);
+
+/* ───────────────────────────────────── Asistente de IA (pregunta al Tribunal) ───────────────────────────────────── */
+
+const texto = (max: number) => z.string().trim().max(max).optional();
+const AsistenteSchema = z
+  .object({
+    contexto: z.object({
+      hechos: z.array(z.string().max(60)).max(8).optional(),
+      lugar: texto(300),
+      desde_cuando: texto(40),
+      sigue_pasando: texto(20),
+      titulo: texto(200),
+      relato: texto(1500),
+      pregunta: texto(1000),
+    }),
+    mensajes: z.array(z.object({ role: z.enum(['user', 'assistant']), content: z.string().trim().min(1).max(1500) })).min(1).max(16),
+  })
+  .openapi('AsistentePregunta');
+
+publico.openapi(
+  createRoute({
+    method: 'post', path: '/api/asistente/pregunta', tags: TAG_TESTIMONIOS, summary: 'Asistente para escribir la pregunta al Tribunal (IA)',
+    description: 'Solo funciona si está encendido (`configuracion.asistente_ia` en /api/config). No guarda la conversación. Límite por IP y diario.',
+    middleware: [limite('asistente', 30, 600)], request: { body: cuerpo(AsistenteSchema) }, responses: { 200: resp('Respuesta del asistente'), ...ERRORES },
+  }),
+  async (c) => {
+    sinCache(c);
+    const { contexto, mensajes } = c.req.valid('json');
+    if (!asistenteDisponible()) throw new AppError(503, 'NO_DISPONIBLE', 'El asistente no está disponible');
+    await limitar('asistente:dia', 1000, 86400, 'El asistente llegó a su límite de hoy. Escribe tu pregunta tú misma o tú mismo.');
+    return c.json(ok({ texto: await responderAsistente(contexto, mensajes) }), 200);
+  },
 );

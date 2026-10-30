@@ -8,13 +8,14 @@ import { E, esViolacionUnica } from '../lib/errors.js';
 import { folioTestimonio } from '../lib/ids.js';
 import { emitirEventoMapa } from '../lib/realtime.js';
 import { borrarObjeto } from '../lib/r2.js';
-import type { CrearTestimonioInput, CrearTestimonioStaffInput, EditarMiTestimonioSchema, EditarTestimonioStaffInput, FiltrosStaff } from '../schemas/testimonios.js';
+import type { CrearTestimonioInput, CrearTestimonioStaffInput, EditarMiTestimonioSchema, EditarTestimonioStaffInput, FiltrosStaff, RevisionTestimonioInput } from '../schemas/testimonios.js';
 import type { z } from '@hono/zod-openapi';
 import type { AppEnv, UsuarioAuth } from '../types.js';
 import { diferencias, registrarBitacora } from './bitacora.js';
 import { obtenerConfiguracion } from './configuracion.js';
 import { crearParticipante } from './participantes.js';
-import { decidirPublicacion, enModoProteccion, evidenciaPublicaPorDefecto } from './reglas.js';
+import { decidirPublicacion, enModoProteccion, evidenciaPublicaPorDefecto, precisionPublica, revisionDeRiesgo } from './reglas.js';
+import { listarSeguimiento } from './seguimiento.js';
 
 type Ctx = Context<AppEnv>;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -76,13 +77,18 @@ export async function crearTestimonio(c: Ctx, input: CrearTestimonioInput | Crea
   // Modo protección: siempre anónimo, aunque se haya pedido aparecer con nombre
   const aparecerComo = enModoProteccion(input.amenazas) ? 'anonimo' : (input.aparecer_como ?? 'anonimo');
   const infoSensible = input.info_sensible ?? false;
+  const caso = { amenazas: input.amenazas, hechos: input.hechos, subcategoria: input.subcategoria };
   const decision = decidirPublicacion(cfg.modo_publicacion, {
     autorizacion: input.autorizacion,
     info_sensible: infoSensible,
     sensible_accion: input.sensible_accion,
     info_menores: input.info_menores ?? false,
     amenazas: input.amenazas,
+    revision_riesgo: revisionDeRiesgo(caso),
   });
+  // Formulario de «¿Qué pasa?»: en el mapa público nunca va el punto exacto (Excel: cuadrícula de ~1 km,
+  // centro del municipio en megaproyectos o solo el estado en modo protección)
+  const formularioHechos = (input.hechos?.length ?? 0) > 0;
   const nombrePublico = aparecerComo === 'nombre' ? (input.nombre_publico ?? input.nombre ?? null) : null;
 
   const participanteIdDado = op.participanteId ?? ('participante_id' in input ? input.participante_id : undefined);
@@ -124,7 +130,8 @@ export async function crearTestimonio(c: Ctx, input: CrearTestimonioInput | Crea
             aparecer_como: aparecerComo,
             nombre_publico: nombrePublico,
             ubicacion: input.ubicacion,
-            ubicacion_aproximada: decision.ubicacion_aproximada,
+            ubicacion_aproximada: decision.ubicacion_aproximada || formularioHechos,
+            precision_publica: precisionPublica(caso),
             origen_ubicacion: input.origen_ubicacion ?? 'mapa',
             hechos: input.hechos ?? [],
             subcategoria: input.subcategoria,
@@ -251,7 +258,7 @@ export async function obtenerStaff(id: string) {
   const db = getDb();
   const [t] = await db.select(selDetalle).from(testimonios).where(eq(testimonios.id, id)).limit(1);
   if (!t) throw E.noEncontrado('Testimonio');
-  const [ctx, evs, [aud], [mod]] = await enSerie(
+  const [ctx, evs, [aud], [mod], seguimiento] = await enSerie(
     () => categoriaYExpediente(t),
     () => db
       .select({
@@ -264,8 +271,9 @@ export async function obtenerStaff(id: string) {
       .orderBy(asc(evidencias.created_at)),
     () => db.select({ n: sql<number>`count(*)::int` }).from(testimonios_auditoria).where(eq(testimonios_auditoria.testimonio_id, id)),
     () => (t.moderado_por ? db.select({ nombre: usuarios.nombre }).from(usuarios).where(eq(usuarios.id, t.moderado_por)) : Promise.resolve([])),
+    () => listarSeguimiento(id),
   );
-  return { ...t, ...ctx, evidencias: evs, tiene_auditoria: (aud?.n ?? 0) > 0, moderado_por_nombre: mod?.nombre ?? null };
+  return { ...t, ...ctx, evidencias: evs, tiene_auditoria: (aud?.n ?? 0) > 0, moderado_por_nombre: mod?.nombre ?? null, seguimiento };
 }
 
 /** Qué parte de los testimonios ve quien consulta: el facilitador solo lo suyo; moderación y lectura, sin sensibles. */
@@ -421,18 +429,25 @@ export async function editarPropio(c: Ctx, participanteId: string, id: string, i
   if (sensible && !accion) throw E.invalido('Indica qué hacer con la información sensible');
 
   // Cualquier edición vuelve a evaluarse: a revisión (por defecto) o según el modo de publicación.
+  const caso = {
+    amenazas: amenazasFinal,
+    hechos: (set.hechos ?? actual.hechos) as string[],
+    subcategoria: actual.revision_subcategoria ?? ((set.subcategoria ?? actual.subcategoria) as string | null),
+  };
   const decision = decidirPublicacion(cfg.modo_publicacion, {
     autorizacion: (set.autorizacion ?? actual.autorizacion) as never,
     info_sensible: sensible,
     sensible_accion: (set.info_sensible === false ? null : accion) as never,
     info_menores: (set.info_menores ?? actual.info_menores) as boolean,
     amenazas: amenazasFinal as never,
+    revision_riesgo: revisionDeRiesgo(caso),
   });
+  set.precision_publica = precisionPublica(caso);
   set.estado = cfg.edicion_requiere_revision ? 'pendiente' : decision.estado;
   set.motivo_rechazo = null;
   set.moderado_por = null;
   set.moderado_at = set.estado === 'aprobado' ? new Date() : null;
-  if (decision.ubicacion_aproximada) set.ubicacion_aproximada = true; // solo se activa; quitarla es decisión del equipo
+  if (decision.ubicacion_aproximada || set.precision_publica || caso.hechos.length) set.ubicacion_aproximada = true; // solo se activa; quitarla es decisión del equipo
   if (input.enlaces_evidencia) {
     const multimedia = (set.autoriza_multimedia ?? actual.autoriza_multimedia) as 'si' | 'no' | 'na';
     set.enlaces_evidencia = aEnlaces(input.enlaces_evidencia, actual.enlaces_evidencia, evidenciaPublicaPorDefecto(cfg.modo_publicacion, set.estado, multimedia, 'link'));
@@ -473,6 +488,29 @@ export async function editarStaff(c: Ctx, usuario: UsuarioAuth, id: string, inpu
   }
   if (Object.keys(set).length === 0) throw E.invalido('No hay cambios que aplicar');
   await persistirCambios(c, id, actual, set, 'testimonio.editar');
+  return obtenerStaff(id);
+}
+
+const CATEGORIA_POR_PREFIJO: Record<string, string> = { IE: 'inseguridad-energetica', CC: 'afectaciones-cambio-climatico', MP: 'megaproyectos' };
+
+/**
+ * Ajustes del revisor (Excel, panel de revisión): corrigen la guía sin tocar lo que escribió la persona.
+ * Corregir la subcategoría también mueve la categoría del atlas y la precisión pública (p. ej. a megaproyecto).
+ */
+export async function revisarTestimonio(c: Ctx, id: string, input: RevisionTestimonioInput) {
+  const db = getDb();
+  const [actual] = await db.select(selDetalle).from(testimonios).where(eq(testimonios.id, id)).limit(1);
+  if (!actual) throw E.noEncontrado('Testimonio');
+  if (Object.keys(input).length === 0) throw E.invalido('No hay cambios que aplicar');
+
+  const set: CambiosInternos = { ...input };
+  if (input.revision_subcategoria !== undefined) {
+    const sp = input.revision_subcategoria ?? actual.subcategoria;
+    if (sp) set.categoria_id = (await resolverCategoria(CATEGORIA_POR_PREFIJO[sp.slice(0, 2)]!, false)).id;
+    set.precision_publica = precisionPublica({ amenazas: actual.amenazas, subcategoria: sp });
+    if (set.precision_publica) set.ubicacion_aproximada = true;
+  }
+  await persistirCambios(c, id, actual, set, 'testimonio.revision');
   return obtenerStaff(id);
 }
 

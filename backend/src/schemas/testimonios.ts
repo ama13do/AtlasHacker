@@ -5,10 +5,13 @@ import {
   AUTORIZACIONES,
   DESDE_CUANDO,
   ESTADOS_MODERACION,
+  GOBIERNOS_ADICIONALES,
   HECHOS,
+  LLEGO_COMPROMISO,
   MULTIMEDIA,
   ORIGENES_UBICACION,
   RECLAMOS,
+  RESPUESTAS_AUTORIDAD,
   SENSIBLE_ACCIONES,
   TIENE_EVIDENCIA,
   TIPOS_EVIDENCIA,
@@ -208,3 +211,52 @@ export const FiltrosStaffQuery = z.object({
   orden: z.enum(['recientes', 'antiguos']).default('recientes'),
 });
 export type FiltrosStaff = z.infer<typeof FiltrosStaffQuery>;
+
+/* ─────────────────── Ajustes del revisor y seguimiento de compromisos (Excel Atlas_Obligaciones_HxNF) ─────────────────── */
+
+// Listas del panel de revisión del Excel (hoja «listas»). Cuando metodología mande las completas, se actualizan aquí y en el front
+export const SUBCATEGORIAS = [
+  'IE.APAGON', 'IE.CORTE_MANTENIMIENTO', 'IE.SUSPENSION_INDEBIDA', 'IE.DANO_APARATOS', 'IE.SIN_CONEXION', 'IE.COBRO',
+  'IE.QUEJA_SIN_RESPUESTA', 'IE.POBREZA_ENERGETICA', 'IE.GD_BLOQUEADA',
+  'CC.APAGON_CLIMATICO', 'CC.CALOR_EXTREMO', 'CC.CENTRAL_FOSIL', 'CC.PERDIDAS_DANOS', 'CC.OMISION_PLANEACION',
+  'CC.SIN_RENOVABLES_LOCALES', 'CC.CALOR_CIUDAD',
+  'MP.SIN_CONSULTA', 'MP.SIN_MISSE', 'MP.BENEFICIOS_INCUMPLIDOS', 'MP.TIERRAS', 'MP.DANO_AMBIENTAL', 'MP.OBRA_RED_RETRASADA', 'MP.OPACIDAD',
+] as const;
+export const DERECHOS_ADICIONALES = [
+  'Agua para consumo personal y doméstico', 'Alimentación', 'Protección de la salud', 'Vivienda adecuada', 'No discriminación por condición social',
+] as const;
+export const COMPROMISOS = [
+  'ENCC-M1.8-01', 'LGCC-30-01', 'LGCC-30-02', 'LSE-129-02', 'LSE-26-01', 'LSE-28-01', 'NDC-2.3.2-01', 'NDC-GE-01', 'PEF-A23-01',
+  'PLADESE-1.2-01', 'PLADESE-2.5.9-03', 'PLADESE-3.2.2-01', 'PLADESE-3.2.2-02', 'PLADESE-4.24-01', 'PLADESE-4.25-01', 'PLADESE-4.26-01',
+  'PLADESE-4.27-01', 'PLADESE-4.28-01', 'PLADESE-4.29-01', 'PLADESE-4.30-01', 'PLADESE-4.31-01', 'PND-4.2.2-01', 'PND-4.4-01',
+  'PROCFE-1.5.1-01', 'PROCFE-RE-05', 'PROCFE-RE-06', 'RLSE-174-01', 'RLSE-34-03', 'RLSE-34-04', 'RLSE-36-01', 'RLSE-39-01', 'RLSE-40-01',
+] as const;
+
+/** null = quitar el ajuste (vuelve a lo automático). */
+export const RevisionTestimonioSchema = z
+  .object({
+    revision_subcategoria: z.enum(SUBCATEGORIAS).nullable().openapi({ description: 'Corrige la subcategoría automática (también la categoría del atlas)' }),
+    revision_derecho: z.enum(DERECHOS_ADICIONALES).nullable().openapi({ description: 'Derecho adicional identificado en revisión' }),
+    revision_gobierno: z.enum(GOBIERNOS_ADICIONALES).nullable().openapi({ description: 'También debe responder: estatal | municipal | ambos' }),
+    revision_compromiso: z.enum(COMPROMISOS).nullable().openapi({ description: 'Compromiso que se destaca en la guía' }),
+    aviso_hxnf: z.boolean().openapi({ description: 'Aviso «Hackers x Nuestro Futuro participa en una solución de este caso»' }),
+    aviso_cifras: z.boolean().openapi({ description: 'Aviso «contiene cifras que no han sido verificadas»' }),
+  })
+  .partial()
+  .openapi('RevisionTestimonio');
+export type RevisionTestimonioInput = z.infer<typeof RevisionTestimonioSchema>;
+
+export const CompromisoParam = z.object({
+  id: Uuid.openapi({ param: { name: 'id', in: 'path' }, description: 'Id del testimonio' }),
+  compromisoId: z.string().regex(/^[A-Z]{2,10}-[A-Z0-9.]{1,12}-\d{2}$/, 'Compromiso no válido').openapi({ param: { name: 'compromisoId', in: 'path' }, example: 'PROCFE-RE-05' }),
+});
+
+export const SeguimientoSchema = z
+  .object({
+    llego: z.enum(LLEGO_COMPROMISO).nullable().openapi({ description: '¿Ha llegado a tu comunidad? si | no | no_lo_conocia (null = sin responder)' }),
+    folio_solicitud: z.string().trim().max(60).nullable().openapi({ description: 'Folio de la solicitud de información (si la presentó)' }),
+    respuesta: z.enum(RESPUESTAS_AUTORIDAD).openapi({ description: 'pendiente | acredita | no_acredita | sin_respuesta' }),
+  })
+  .partial()
+  .openapi('SeguimientoCompromiso');
+export type SeguimientoInput = z.infer<typeof SeguimientoSchema>;

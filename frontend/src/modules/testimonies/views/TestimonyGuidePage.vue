@@ -6,7 +6,7 @@ import SiteHeader from '@/shared/components/SiteHeader.vue'
 import { useParticipantFolio } from '@testimonies/composables/useParticipantFolio'
 import { participantService } from '@testimonies/services/participant.service'
 import type { ModerationStatus } from '@testimonies/types/testimony'
-import { guideInputOf, hasGuide, type GuideInput } from '@testimonies/utils/guideInput'
+import { guideInputOf, hasGuide, type GuideInput, type GuideReview } from '@testimonies/utils/guideInput'
 import TestimonyGuide from '@testimonies/components/guide/TestimonyGuide.vue'
 
 // Guía de un testimonio propio (desde Mi folio): se arma con sus respuestas
@@ -21,7 +21,7 @@ const STATUS: Record<ModerationStatus, string> = {
   rechazado: 'no publicado',
 }
 
-const guide = ref<{ folio: string; status: string; input: GuideInput } | null>(null)
+const guide = ref<{ folio: string; participantFolio: string; status: string; input: GuideInput; review: GuideReview } | null>(null)
 const error = ref<string | null>(null)
 
 async function load() {
@@ -35,7 +35,7 @@ async function load() {
       error.value = 'Este testimonio se envió con el formulario anterior, así que no tiene guía.'
       return
     }
-    guide.value = { folio: mine.folio, status: mine.active ? STATUS[mine.status] : 'dado de baja', input }
+    guide.value = { folio: mine.folio, participantFolio: folio, status: mine.active ? STATUS[mine.status] : 'dado de baja', input, review: mine.review }
   } catch (e) {
     console.error(e)
     const status = (e as Partial<ApiError>).status
@@ -56,7 +56,15 @@ onMounted(load)
     <SiteHeader />
 
     <div class="@container mx-auto max-w-3xl px-4 py-6 md:py-10">
-      <TestimonyGuide v-if="guide" :input="guide.input" :folio="guide.folio" :status="guide.status">
+      <TestimonyGuide
+        v-if="guide"
+        :input="guide.input"
+        :review="guide.review"
+        :folio="guide.folio"
+        :status="guide.status"
+        :testimony-id="id"
+        :participant-folio="guide.participantFolio"
+      >
         <div class="mt-6">
           <RouterLink :to="{ name: 'my-folio' }" class="btn-hxnf btn-paper">Volver a Mi folio</RouterLink>
         </div>

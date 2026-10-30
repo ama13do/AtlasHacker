@@ -10,14 +10,17 @@ import type {
   ApiMiPerfil,
   ApiMiTestimonio,
   ApiMiTestimonioResumen,
+  ApiSeguimiento,
   ApiTestimonioDetalle,
 } from '@testimonies/types/api'
+import type { GuideReview } from '@testimonies/utils/guideInput'
 import { REACTION_TYPES } from '@testimonies/types/testimony'
 import type {
   Category,
   Comment,
   Consent,
   CreateTestimonyResult,
+  FollowUp,
   MyEvidence,
   MyTestimony,
   ParticipantProfile,
@@ -267,6 +270,32 @@ const CONSENT_FROM_API = Object.fromEntries(Object.entries(CONSENT).map(([k, v])
 
 // Ficha propia → borrador del wizard (para editar). Archivos, folio y contacto no se editan aquí.
 // Las respuestas del formato anterior (territorio, comunidad, datos…) no se tocan: siguen en la base
+export function fromFollowUp(s: ApiSeguimiento): FollowUp {
+  return {
+    commitmentId: s.compromiso_id,
+    arrived: s.llego,
+    requestFolio: s.folio_solicitud ?? '',
+    answer: s.respuesta,
+    state: s.estado,
+    confirmed: s.omision_confirmada,
+    confirmedBy: s.confirmado_por_nombre,
+    confirmedAt: s.confirmado_at,
+  }
+}
+
+type ApiRevision = Pick<ApiMiTestimonio, 'revision_subcategoria' | 'revision_derecho' | 'revision_gobierno' | 'revision_compromiso' | 'aviso_hxnf' | 'aviso_cifras'>
+
+export function reviewFromApi(t: ApiRevision): GuideReview {
+  return {
+    subcategory: t.revision_subcategoria ?? null,
+    right: t.revision_derecho ?? null,
+    government: t.revision_gobierno ?? null,
+    commitment: t.revision_compromiso ?? null,
+    hxnf: t.aviso_hxnf === true,
+    figures: t.aviso_cifras === true,
+  }
+}
+
 export function draftFromMine(t: ApiMiTestimonio): TestimonyDraft {
   const point = t.centroide?.coordinates
   return {

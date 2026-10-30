@@ -487,6 +487,118 @@ describe('consentimiento e información sensible', () => {
     expect((await llamar('POST', '/api/testimonios', { body: ficha({ subcategoria: 'apagon' }) })).status).toBe(400);
   });
 
+  it('precisión pública del Excel: con amenazas solo el estado, megaproyecto en el centro del municipio y lo demás a ~1 km', async () => {
+    const centro = async (tabla: string, donde: string) =>
+      (await pg.query<{ x: number; y: number }>(`select ST_X(centro) x, ST_Y(centro) y from ${tabla} where ${donde}`)).rows[0]!;
+    const crear = async (extra: Record<string, unknown>) => {
+      const r = await llamar('POST', '/api/testimonios', {
+        body: ficha({ ubicacion: { type: 'Point', coordinates: [-99.16123, 19.41987] }, entidad: 'Ciudad de México', municipio: 'Cuauhtémoc', lugar_territorio: 'Colonia Roma, calle Orizaba 10', ...extra }),
+      });
+      expect(r.status).toBe(201);
+      const id = r.json.data.testimonio.id as string;
+      await llamar('POST', `/api/admin/testimonios/${id}/aprobar`, { token: tokens.admin, body: {} });
+      return { id, estado: r.json.data.testimonio.estado as string, publico: (await llamar('GET', `/api/testimonios/${id}`)).json.data };
+    };
+
+    const proteccion = await crear({ hechos: ['proyecto_territorio'], subcategoria: 'MP.SIN_MISSE', amenazas: 'prefiero_no_decir' });
+    const cdmx = await centro('geo_estados', `clave = 'ciudad de mexico'`);
+    expect(proteccion.publico.ubicacion.coordinates).toEqual([cdmx.x, cdmx.y]);
+    expect(proteccion.publico).toMatchObject({ entidad: 'Ciudad de México', municipio: null, lugar_territorio: null, aproximada: true });
+
+    const mega = await crear({ hechos: ['proyecto_territorio'], subcategoria: 'MP.SIN_MISSE', amenazas: 'no' });
+    expect(mega.estado).toBe('pendiente'); // revisión de riesgo aunque el modo sea automático
+    const cuauhtemoc = await centro('geo_municipios', `estado_norm = 'ciudad de mexico' and municipio_norm = 'cuauhtemoc'`);
+    expect(mega.publico.ubicacion.coordinates).toEqual([cuauhtemoc.x, cuauhtemoc.y]);
+    expect(mega.publico).toMatchObject({ municipio: 'Cuauhtémoc', lugar_territorio: null });
+
+    const apagon = await crear({ categoria: 'inseguridad-energetica', hechos: ['apagones'], subcategoria: 'IE.APAGON' });
+    expect(apagon.publico.ubicacion.coordinates).toEqual([-99.16, 19.42]);
+    expect(apagon.publico).toMatchObject({ lugar_territorio: 'Colonia Roma, calle Orizaba 10', aproximada: true });
+
+    // Nombres del geocodificador con otra forma («Estado de México») o desconocidos
+    const edomex = await crear({ hechos: ['proyecto_territorio'], amenazas: 'si', entidad: 'Estado de México', ubicacion: { type: 'Point', coordinates: [-99.65, 19.29] } });
+    const mex = await centro('geo_estados', `clave = 'mexico'`);
+    expect(edomex.publico.ubicacion.coordinates).toEqual([mex.x, mex.y]);
+    const sinNombre = await crear({ hechos: ['proyecto_territorio'], subcategoria: 'MP.TIERRAS', entidad: 'Narnia', municipio: 'Nada' });
+    expect(sinNombre.publico.ubicacion.coordinates).not.toEqual([-99.16123, 19.41987]);
+
+    // El lugar oculto tampoco se encuentra con la búsqueda pública
+    const encontrados = (await llamar('GET', '/api/testimonios?q=Orizaba')).json.data.map((t: { id: string }) => t.id);
+    expect(encontrados).toContain(apagon.id);
+    expect(encontrados).not.toContain(proteccion.id);
+    expect(encontrados).not.toContain(mega.id);
+    ids.apagonCdmx = apagon.id;
+  });
+
+  it('ajustes del revisor: moderación corrige subcategoría (mueve categoría y pin), derecho, gobierno, compromiso y avisos', async () => {
+    const id = ids.apagonCdmx!;
+    const url = `/api/admin/testimonios/${id}/revision`;
+    expect((await llamar('PATCH', url, { token: tokens.lector, body: { aviso_hxnf: true } })).status).toBe(403);
+    expect((await llamar('PATCH', url, { token: tokens.moderador, body: { revision_derecho: 'Derecho inventado' } })).status).toBe(400);
+    expect((await llamar('PATCH', url, { token: tokens.moderador, body: { revision_compromiso: 'XX-1-01' } })).status).toBe(400);
+
+    const r = await llamar('PATCH', url, {
+      token: tokens.moderador,
+      body: { revision_subcategoria: 'MP.TIERRAS', revision_derecho: 'Protección de la salud', revision_gobierno: 'ambos', revision_compromiso: 'PROCFE-RE-05', aviso_hxnf: true, aviso_cifras: true },
+    });
+    expect(r.status).toBe(200);
+    expect(r.json.data).toMatchObject({ revision_subcategoria: 'MP.TIERRAS', revision_gobierno: 'ambos', aviso_hxnf: true, precision_publica: 'municipio', categoria: { slug: 'megaproyectos' } });
+    const d = (await llamar('GET', `/api/testimonios/${id}`)).json.data;
+    expect(d.lugar_territorio).toBeNull();
+    expect(d.ubicacion.coordinates).not.toEqual([-99.16, 19.42]);
+
+    // null vuelve a lo automático
+    const v = await llamar('PATCH', url, { token: tokens.moderador, body: { revision_subcategoria: null } });
+    expect(v.json.data).toMatchObject({ revision_subcategoria: null, precision_publica: null, categoria: { slug: 'inseguridad-energetica' } });
+    const bit = (await llamar('GET', '/api/admin/bitacora?accion=testimonio.revision', { token: tokens.superadmin })).json.data;
+    expect(bit.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('seguimiento de compromisos: la persona responde (E1/E2/E3/cerrado) y moderación confirma la omisión', async () => {
+    const r = await llamar('POST', '/api/testimonios', { body: ficha({ categoria: 'inseguridad-energetica', hechos: ['recibo_impagable'], subcategoria: 'IE.COBRO' }) });
+    const id = r.json.data.testimonio.id as string;
+    const folio = r.json.data.participante.folio as string;
+    const url = `/api/mis-testimonios/${id}/seguimiento`;
+    expect((await llamar('GET', url, { folio })).json.data).toEqual([]);
+
+    let s = await llamar('PUT', `${url}/PROCFE-RE-05`, { folio, body: { llego: 'no' } });
+    expect(s.status).toBe(200);
+    expect(s.json.data[0]).toMatchObject({ compromiso_id: 'PROCFE-RE-05', llego: 'no', solicitud: false, estado: 'E2' });
+    // Sin folio de solicitud la respuesta no cuenta como E3
+    s = await llamar('PUT', `${url}/PROCFE-RE-05`, { folio, body: { respuesta: 'sin_respuesta' } });
+    expect(s.json.data[0].estado).toBe('E2');
+    s = await llamar('PUT', `${url}/PROCFE-RE-05`, { folio, body: { folio_solicitud: '330000123' } });
+    expect(s.json.data[0]).toMatchObject({ solicitud: true, estado: 'E3', omision_confirmada: false });
+
+    const confirmar = `/api/admin/testimonios/${id}/seguimiento/PROCFE-RE-05/confirmar`;
+    expect((await llamar('POST', confirmar, { token: tokens.lector, body: { confirmada: true } })).status).toBe(403);
+    const c = await llamar('POST', confirmar, { token: tokens.moderador, body: { confirmada: true } });
+    expect(c.status).toBe(200);
+    expect(c.json.data[0]).toMatchObject({ omision_confirmada: true });
+    expect(c.json.data[0].confirmado_por_nombre).toBeTruthy();
+    const staff = (await llamar('GET', `/api/admin/testimonios/${id}`, { token: tokens.admin })).json.data;
+    expect(staff.seguimiento[0]).toMatchObject({ compromiso_id: 'PROCFE-RE-05', estado: 'E3', omision_confirmada: true });
+
+    // Si la persona cambia su respuesta, la confirmación se quita
+    s = await llamar('PUT', `${url}/PROCFE-RE-05`, { folio, body: { respuesta: 'acredita' } });
+    expect(s.json.data[0]).toMatchObject({ estado: 'cerrado', omision_confirmada: false });
+    expect((await llamar('POST', confirmar, { token: tokens.moderador, body: { confirmada: true } })).status).toBe(400);
+
+    // Otro folio no lo ve; IDs fuera de formato se rechazan
+    const otro = (await llamar('POST', '/api/testimonios', { body: ficha() })).json.data.participante.folio;
+    expect((await llamar('GET', url, { folio: otro })).status).toBe(404);
+    expect((await llamar('PUT', `${url}/nada`, { folio, body: { llego: 'si' } })).status).toBe(400);
+    // La bitácora no guarda el folio de la solicitud
+    const bit = (await llamar('GET', '/api/admin/bitacora?accion=seguimiento.editar', { token: tokens.superadmin })).json.data;
+    expect(JSON.stringify(bit)).not.toContain('330000123');
+  });
+
+  it('asistente de IA: apagado sin OpenRouter configurado', async () => {
+    expect((await llamar('GET', '/api/config')).json.data.configuracion.asistente_ia).toBe(false);
+    const r = await llamar('POST', '/api/asistente/pregunta', { body: { contexto: { titulo: 'Apagones' }, mensajes: [{ role: 'user', content: 'Ayúdame' }] } });
+    expect(r.status).toBe(503);
+  });
+
   it('«solo documentación interna» y «no autorizo» se aprueban pero NUNCA se publican', async () => {
     for (const autorizacion of ['solo_documentacion_interna', 'no_autoriza']) {
       const r = await llamar('POST', '/api/testimonios', { body: ficha({ autorizacion }) });

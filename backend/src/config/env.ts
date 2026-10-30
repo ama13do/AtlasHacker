@@ -49,6 +49,11 @@ const esquema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().optional(),
   R2_BUCKET_NAME: z.string().optional(),
 
+  // Asistente de IA para la pregunta al Tribunal (OpenRouter). Apagado salvo que estén las tres variables.
+  ASISTENTE_IA_ACTIVO: z.stringbool().default(false),
+  OPENROUTER_API_KEY: z.string().optional(),
+  OPENROUTER_MODEL: z.string().optional(), // id de openrouter.ai/models, p. ej. un modelo Claude Haiku
+
   // Si se define, los secretos se leen en runtime desde AWS SSM Parameter Store (/prefijo/NOMBRE)
   SSM_PREFIX: z.string().optional(),
 });

@@ -6,9 +6,10 @@ import { E } from '../lib/errors.js';
 import { requiereFolio } from '../middleware/seguridad.js';
 import { ERRORES, IdParam, SEG_FOLIO, cuerpo, resp } from '../schemas/comunes.js';
 import { EvidenciaParams, PresignEvidenciasSchema } from '../schemas/evidencias.js';
-import { ContactoSchema, EditarMiTestimonioSchema } from '../schemas/testimonios.js';
+import { CompromisoParam, ContactoSchema, EditarMiTestimonioSchema, SeguimientoSchema } from '../schemas/testimonios.js';
 import { confirmarEvidencia, eliminarEvidencia, listarEvidencias, presignarEvidencias } from '../services/evidencias.js';
 import { actualizarPerfil, conteosParticipante, descifrarDatos, obtenerParticipante, resumenParticipante } from '../services/participantes.js';
+import { guardarSeguimiento, listarSeguimiento } from '../services/seguimiento.js';
 import { darDeBajaPropio, editarPropio, listarPropios, obtenerPropio } from '../services/testimonios.js';
 import { nuevoRouter, ok, sinCache } from './base.js';
 
@@ -106,6 +107,36 @@ participante.openapi(
   async (c) => {
     await darDeBajaPropio(c, c.get('participante')!.id, c.req.valid('param').id);
     return c.json(ok({ activo: false }), 200);
+  },
+);
+
+/* ─────────────────────────────────────── Seguimiento de compromisos (guía) ─────────────────────────────────────── */
+
+participante.openapi(
+  createRoute({
+    ...base, method: 'get', path: '/api/mis-testimonios/{id}/seguimiento', summary: 'Seguimiento de los compromisos de gobierno de mi caso',
+    description: 'Lo que la persona respondió en su guía por compromiso (¿Ha llegado a tu comunidad?, solicitud y respuesta) y el estado E1/E2/E3/cerrado.',
+    request: { params: IdParam }, responses: { 200: resp('Seguimiento'), ...ERRORES },
+  }),
+  async (c) => {
+    sinCache(c);
+    const { id } = c.req.valid('param');
+    await exigirPropio(c.get('participante')!.id, id);
+    return c.json(ok(await listarSeguimiento(id)), 200);
+  },
+);
+
+participante.openapi(
+  createRoute({
+    ...base, method: 'put', path: '/api/mis-testimonios/{id}/seguimiento/{compromisoId}', summary: 'Responder el seguimiento de un compromiso',
+    description: 'Hay solicitud si se escribe su folio. Si la autoridad no acredita implementación o no responde, el compromiso queda como omisión documentada (E3) para que el equipo la confirme. Cualquier cambio quita la confirmación.',
+    request: { params: CompromisoParam, body: cuerpo(SeguimientoSchema) }, responses: { 200: resp('Seguimiento actualizado'), ...ERRORES },
+  }),
+  async (c) => {
+    sinCache(c);
+    const { id, compromisoId } = c.req.valid('param');
+    await exigirPropio(c.get('participante')!.id, id);
+    return c.json(ok(await guardarSeguimiento(c, id, compromisoId, c.req.valid('json'))), 200);
   },
 );
 

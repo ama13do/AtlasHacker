@@ -6,6 +6,7 @@ type Entrada = {
   sensible_accion?: 'anonimizar' | 'uso_interno' | 'revision_antes_publicar' | null;
   info_menores?: boolean;
   amenazas?: 'no' | 'si' | 'prefiero_no_decir' | null;
+  revision_riesgo?: boolean;
 };
 
 export type Decision = {
@@ -23,6 +24,8 @@ export type Decision = {
  *  2. Información sensible con «revisión antes de publicar» o «uso interno» → siempre queda pendiente.
  *  2b. Información de niñas, niños o adolescentes (Manual C.10) → siempre queda pendiente.
  *  2c. Modo protección (amenazas «sí» o «prefiero no decir») → siempre queda pendiente y con ubicación aproximada.
+ *  2d. Megaproyectos y centrales fósiles (revisión de riesgo, 7 a 14 días) → siempre queda pendiente. Al aprobarse se
+ *      publica de inmediato: no hay publicación diferida.
  *  3. Información sensible con «anonimizar» → se oculta el nombre (vista pública) y la ubicación se generaliza.
  */
 export function decidirPublicacion(modo: ModoPublicacion, t: Entrada): Decision {
@@ -38,6 +41,9 @@ export function decidirPublicacion(modo: ModoPublicacion, t: Entrada): Decision 
   if (proteccion) {
     return { estado: 'pendiente', ubicacion_aproximada: true, razon: 'modo protección (amenazas): requiere revisión' };
   }
+  if (t.revision_riesgo) {
+    return { estado: 'pendiente', ubicacion_aproximada: aproximada, razon: 'megaproyecto o central fósil: revisión de riesgo' };
+  }
   if (t.info_menores) {
     return { estado: 'pendiente', ubicacion_aproximada: aproximada, razon: 'información de menores: requiere revisión' };
   }
@@ -51,6 +57,27 @@ export function decidirPublicacion(modo: ModoPublicacion, t: Entrada): Decision 
 /** «¿Te han amenazado?» = sí o prefiero no decir: anonimato obligatorio, ubicación aproximada y revisión. */
 export function enModoProteccion(amenazas?: string | null): boolean {
   return amenazas === 'si' || amenazas === 'prefiero_no_decir';
+}
+
+type Caso = { amenazas?: string | null; hechos?: readonly string[] | null; subcategoria?: string | null };
+
+/**
+ * Precisión del pin público (Excel de metodología, UI-4): con amenazas solo se muestra el estado; en megaproyectos,
+ * el centro del municipio. null = cuadrícula de ~1 km (o exacta en testimonios del formulario anterior).
+ */
+export function precisionPublica(t: Caso): 'estado' | 'municipio' | null {
+  if (enModoProteccion(t.amenazas)) return 'estado';
+  if (t.subcategoria?.startsWith('MP.')) return 'municipio';
+  return null;
+}
+
+/** Revisión de riesgo (7 a 14 días): amenazas, un proyecto en el territorio o una central fósil. */
+export function revisionDeRiesgo(t: Caso): boolean {
+  return (
+    enModoProteccion(t.amenazas) ||
+    Boolean(t.hechos?.includes('proyecto_territorio')) ||
+    Boolean(t.subcategoria && (t.subcategoria.startsWith('MP.') || t.subcategoria === 'CC.CENTRAL_FOSIL'))
+  );
 }
 
 const TIPOS_CON_DATOS_PERSONALES = new Set(['recibo_factura', 'documento_oficial', 'recibo', 'factura', 'oficio', 'contrato', 'registro_oficial']);

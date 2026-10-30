@@ -10,9 +10,10 @@ import subcategories from '@testimonies/data/guide/subcategories.json'
 import texts from '@testimonies/data/guide/texts.json'
 import { classifyFacts, protectionMode } from '@testimonies/data/facts'
 import type { CategorySlug } from '@testimonies/types/testimony'
-import type { GuideInput } from '@testimonies/utils/guideInput'
+import { needsRiskReview, RISK_REVIEW_NOTICE, type GuideInput, type GuideReview } from '@testimonies/utils/guideInput'
 
-export type { GuideInput }
+export { RISK_REVIEW_NOTICE }
+export type { GuideInput, GuideReview }
 
 interface Subcategory {
   etiqueta: string
@@ -36,6 +37,7 @@ export interface Right {
   article: string
   grade: Grade | null
   phrase: string
+  review: boolean // Identificado en revisión
 }
 export interface RegionFigures {
   region: string
@@ -69,9 +71,29 @@ function parseRights(text: string): Right[] {
     const m = part.match(/^(.*) \((art\. [^)]+)\): (.*)$/)
     if (!m) return []
     const grade = GRADES_IN_TABLE[m[3].split(',')[0].trim()] ?? null
-    return [{ name: m[1], article: m[2], grade, phrase: grade ? GRADE_PHRASES[grade] : '' }]
+    return [{ name: m[1], article: m[2], grade, phrase: grade ? GRADE_PHRASES[grade] : '', review: m[3].includes('identificado en revisión') }]
   })
 }
+
+// Artículo con que el Excel cita cada derecho en sus tablas (p. ej. no discriminación → art. 1º); si no aparece, art. 4º
+const ARTICLE_BY_RIGHT: Record<string, string> = Object.fromEntries(
+  [...Object.values(RIGHTS), ...Object.values(SUBS).map((s) => s.derechos)].flatMap((t) =>
+    t.split(' · ').flatMap((part) => {
+      const m = part.match(/^(.*) \((art\. [^)]+)\):/)
+      return m ? [[m[1], m[2]]] : []
+    }),
+  ),
+)
+const reviewRight = (name: string) => `${name}${texts.derecho_revision.replace('art. 4º', ARTICLE_BY_RIGHT[name] ?? 'art. 4º')}`
+
+const GOVERNMENT_TEXT: Record<NonNullable<GuideReview['government']>, string> = {
+  estatal: texts.responsable_adicional['Gobierno estatal'],
+  municipal: texts.responsable_adicional['Gobierno municipal'],
+  ambos: texts.responsable_adicional['Ambos'],
+}
+
+const CATEGORY_BY_PREFIX: Record<string, CategorySlug> = { IE: 'inseguridad-energetica', CC: 'afectaciones-cambio-climatico', MP: 'megaproyectos' }
+
 
 const num = (s: string) => Number(s.replace(/,/g, ''))
 
@@ -99,17 +121,31 @@ export const REGION_NAMES: Record<string, string> = { BCS: 'Baja California Sur'
 
 const HYDROCARBONS = /gasoduct|oleoduct|fracking|fractura hidr|hidrocarbur|pozo petroler|petrol[ée]r|\bpemex\b/i
 
-export function buildGuide(t: GuideInput) {
+export function buildGuide(t: GuideInput, review?: GuideReview | null) {
   const classified = classifyFacts(t.facts)
   if (!classified) return null
-  const { subcategory: principal, climate } = classified
+  const { climate } = classified
+  const principal = review?.subcategory && SUBS[review.subcategory] ? review.subcategory : classified.subcategory
   const sub = SUBS[principal]
   if (!sub) return null
 
   const region = STATE_REGION[t.state] ?? ''
   const byKey = BY_KEY[`${principal}|${region}`]
-  const firstId = byKey?.compromiso1 ?? ''
-  const moreIds = byKey ? [firstId, ...byKey.verMas.split('; ')].filter((id, i, all) => id && id !== firstId && all.indexOf(id) === i) : []
+  // El compromiso destacado por el revisor pasa al frente; los demás quedan en «Ver más»
+  const firstId = review?.commitment || byKey?.compromiso1 || ''
+  const moreIds = byKey
+    ? [byKey.compromiso1, ...byKey.verMas.split('; ')].filter((id, i, all) => id && id !== firstId && all.indexOf(id) === i)
+    : []
+
+  const protection = protectionMode(t.facts, t.threats)
+  const riskReview = needsRiskReview(t, principal)
+  const m = texts.mapa_publico
+  const publicMap = protection
+    ? 'Solo el estado, anónimo'
+    : (principal.startsWith('MP.') ? 'Centro del municipio' : 'Cuadrícula de ~1 km') + (t.visibility === 'nombre' ? m.con_nombre : m.anonimo)
+
+  let rightsText = RIGHTS[`${principal}|${climate === principal ? '' : climate}`] ?? sub.derechos
+  if (review?.right) rightsText += ` · ${reviewRight(review.right)}`
 
   const place = [t.place.trim(), t.municipality.trim(), t.state].filter(Boolean).join(', ')
   const suggested = fill(texts.pregunta_sugerida, { etiqueta: sub.etiqueta.toLowerCase(), municipio: t.municipality.trim(), estado: t.state })
@@ -124,19 +160,25 @@ export function buildGuide(t: GuideInput) {
 
   const notices = [texts.avisos.base]
   if (t.ongoing === false && t.since === 'mas_de_tres_anios') notices.push(texts.avisos.antes_2025)
+  if (review?.figures) notices.push(texts.avisos.cifras)
+  if (review?.hxnf) notices.push(texts.avisos.hxnf)
 
   return {
     principal,
-    category: classified.category as CategorySlug,
+    category: CATEGORY_BY_PREFIX[principal.slice(0, 2)] ?? classified.category,
     subcategoryLabel: sub.etiqueta,
     title: t.title.trim(),
     place,
     ongoing: t.ongoing === true,
     // Gasoductos, fracking… se registran pero no se vinculan con obligaciones en esta versión
     hydrocarbons: t.facts[0] === 'otro' && HYDROCARBONS.test(`${t.title} ${t.testimony}`),
-    protection: protectionMode(t.facts, t.threats),
-    rights: parseRights(RIGHTS[`${principal}|${climate === principal ? '' : climate}`] ?? sub.derechos),
+    protection,
+    riskReview,
+    publicMap,
+    rights: parseRights(rightsText),
     responsible: sub.responsable,
+    // « · También debe responder el gobierno estatal (LGCC, art. 8)» → sin el separador inicial
+    responsibleExtra: review?.government ? GOVERNMENT_TEXT[review.government].replace(/^ · /, '') : null,
     duty: { text: sub.fragmento, source: sub.fuente },
     renewable: { text: sub.salidaFragmento, source: sub.salidaFuente },
     question,

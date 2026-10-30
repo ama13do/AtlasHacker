@@ -1,14 +1,26 @@
 import http, { type ApiResponse } from '@/core/http/client'
 import {
   draftFromMine,
+  fromFollowUp,
   fromMine,
   fromMyEvidence,
   fromPersonalData,
   fromProfile,
+  reviewFromApi,
   toUpdatePayload,
 } from '@testimonies/services/mappers'
-import type { ApiMiEvidencia, ApiMiPerfil, ApiMiTestimonio, ApiMiTestimonioResumen } from '@testimonies/types/api'
-import type { ModerationStatus, MyEvidence, MyTestimony, ParticipantProfile, PersonalData, TestimonyDraft } from '@testimonies/types/testimony'
+import type { ApiMiEvidencia, ApiMiPerfil, ApiMiTestimonio, ApiMiTestimonioResumen, ApiSeguimiento } from '@testimonies/types/api'
+import type {
+  FollowUp,
+  FollowUpChanges,
+  ModerationStatus,
+  MyEvidence,
+  MyTestimony,
+  ParticipantProfile,
+  PersonalData,
+  TestimonyDraft,
+} from '@testimonies/types/testimony'
+import type { GuideReview } from '@testimonies/utils/guideInput'
 
 // Zona "Mi folio": la persona se identifica con su folio en la cabecera X-Folio (401 si falta o no es válido)
 
@@ -47,9 +59,23 @@ export const participantService = {
   },
 
   // Ficha propia lista para el wizard de edición
-  async getMineAsDraft(folio: string, id: string): Promise<{ folio: string; status: ModerationStatus; active: boolean; draft: TestimonyDraft }> {
+  async getMineAsDraft(
+    folio: string,
+    id: string,
+  ): Promise<{ folio: string; status: ModerationStatus; active: boolean; draft: TestimonyDraft; review: GuideReview }> {
     const { data } = await http.get<ApiResponse<ApiMiTestimonio>>(mine(id), auth(folio))
-    return { folio: data.data.folio, status: data.data.estado, active: data.data.activo, draft: draftFromMine(data.data) }
+    return { folio: data.data.folio, status: data.data.estado, active: data.data.activo, draft: draftFromMine(data.data), review: reviewFromApi(data.data) }
+  },
+
+  // Seguimiento de los compromisos de la guía (¿Ha llegado a tu comunidad?, solicitud y respuesta)
+  async listFollowUp(folio: string, id: string): Promise<FollowUp[]> {
+    const { data } = await http.get<ApiResponse<ApiSeguimiento[]>>(`${mine(id)}/seguimiento`, auth(folio))
+    return data.data.map(fromFollowUp)
+  },
+
+  async saveFollowUp(folio: string, id: string, commitmentId: string, changes: FollowUpChanges): Promise<FollowUp[]> {
+    const { data } = await http.put<ApiResponse<ApiSeguimiento[]>>(`${mine(id)}/seguimiento/${encodeURIComponent(commitmentId)}`, changes, auth(folio))
+    return data.data.map(fromFollowUp)
   },
 
   // Tras editar, vuelve a revisión (según la configuración del dashboard)

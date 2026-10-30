@@ -53,6 +53,7 @@ export interface ApiConfiguracionPublica {
   participantes_pueden_eliminar: boolean
   mapa_tiempo_real: boolean
   consentimiento_version_actual: string
+  asistente_ia?: boolean // Asistente para la pregunta al Tribunal (OpenRouter), apagado por defecto
 }
 
 // GET /api/config
@@ -330,6 +331,27 @@ export interface ApiMiTestimonio extends Omit<ApiMiTestimonioResumen, 'categoria
   sigue_pasando?: boolean | null
   reclamo_previo?: Complaint | null
   amenazas?: Threats | null
+  // Ajustes del revisor (panel de moderación)
+  revision_subcategoria?: string | null
+  revision_derecho?: string | null
+  revision_gobierno?: 'estatal' | 'municipal' | 'ambos' | null
+  revision_compromiso?: string | null
+  aviso_hxnf?: boolean
+  aviso_cifras?: boolean
+}
+
+// GET /api/mis-testimonios/{id}/seguimiento (y en la ficha del panel)
+export interface ApiSeguimiento {
+  compromiso_id: string
+  llego: 'si' | 'no' | 'no_lo_conocia' | null
+  solicitud: boolean
+  folio_solicitud: string | null
+  respuesta: 'pendiente' | 'acredita' | 'no_acredita' | 'sin_respuesta'
+  omision_confirmada: boolean
+  confirmado_at: string | null
+  confirmado_por_nombre: string | null
+  estado: 'E1' | 'E2' | 'E3' | 'cerrado'
+  updated_at: string
 }
 
 // PATCH /api/mis-testimonios/{id}

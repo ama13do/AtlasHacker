@@ -25,7 +25,7 @@ import { fieldErrorsFromApi } from '@testimonies/utils/apiErrors'
 import { normalizeParticipantFolio } from '@testimonies/utils/folio'
 import { participantService } from '@testimonies/services/participant.service'
 import UploadProgress from '@testimonies/components/UploadProgress.vue'
-import { guideInputOf, hasGuide, type GuideInput } from '@testimonies/utils/guideInput'
+import { guideInputOf, hasGuide, needsRiskReview, type GuideInput } from '@testimonies/utils/guideInput'
 
 // La guía trae los datos del Excel: se carga solo cuando se abre
 const TestimonyGuide = defineAsyncComponent(() => import('@testimonies/components/guide/TestimonyGuide.vue'))
@@ -66,6 +66,7 @@ const celebrate = ref(false)
 const previewCelebration = ref(import.meta.env.DEV && route.query.preview === 'exito')
 // Guía después de enviar (con una copia de las respuestas: el borrador se limpia)
 const guideInput = ref<GuideInput | null>(null)
+const guideFolio = ref<string | null>(null) // Folio con el que se envió (para el seguimiento de la guía)
 const showGuide = ref(false)
 // Edición guardada
 const saved = ref(false)
@@ -157,6 +158,7 @@ async function onSubmit() {
     track('success', { tipo: 'testimonio', categoria: draft.topic ?? undefined, con_evidencias: files.length > 0, participante_nuevo: !folio })
     celebrate.value = marchIsUpcoming()
     guideInput.value = guideInputOf(draft)
+    guideFolio.value = folio ?? null
     form.reset()
     const uploadFolio = result.value.participantFolio ?? folio
     if (files.length && uploadFolio) upload.start(result.value.id, uploadFolio, files)
@@ -317,7 +319,13 @@ function viewOnMap() {
           <template v-if="result">
             <div v-if="showGuide && guideInput" class="space-y-6">
               <UploadProgress :upload="upload" />
-              <TestimonyGuide :input="guideInput" :folio="result.folio" :status="GUIDE_STATUS[result.status]">
+              <TestimonyGuide
+                :input="guideInput"
+                :folio="result.folio"
+                :status="GUIDE_STATUS[result.status]"
+                :testimony-id="result.id"
+                :participant-folio="result.participantFolio ?? guideFolio ?? undefined"
+              >
                 <div class="mt-6 flex flex-col gap-3 @xl:flex-row">
                   <button type="button" class="btn-hxnf btn-paper" @click="openGuide(false)">Volver a tu folio</button>
                   <button v-if="result.published" type="button" class="btn-hxnf btn-lime" @click="viewOnMap">Ver en el mapa</button>
@@ -329,6 +337,7 @@ function viewOnMap() {
               :result="result"
               :upload="upload"
               :has-guide="!!guideInput && hasGuide(guideInput)"
+              :risk-review="!!guideInput && needsRiskReview(guideInput)"
               @guide="openGuide(true)"
               @view-on-map="viewOnMap"
               @home="router.push(closeTo)"

@@ -1,20 +1,62 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { participantService } from '@testimonies/services/participant.service'
 import { useCategoriesStore } from '@testimonies/stores/categories'
-import { buildGuide, GUIDE_TITLE, type Grade, type GuideInput } from '@testimonies/utils/guide'
+import type { FollowUp, FollowUpChanges } from '@testimonies/types/testimony'
+import { buildGuide, GUIDE_TITLE, RISK_REVIEW_NOTICE, type Grade, type GuideInput, type GuideReview } from '@testimonies/utils/guide'
 import CategoryBadge from '@testimonies/components/CategoryBadge.vue'
+import CommitmentFollowUp from '@testimonies/components/guide/CommitmentFollowUp.vue'
 import GuideText from '@testimonies/components/guide/GuideText.vue'
 import RegionBars from '@testimonies/components/guide/RegionBars.vue'
 
-// Lo que la persona ve después de enviar (y desde Mi folio): de lo que vive a lo que puede hacer
-const props = defineProps<{ input: GuideInput; folio?: string; status?: string }>()
+// Lo que la persona ve después de enviar (y desde Mi folio): de lo que vive a lo que puede hacer.
+// Con el id del testimonio y el folio de la persona, también registra el seguimiento de los compromisos
+const props = defineProps<{
+  input: GuideInput
+  folio?: string
+  status?: string
+  review?: GuideReview | null
+  testimonyId?: string
+  participantFolio?: string
+}>()
 
 // La categoría se muestra con el nombre y color de la API
 useCategoriesStore()
   .load()
   .catch(() => {})
 
-const guide = computed(() => buildGuide(props.input))
+const guide = computed(() => buildGuide(props.input, props.review))
+
+// Seguimiento: E1 identificado → E2 «no ha llegado» → E3 solicitud sin acreditación (la confirma el equipo)
+const canTrack = computed(() => !!props.testimonyId && !!props.participantFolio)
+const followUps = ref<Record<string, FollowUp>>({})
+const savingId = ref<string | null>(null)
+const followUpError = ref<string | null>(null)
+
+const byCommitment = (list: FollowUp[]) => Object.fromEntries(list.map((f) => [f.commitmentId, f]))
+
+onMounted(async () => {
+  if (!canTrack.value) return
+  try {
+    followUps.value = byCommitment(await participantService.listFollowUp(props.participantFolio!, props.testimonyId!))
+  } catch (e) {
+    console.error(e)
+  }
+})
+
+async function saveFollowUp(commitmentId: string, changes: FollowUpChanges) {
+  if (!canTrack.value) return
+  savingId.value = commitmentId
+  followUpError.value = null
+  try {
+    followUps.value = byCommitment(await participantService.saveFollowUp(props.participantFolio!, props.testimonyId!, commitmentId, changes))
+  } catch (e) {
+    console.error(e)
+    followUpError.value = 'No pudimos guardar tu respuesta. Intenta de nuevo.'
+  } finally {
+    savingId.value = null
+  }
+}
 
 const GRADES: Record<Grade, { label: string; class: string }> = {
   A: { label: 'A', class: 'bg-brand-orange' },
@@ -106,7 +148,7 @@ const HEADING = 'text-base leading-tight font-black uppercase'
                 </span>
                 <span class="min-w-0 text-sm">
                   <span class="block font-bold">{{ r.name }} <span class="font-normal text-fg/60">({{ r.article }} de la Constitución)</span></span>
-                  <span class="block text-fg/75">{{ r.phrase }}</span>
+                  <span class="block text-fg/75">{{ r.phrase }}<template v-if="r.review"> · identificado en revisión</template></span>
                 </span>
               </li>
             </ul>
@@ -119,6 +161,7 @@ const HEADING = 'text-base leading-tight font-black uppercase'
           <section :class="BLOCK" aria-labelledby="g-who">
             <h3 id="g-who" :class="HEADING">Quién debía evitarlo y con qué fundamento</h3>
             <p class="font-bold">Responsable: {{ guide.responsible }}</p>
+            <p v-if="guide.responsibleExtra" class="text-sm font-semibold">{{ guide.responsibleExtra }}</p>
             <p class="text-sm">
               Qué debía hacer: <GuideText :text="`«${guide.duty.text}»`" /> <span class="text-fg/60">({{ guide.duty.source }})</span>
             </p>
@@ -178,6 +221,13 @@ const HEADING = 'text-base leading-tight font-black uppercase'
             <template v-if="guide.commitment">
               <p class="text-sm"><GuideText :text="`«${guide.commitment.fragmento}»`" /> <span class="text-fg/60">({{ guide.commitment.fuente }})</span></p>
               <p class="text-xs text-fg/60">Responsable: {{ guide.commitment.responsable }} · {{ guide.commitment.id }}</p>
+              <CommitmentFollowUp
+                v-if="canTrack"
+                :commitment-id="guide.commitment.id"
+                :entry="followUps[guide.commitment.id]"
+                :saving="savingId === guide.commitment.id"
+                @save="saveFollowUp(guide.commitment.id, $event)"
+              />
             </template>
             <p v-else class="text-sm text-fg/75">Todavía no identificamos un compromiso específico para tu región en este tipo de caso.</p>
             <details v-if="guide.moreCommitments.length" class="text-sm">
@@ -186,9 +236,21 @@ const HEADING = 'text-base leading-tight font-black uppercase'
                 <li v-for="c in guide.moreCommitments" :key="c.id">
                   <GuideText :text="`«${c.fragmento}»`" /> <span class="text-fg/60">({{ c.fuente }})</span>
                   <span class="block text-xs text-fg/60">Responsable: {{ c.responsable }} · {{ c.id }}</span>
+                  <CommitmentFollowUp
+                    v-if="canTrack"
+                    :commitment-id="c.id"
+                    :entry="followUps[c.id]"
+                    :saving="savingId === c.id"
+                    @save="saveFollowUp(c.id, $event)"
+                  />
                 </li>
               </ul>
             </details>
+            <p v-if="canTrack" class="text-xs text-fg/60">
+              E1: compromiso identificado · E2: respondiste que no ha llegado · E3: registraste una solicitud y la autoridad no
+              acreditó o no respondió (el equipo la revisa).
+            </p>
+            <p v-if="followUpError" class="text-sm font-semibold text-danger" role="alert">{{ followUpError }}</p>
           </section>
         </li>
 
@@ -222,7 +284,9 @@ const HEADING = 'text-base leading-tight font-black uppercase'
         <section class="space-y-2 rounded-[22px] border-2 border-dashed border-ink p-4" aria-labelledby="g-notices">
           <h3 id="g-notices" :class="HEADING">Avisos</h3>
           <ul class="list-disc space-y-1 pl-5 text-sm text-fg/80">
-            <li v-if="guide.protection">Modo protección: apareces como anónimo y en el mapa público solo se muestra una ubicación aproximada.</li>
+            <li v-if="guide.riskReview">{{ RISK_REVIEW_NOTICE }}</li>
+            <li v-if="guide.protection">Modo protección: apareces como anónimo y en el mapa público solo se muestra el estado.</li>
+            <li v-else>En el mapa público: {{ guide.publicMap.toLowerCase() }}.</li>
             <li v-for="n in guide.notices" :key="n">{{ n }}</li>
           </ul>
         </section>
